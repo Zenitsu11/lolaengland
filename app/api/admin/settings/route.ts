@@ -1,0 +1,29 @@
+import { NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { isAdminRequest } from '@/lib/admin-auth';
+
+export async function GET() {
+  if (!(await isAdminRequest())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const db = getSupabaseAdmin();
+  if (!db) return NextResponse.json({ error: 'Supabase is not configured' }, { status: 503 });
+  const { data, error } = await db.from('store_settings').select('*').eq('id', true).single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json({ settings: data });
+}
+
+export async function PUT(request: Request) {
+  if (!(await isAdminRequest())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const db = getSupabaseAdmin();
+  if (!db) return NextResponse.json({ error: 'Supabase is not configured' }, { status: 503 });
+  const body = await request.json();
+  const payload = {
+    brand_name: String(body.brand_name ?? 'LOLA ENGLAND').trim(),
+    shipping_message: String(body.shipping_message ?? '').trim(),
+    instagram_url: String(body.instagram_url ?? '').trim(),
+    whatsapp_url: String(body.whatsapp_url ?? '').trim(),
+    contact_email: String(body.contact_email ?? '').trim(),
+  };
+  const { data, error } = await db.from('store_settings').upsert({ id: true, ...payload }).select('*').single();
+  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  return NextResponse.json({ settings: data });
+}
