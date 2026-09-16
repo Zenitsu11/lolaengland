@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { BarChart3, ExternalLink, Package, Settings, ShoppingBag, Plus, Pencil, Trash2, Save, LogOut } from 'lucide-react';
 import { products as demoProducts } from '@/data/products';
 
-type AdminProduct={id:string|number;name:string;slug?:string;price:number;mrp:number;rating:number;reviews:number;description?:string;image_url?:string;amazon_url?:string;flipkart_url?:string;featured?:boolean;active?:boolean;sort_order?:number};
+type AdminProduct={id:string|number;name:string;slug?:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;amazon_url?:string;flipkart_url?:string;featured?:boolean;active?:boolean;sort_order?:number};
 const empty:AdminProduct={id:'new',name:'',slug:'',price:0,mrp:0,rating:0,reviews:0,description:'',image_url:'',amazon_url:'',flipkart_url:'',featured:true,active:true,sort_order:0};
 
 export default function AdminPage(){
