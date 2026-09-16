@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './lola-enhancements.css';
+import './admin-enhancements.css';
 import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 
