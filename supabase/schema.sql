@@ -1,5 +1,4 @@
 -- LOLA ENGLAND database + storage setup
--- Run this once in the Supabase SQL Editor.
 
 create extension if not exists pgcrypto;
 
@@ -38,17 +37,18 @@ alter table public.products enable row level security;
 alter table public.store_settings enable row level security;
 
 drop policy if exists "Public can view active products" on public.products;
-create policy "Public can view active products" on public.products
-for select using (active = true);
+create policy "Public can view active products" on public.products for select using (active = true);
 
 drop policy if exists "Public can view store settings" on public.store_settings;
-create policy "Public can view store settings" on public.store_settings
-for select using (true);
+create policy "Public can view store settings" on public.store_settings for select using (true);
 
 create index if not exists products_active_sort_idx on public.products (active, sort_order, created_at desc);
 
 create or replace function public.set_updated_at()
-returns trigger language plpgsql as $$
+returns trigger
+language plpgsql
+set search_path = public
+as $$
 begin
   new.updated_at = now();
   return new;
@@ -56,20 +56,14 @@ end;
 $$;
 
 drop trigger if exists products_updated_at on public.products;
-create trigger products_updated_at before update on public.products
-for each row execute function public.set_updated_at();
+create trigger products_updated_at before update on public.products for each row execute function public.set_updated_at();
 
 drop trigger if exists store_settings_updated_at on public.store_settings;
-create trigger store_settings_updated_at before update on public.store_settings
-for each row execute function public.set_updated_at();
+create trigger store_settings_updated_at before update on public.store_settings for each row execute function public.set_updated_at();
 
 insert into storage.buckets (id, name, public)
 values ('product-images', 'product-images', true)
 on conflict (id) do update set public = true;
 
 drop policy if exists "Public can view product images" on storage.objects;
-create policy "Public can view product images" on storage.objects
-for select using (bucket_id = 'product-images');
-
--- Upload/delete operations are intentionally not granted to public users.
--- The Next.js owner API uses SUPABASE_SERVICE_ROLE_KEY for those operations.
+create policy "Public can view product images" on storage.objects for select using (bucket_id = 'product-images');
