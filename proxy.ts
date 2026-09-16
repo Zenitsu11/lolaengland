@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export function proxy(request: NextRequest) {
+export default function proxy(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith('/admin')) return NextResponse.next();
   if (request.nextUrl.pathname === '/admin/login') return NextResponse.next();
   const secret = process.env.ADMIN_SESSION_SECRET;
