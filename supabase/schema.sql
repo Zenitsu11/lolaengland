@@ -1,3 +1,6 @@
+-- LOLA ENGLAND database + storage setup
+-- Run this once in the Supabase SQL Editor.
+
 create extension if not exists pgcrypto;
 
 create table if not exists public.products (
@@ -24,6 +27,8 @@ create table if not exists public.store_settings (
   brand_name text not null default 'LOLA ENGLAND',
   shipping_message text not null default 'FREE SHIPPING ON ORDERS OVER ₹799',
   instagram_url text not null default '',
+  whatsapp_url text not null default '',
+  contact_email text not null default '',
   updated_at timestamptz not null default now()
 );
 
@@ -58,5 +63,13 @@ drop trigger if exists store_settings_updated_at on public.store_settings;
 create trigger store_settings_updated_at before update on public.store_settings
 for each row execute function public.set_updated_at();
 
--- Optional: create a Storage bucket named `product-images` in Supabase.
--- Keep writes private to the owner API; public product images can use signed/public URLs later.
+insert into storage.buckets (id, name, public)
+values ('product-images', 'product-images', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists "Public can view product images" on storage.objects;
+create policy "Public can view product images" on storage.objects
+for select using (bucket_id = 'product-images');
+
+-- Upload/delete operations are intentionally not granted to public users.
+-- The Next.js owner API uses SUPABASE_SERVICE_ROLE_KEY for those operations.
