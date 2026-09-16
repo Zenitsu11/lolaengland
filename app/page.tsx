@@ -1,8 +1,9 @@
 import { ArrowRight, Heart, Sparkles, Zap, Truck, ShieldCheck, Leaf } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
-import { products } from '@/data/products';
+import { getPublicProducts } from '@/lib/catalog';
 
-export default function Home(){
+export default async function Home(){
+ const products=await getPublicProducts();
  return <div id="top">
   <section className="hero"><div className="container hero-inner"><div className="hero-copy"><p className="eyebrow">LOLA ENGLAND · WOMEN’S EDIT</p><h1>Wear your<br/><em>mood.</em></h1><p className="hero-text">Elegant everyday T-shirts with a soft, feminine identity. Designed to feel effortless, look elevated, and live beautifully in your everyday wardrobe.</p><a className="btn btn-dark" href="#shop">SHOP T-SHIRTS <ArrowRight/></a><div className="hero-benefits"><span><Truck/>Free shipping<small>On orders over ₹799</small></span><span><ShieldCheck/>Premium quality<small>Everyday comfort</small></span><span><Heart/>Made for women<small>Designed to express</small></span><span><Leaf/>Thoughtful choices<small>Easy everyday style</small></span></div></div><div className="hero-visual"><img src="/models/model-hero.svg" alt="LOLA ENGLAND fashion model wearing a branded T-shirt"/><div className="hero-stamp">MORE<br/><i>than</i><br/>JUST A TEE ♡</div><div className="hero-note">NEW SEASON<br/><strong>ESSENTIALS</strong></div></div></div></section>
 
