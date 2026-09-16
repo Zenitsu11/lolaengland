@@ -1,8 +1,8 @@
 {
-  "name": "lolaengland",
-  "version": "1.0.0",
-  "private": true,
-  "scripts": {"dev":"next dev","build":"next build","start":"next start","lint":"tsc --noEmit"},
-  "dependencies": {"@supabase/ssr":"latest","@supabase/supabase-js":"latest","lucide-react":"latest","next":"latest","react":"latest","react-dom":"latest"},
-  "devDependencies": {"@types/node":"latest","@types/react":"latest","@types/react-dom":"latest","typescript":"latest"}
+  "name":"lolaengland",
+  "version":"1.0.0",
+  "private":true,
+  "scripts":{"dev":"next dev","build":"next build","start":"next start","lint":"tsc --noEmit"},
+  "dependencies":{"@supabase/ssr":"latest","@supabase/supabase-js":"latest","lucide-react":"latest","next":"16.3.3","react":"19.2.0","react-dom":"19.2.0"},
+  "devDependencies":{"@types/node":"latest","@types/react":"latest","@types/react-dom":"latest","typescript":"latest"}
 }
