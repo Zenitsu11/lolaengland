@@ -1,15 +1,41 @@
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
 import { getPublicProducts } from '@/lib/catalog';
+
+const looks = [
+  { image: '/models/model-pink.svg', tag: '01 · SOFT PINK', quote: 'Pretty, playful, effortless.', copy: 'A little pink. A lot of personality.' },
+  { image: '/models/model-black.svg', tag: '02 · AFTER DARK', quote: 'Bold looks. Easy confidence.', copy: 'For nights that deserve a little edge.' },
+  { image: '/models/model-white.svg', tag: '03 · CLEAN GIRL', quote: 'Less effort. More style.', copy: 'Clean, comfortable and always on point.' },
+  { image: '/models/model-rose.svg', tag: '04 · ROSE EDIT', quote: 'Cute today. Confident always.', copy: 'Soft colour, relaxed fit, main-character energy.' },
+];
 
 export default async function Home(){
  const products=await getPublicProducts();
  return <div id="top">
-  <section className="hero"><div className="container hero-inner"><div className="hero-copy"><p className="eyebrow">LOLA ENGLAND · WOMEN’S EDIT</p><h1>Wear your<br/><em>mood.</em></h1><p className="hero-text">Trendy, comfortable and unapologetically you. Women’s T-shirts made for coffee runs, late-night plans, lazy Sundays and every little main-character moment.</p><a className="btn btn-dark" href="#shop">SHOP T-SHIRTS <ArrowRight/></a><p className="fashion-quote">“Good outfits. Brighter days.”</p></div><div className="hero-visual"><img src="/models/model-hero.svg" alt="LOLA ENGLAND fashion model wearing a women's T-shirt"/><div className="hero-stamp">MORE<br/><i>than</i><br/>JUST A TEE ♡</div><div className="hero-note">NEW SEASON<br/><strong>ESSENTIALS</strong></div></div></div></section>
+  <section className="hero hero-editorial"><div className="container hero-editorial-grid">
+    <div className="hero-copy hero-editorial-copy">
+      <p className="eyebrow">LOLA ENGLAND · WOMEN’S EDIT</p>
+      <h1>Dress like<br/><em>you mean it.</em></h1>
+      <p className="hero-text">Everyday women’s T-shirts with a little attitude. Relaxed fits, expressive moods and the LOLA ENGLAND energy you can wear anywhere.</p>
+      <div className="hero-quote-block"><Sparkles/><div><strong>“Wear your mood.”</strong><span>Style is a feeling.</span></div></div>
+      <a className="btn btn-dark" href="#shop">SHOP THE EDIT <ArrowRight/></a>
+    </div>
+    <div className="hero-visual hero-model-visual">
+      <img src="/models/model-hero.svg" alt="AI-inspired female fashion model wearing a LOLA ENGLAND T-shirt"/>
+      <div className="hero-editorial-label"><span>LOLA</span><small>ENGLAND</small></div>
+      <div className="hero-caption"><span>THE NEW</span><strong>LOLA GIRL</strong></div>
+    </div>
+  </div></section>
 
-  <section className="lookbook section" id="models"><div className="container"><div className="section-head"><div><p className="eyebrow">THE LOLA LOOKBOOK</p><h2>Styled on her.</h2><p>Fashion-forward looks for every mood, made with AI-inspired LOLA models.</p></div><a className="arrow-link" href="#shop">Shop the looks →</a></div><div className="model-grid"><article className="model-card model-tall"><img src="/models/model-pink.svg" alt="AI-inspired LOLA fashion model wearing pink"/><div><span>01 · SOFT PINK</span><h3>“Pretty, playful, effortless.”</h3><a href="#shop">Explore pink edit →</a></div></article><article className="model-card"><img src="/models/model-black.svg" alt="AI-inspired LOLA fashion model wearing black"/><div><span>02 · AFTER DARK</span><h3>“Bold looks. Easy confidence.”</h3><a href="#shop">Explore black edit →</a></div></article><article className="model-card model-message"><div><span>LOLA ENGLAND</span><h3>Be you.<br/><i>Be LOLA.</i></h3><p>“Your mood deserves an outfit.”</p><a href="#shop" className="btn btn-light">SHOP T-SHIRTS</a></div></article></div></div></section>
+  <section className="lookbook section" id="models"><div className="container">
+    <div className="lookbook-intro"><div><p className="eyebrow">THE LOLA LOOKBOOK</p><h2>She wears<br/><em>the mood.</em></h2></div><p>Different days. Different energy. One easy wardrobe of women's T-shirts made to move with you.</p></div>
+    <div className="model-gallery">{looks.map((look)=><article className="fashion-look" key={look.tag}>
+      <div className="fashion-look-image"><img src={look.image} alt={`AI-inspired female fashion model, ${look.tag.toLowerCase()}`}/><span className="look-number">{look.tag.split(' ')[0]}</span><div className="shirt-logo"><img src="/logo.jpg" alt="LOLA ENGLAND logo"/></div></div>
+      <div className="fashion-look-copy"><span>{look.tag}</span><h3>“{look.quote}”</h3><p>{look.copy}</p><a href="#shop">SHOP THIS MOOD →</a></div>
+    </article>)}</div>
+  </div></section>
 
-  <section className="section style-quotes"><div className="container quote-grid"><article><span>01</span><h3>“Wear what feels like you.”</h3><p>Soft fabrics, relaxed fits and a little attitude.</p></article><article><span>02</span><h3>“Less effort. More style.”</h3><p>Easy tees that make everyday dressing feel better.</p></article><article><span>03</span><h3>“Cute today. Confident always.”</h3><p>Because your favourite T-shirt should feel like your favourite version of you.</p></article></div></section>
+  <section className="quote-banner"><div className="container"><p className="eyebrow">LOLA ENGLAND</p><h2>“Your outfit doesn’t<br/><em>need permission.</em>”</h2><p>Wear the colour. Take the space. Make the everyday yours.</p></div></section>
 
   <section className="section" id="shop"><div className="container"><div className="section-head"><div><p className="eyebrow">THE EVERYDAY EDIT</p><h2>Trending now</h2><p>Curated women’s T-shirts for every mood.</p></div><a className="arrow-link" href="#shop">View all →</a></div><div className="product-grid">{products.map(p=><ProductCard key={p.id} product={p}/>)}</div></div></section>
 
