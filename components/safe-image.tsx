@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ImgHTMLAttributes } from 'react';
 
-type SafeImageProps = React.ImgHTMLAttributes<HTMLImageElement> & {
+type SafeImageProps = ImgHTMLAttributes<HTMLImageElement> & {
   fallbackSrc: string;
 };
 
