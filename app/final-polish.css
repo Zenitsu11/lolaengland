@@ -1,0 +1,35 @@
+/* Final visual pass: stable imagery, clean branding, premium fashion layout. */
+.brand,.brand:hover,.brand:focus-visible,.brand-logo,.brand-logo:hover,.brand-logo:focus-visible,.mobile-logo,.mobile-logo:hover{transform:none!important;animation:none!important;transition:none!important}
+.brand{display:flex!important;align-items:center!important;justify-content:flex-start!important;width:150px!important;height:72px!important;overflow:hidden!important;background:transparent!important}
+.brand-logo{width:128px!important;height:64px!important;max-height:64px!important;object-fit:contain!important;object-position:center!important;display:block!important;background:transparent!important}
+.image-safe{overflow:hidden}
+.image-safe>img,.product-image,.editorial-hero-image>img,.editorial-look-media>img,.campaign-card>img,.model-rail-card>img,.editorial-join-image>img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+.editorial-hero-image{min-height:620px;background:#eadde1}
+.editorial-hero-image>img{object-position:center}
+.editorial-lookbook{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.editorial-look{min-width:0}
+.editorial-look-media{aspect-ratio:4/3;min-height:300px;position:relative;background:#eadde1;border-radius:28px}
+.editorial-look-media>img{transition:transform .35s ease}
+.editorial-look:hover .editorial-look-media>img{transform:scale(1.025)}
+.editorial-look-index{position:absolute;top:16px;left:16px;z-index:2;background:rgba(255,255,255,.94);color:#111;border-radius:999px;padding:8px 11px;font-size:11px;font-weight:800}
+.editorial-look-copy{padding:18px 4px 6px}
+.campaign-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.campaign-card{min-height:560px;position:relative;overflow:hidden;border-radius:28px;background:#eadde1}
+.campaign-card>img{position:absolute;inset:0}
+.campaign-card .campaign-copy{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:34px;color:white;background:linear-gradient(transparent,rgba(0,0,0,.78))}
+.campaign-model-card .campaign-copy{background:linear-gradient(transparent,rgba(0,0,0,.74))}
+.model-rail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.model-rail-card{position:relative;aspect-ratio:3/4;min-height:360px;border-radius:24px;overflow:hidden;background:#eadde1}
+.model-rail-card>img{position:absolute;inset:0}
+.model-rail-card::after{content:'';position:absolute;inset:35% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.72));pointer-events:none}
+.rail-copy{position:absolute;z-index:2;left:20px;right:20px;bottom:20px;color:white;display:grid;gap:5px}
+.rail-copy span{font-size:10px;font-weight:800;letter-spacing:.16em}
+.rail-copy strong{font-family:Georgia,serif;font-size:25px}
+.product-art{position:relative;overflow:hidden;min-height:360px}
+.product-image{position:absolute;inset:0;object-fit:cover}
+.product-card:hover .product-image{transform:scale(1.02)}
+.product-card .tee{display:none!important}
+.editorial-join{overflow:hidden}
+.editorial-join-image{min-height:430px;background:#eadde1;border-radius:28px}
+@media(max-width:900px){.editorial-lookbook,.campaign-grid{grid-template-columns:1fr}.model-rail{grid-template-columns:repeat(2,minmax(0,1fr))}.editorial-hero-image{min-height:460px}.campaign-card{min-height:500px}}
+@media(max-width:560px){.brand{width:112px!important;height:62px!important}.brand-logo{width:100px!important;height:54px!important}.model-rail{grid-template-columns:1fr}.editorial-look-media{min-height:250px}.product-art{min-height:330px}}
