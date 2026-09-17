@@ -1,4 +1,5 @@
 import { ArrowUpRight, Star } from 'lucide-react';
+import { SafeImage } from '@/components/safe-image';
 
 export type Product = {
   id: string | number;
@@ -19,11 +20,7 @@ export function ProductCard({ product }: { product: Product }) {
   return <article className="product-card">
     <div className="product-art" style={{ background: product.tone }}>
       <span className="pill">TRENDING</span>
-      {product.image_url ? (
-        <img className="product-image" src={product.image_url} alt={product.name} loading="lazy" />
-      ) : (
-        <div className="tee"><div className="tee-neck"/><div className="tee-logo">LOLA<br/><small>ENGLAND</small></div></div>
-      )}
+      <SafeImage className="product-image" src={product.image_url || '/models/model-pink.webp'} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt`} width={800} height={600} loading="lazy" />
     </div>
     <div className="product-info">
       <h3>{product.name}</h3>
