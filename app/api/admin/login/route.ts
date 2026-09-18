@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     if (!account) return NextResponse.json({ ok: false }, { status: 401 });
 
     const salt = Buffer.from(account.password_salt, 'base64');
-    const derived = await scryptAsync(password, salt, 64, { N: 16384, r: 8, p: 1 }) as Buffer;
+    const derived = await scryptAsync(password, salt, 64) as Buffer;
     const expected = Buffer.from(account.password_hash, 'base64');
     if (derived.length !== expected.length || !derived.equals(expected)) {
       return NextResponse.json({ ok: false }, { status: 401 });
