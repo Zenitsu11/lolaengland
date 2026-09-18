@@ -1,0 +1,41 @@
+/* Clickable store + stable brand pass */
+.brand-frame{display:flex!important;align-items:center!important;justify-content:center!important;width:120px!important;height:68px!important;overflow:hidden!important;background:#111!important;flex:0 0 120px!important}
+.brand-logo{display:block!important;width:120px!important;height:auto!important;max-width:120px!important;max-height:none!important;object-fit:contain!important;object-position:center!important;background:#111!important;border:0!important;border-radius:0!important;transform:none!important;animation:none!important;transition:none!important}
+.brand:hover .brand-logo,.brand:focus-visible .brand-logo{transform:none!important;animation:none!important}
+.mobile-brand-frame{width:150px!important;height:90px!important;flex-basis:150px!important;margin:8px 0 22px!important}
+.mobile-logo{width:150px!important;height:auto!important;max-width:150px!important;max-height:none!important;background:#111!important;object-fit:contain!important;object-position:center!important}
+.actions a{display:inline-flex;color:inherit;align-items:center;justify-content:center;padding:4px}
+.product-card-main{display:block;color:inherit;text-decoration:none}
+.product-card-main .product-info{padding-bottom:10px}
+.product-card .market-buttons{padding:0 20px 20px}
+.editorial-look,.campaign-card,.model-rail-card,.editorial-hero-image,.editorial-join-image,.editorial-value{color:inherit;text-decoration:none}
+.editorial-look{display:block}
+.editorial-look-copy b{display:inline-block;font-size:10px;letter-spacing:.1em;border-bottom:1px solid #111;padding-bottom:4px}
+.editorial-look:hover .editorial-look-media>img,.campaign-card:hover>img,.model-rail-card:hover>img,.product-card:hover .product-image{transform:scale(1.025)}
+.inner-page{padding:30px 0 100px;background:var(--paper);min-height:70vh}
+.back-link{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13px;margin-bottom:35px}
+.back-link svg{width:17px}
+.inner-hero{background:linear-gradient(135deg,#f7dfe5,#fff5f6);border-radius:32px;padding:60px 7%;margin-bottom:35px}
+.inner-hero h1{font:600 clamp(52px,7vw,88px)/.92 'Playfair Display',Georgia,serif;margin:15px 0}
+.inner-hero p:last-child{max-width:680px;color:var(--muted);font-size:18px;line-height:1.7}
+.collection-toolbar{display:flex;justify-content:space-between;align-items:center;margin:0 0 18px;padding:0 3px;color:var(--muted);font-size:13px}
+.collection-toolbar a{display:inline-flex;gap:6px;align-items:center;color:#111;font-weight:700}
+.collection-toolbar svg{width:15px}
+.product-detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.85fr);gap:55px;align-items:start}
+.product-detail-media{min-height:680px;border-radius:30px;overflow:hidden;background:#f2e3e7}
+.product-detail-media img{width:100%;height:100%;min-height:680px;display:block;object-fit:cover;object-position:center top}
+.product-detail-copy{padding:35px 10px}
+.product-detail-copy h1{font:600 clamp(45px,5vw,70px)/.98 'Playfair Display',Georgia,serif;margin:15px 0 25px}
+.detail-rating{display:flex;align-items:center;gap:3px;color:#777;font-size:13px;margin-bottom:20px}
+.detail-rating svg{width:16px;height:16px;fill:#888;stroke:#888}
+.detail-rating span{margin-left:8px}
+.detail-price{font-size:35px;font-weight:800}.detail-price del{font-size:17px;color:#aaa;margin-left:8px;font-weight:500}
+.detail-description{color:var(--muted);line-height:1.75;font-size:17px;max-width:600px}
+.size-note{display:grid;gap:5px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:20px 0;margin:25px 0}
+.size-note span{color:var(--muted);font-size:14px}
+.detail-actions{display:grid;gap:12px;margin-bottom:18px}.detail-actions .market{padding:16px}
+.detail-back{width:100%;margin-top:4px}
+.utility-page{min-height:70vh;display:grid;place-items:center;padding:70px 24px;background:linear-gradient(135deg,#f7dfe5,#fffafa)}
+.utility-page>div{width:min(620px,100%);background:#fff;border:1px solid var(--line);border-radius:30px;padding:55px;text-align:center;box-shadow:0 25px 70px #0000000d}.utility-page svg{width:32px;height:32px;margin-bottom:20px}.utility-page h1{font:600 clamp(46px,7vw,72px)/.95 'Playfair Display',Georgia,serif;margin:15px 0}.utility-page p:not(.editorial-eyebrow){color:var(--muted);line-height:1.7;margin-bottom:28px}
+@media(max-width:800px){.brand-frame{width:105px!important;height:60px!important;flex-basis:105px!important}.brand-logo{width:105px!important}.product-detail{grid-template-columns:1fr;gap:10px}.product-detail-media,.product-detail-media img{min-height:520px}.product-detail-copy{padding:20px 5px}.inner-hero{padding:45px 25px}.utility-page>div{padding:38px 25px}}
+@media(max-width:560px){.mobile-brand-frame{width:135px!important;height:82px!important;flex-basis:135px!important}.mobile-logo{width:135px!important}.product-card .market-buttons{padding:0 14px 14px}.product-detail-media,.product-detail-media img{min-height:430px}.detail-price{font-size:30px}}
