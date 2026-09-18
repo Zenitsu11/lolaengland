@@ -12,7 +12,7 @@ import { Footer } from '@/components/footer';
 export const metadata: Metadata = {
   title: 'LOLA ENGLAND — Women’s T-Shirts',
   description: 'LOLA ENGLAND — expressive women’s T-shirts, editorial looks and everyday style.',
-  metadataBase: new URL('https://lolaengland.netlify.app'),
+  metadataBase: new URL('https://lolaengland.vercel.app'),
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
