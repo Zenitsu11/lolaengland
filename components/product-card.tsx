@@ -16,7 +16,7 @@ export type Product = {
   flipkart?: string;
 };
 
-const fallbackModels = ['/models/hero-model.webp','/models/hero-model.webp','/models/hero-model.webp','/models/hero-model.webp'];
+const fallbackModels = ['/models/generated-pink.webp','/models/generated-pink-2.webp','/models/generated-black.webp','/models/generated-floral.webp'];
 
 export function ProductCard({ product, visualIndex = 0 }: { product: Product; visualIndex?: number }) {
   const reviews = Number(product.reviews || 0).toLocaleString('en-IN');
