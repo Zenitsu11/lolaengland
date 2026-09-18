@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { ArrowRight, Heart, Sparkles, Star } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
 import { SafeImage } from '@/components/safe-image';
@@ -17,6 +18,8 @@ const railLooks = [
   { image: '/models/generated-black.webp', label: 'NIGHT EDIT', title: 'Own the night.', slug:'after-dark' },
   { image: '/models/generated-floral.webp', label: 'GRAPHIC EDIT', title: 'Make a statement.', slug:'graphic-girl' },
 ];
+
+export const metadata: Metadata = { title: 'LOLA ENGLAND — Women’s T-Shirts', description: 'Shop expressive women’s T-shirts, oversized fits and everyday styles from LOLA ENGLAND.' };
 
 export default async function Home() {
   const products = await getPublicProducts();
