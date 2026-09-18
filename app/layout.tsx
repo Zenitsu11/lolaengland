@@ -5,6 +5,7 @@ import './lola-editorial.css';
 import './admin-enhancements.css';
 import './store-enhancements.css';
 import './final-polish.css';
+import './clickable-store.css';
 import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 
