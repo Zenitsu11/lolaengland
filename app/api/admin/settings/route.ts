@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { isAdminRequest } from '@/lib/admin-auth';
 
@@ -17,13 +18,14 @@ export async function PUT(request: Request) {
   if (!db) return NextResponse.json({ error: 'Supabase is not configured' }, { status: 503 });
   const body = await request.json();
   const payload = {
-    brand_name: String(body.brand_name ?? 'LOLA ENGLAND').trim(),
-    shipping_message: String(body.shipping_message ?? '').trim(),
-    instagram_url: String(body.instagram_url ?? '').trim(),
-    whatsapp_url: String(body.whatsapp_url ?? '').trim(),
-    contact_email: String(body.contact_email ?? '').trim(),
+    brand_name: String(body.brand_name ?? 'LOLA ENGLAND').trim().slice(0, 100),
+    shipping_message: String(body.shipping_message ?? '').trim().slice(0, 200),
+    instagram_url: String(body.instagram_url ?? '').trim().slice(0, 500),
+    whatsapp_url: String(body.whatsapp_url ?? '').trim().slice(0, 500),
+    contact_email: String(body.contact_email ?? '').trim().slice(0, 320),
   };
   const { data, error } = await db.from('store_settings').upsert({ id: true, ...payload }).select('*').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  revalidatePath('/');
   return NextResponse.json({ settings: data });
 }
