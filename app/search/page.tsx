@@ -1,0 +1,1 @@
+import Link from 'next/link'; import { Search } from 'lucide-react'; export default function SearchPage(){return <main className="utility-page"><div><Search/><p className="editorial-eyebrow">LOLA SEARCH</p><h1>Find your mood.</h1><p>Search is ready for the next catalog release.</p><Link className="btn btn-dark" href="/collection/all">Browse T-shirts</Link></div></main>}
