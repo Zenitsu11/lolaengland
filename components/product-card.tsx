@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowUpRight, Star, Repeat2 } from 'lucide-react';
-import { useRef, useState, type TouchEvent } from 'react';
+import { useRef, useState, type MouseEvent, type TouchEvent } from 'react';
 import { SafeImage } from '@/components/safe-image';
 
 export type Product = {
@@ -25,6 +25,7 @@ const fallbackModels = ['/products/lola-mint-front.webp?v=6','/products/lola-nav
 export function ProductCard({ product, visualIndex = 0 }: { product: Product; visualIndex?: number }) {
   const [showBack, setShowBack] = useState(false);
   const touchStartX = useRef<number | null>(null);
+  const didSwipe = useRef(false);
   const reviews = Number(product.reviews || 0).toLocaleString('en-IN');
   const fallback = fallbackModels[visualIndex % fallbackModels.length];
   const hasBack = Boolean(product.secondary_image_url);
@@ -40,6 +41,7 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
     touchStartX.current = null;
     if (Math.abs(delta) < 35) return;
     event.preventDefault();
+    didSwipe.current = true;
     setShowBack(delta < 0);
   };
 
@@ -54,7 +56,16 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
         onTouchEnd={handleTouchEnd}
       >
         <span className="pill">TRENDING</span>
-        <div className="product-image-wrap">
+        <div
+          className="product-image-wrap"
+          onClick={(event: MouseEvent<HTMLDivElement>) => {
+            if (didSwipe.current) {
+              event.preventDefault();
+              event.stopPropagation();
+              didSwipe.current = false;
+            }
+          }}
+        >
           <SafeImage
             className={'product-image product-image-primary' + (showBack ? ' is-hidden' : '')}
             src={product.image_url || fallback}
