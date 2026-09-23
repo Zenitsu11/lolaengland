@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { isAdminRequest } from '@/lib/admin-auth';
 
-export async function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const loggedIn = await isAdminRequest();
 

@@ -49,3 +49,8 @@
   .product-image-wrap{touch-action:pan-y;user-select:none;-webkit-user-select:none}
   .product-image-wrap .product-image{object-fit:contain!important}
 }
+
+
+/* Keep the private owner area visually separate from the public storefront shell. */
+body:has(.admin-shell) .header,body:has(.admin-shell) footer,body:has(.login-page) .header,body:has(.login-page) footer{display:none!important}
+body:has(.admin-shell) main,body:has(.login-page) main{margin:0!important;padding:0!important}
