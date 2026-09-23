@@ -9,7 +9,5 @@
 .product-image-wrap .product-image.is-visible{opacity:1}
 .product-image-secondary{opacity:0}
 .image-flip-hint{position:absolute;right:12px;bottom:12px;display:inline-flex;align-items:center;gap:5px;padding:7px 10px;border-radius:999px;background:#ffffffeb;border:1px solid #eee;color:#222;font-size:10px;font-weight:700;letter-spacing:.08em;pointer-events:none;box-shadow:0 5px 16px #00000012}
-.product-art:hover .product-image-secondary{opacity:1}
-.product-art:hover .product-image-primary:not(.is-hidden){opacity:0}
 @media(max-width:700px){.image-flip-hint{font-size:9px;padding:6px 8px}.product-image-wrap{touch-action:manipulation}}
 @media(prefers-reduced-motion:reduce){.product-image-wrap .product-image{transition:none}}
