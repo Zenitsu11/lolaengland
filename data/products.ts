@@ -13,4 +13,6 @@ export const products: Product[] = [
   {id:6,name:'Discipline — Olive (Back)',price:599,mrp:899,rating:4.6,reviews:'680',tone:'#55701d',image_url:'/products/lola-olive-back.webp'+v,amazon,flipkart,description:'Olive oversized T-shirt with a statement back print.'},
   {id:7,name:'Unleash The Beast — Brown',price:599,mrp:899,rating:4.6,reviews:'620',tone:'#3b251b',image_url:'/products/lola-brown-front.webp'+v,amazon,flipkart,description:'Brown relaxed-fit T-shirt with a clean minimal front.'},
   {id:8,name:'Unleash The Beast — Brown (Back)',price:599,mrp:899,rating:4.6,reviews:'620',tone:'#3b251b',image_url:'/products/lola-brown-back.webp'+v,amazon,flipkart,description:'Brown T-shirt with a bold Unleash The Beast back graphic.'},
+  {id:9,name:'Purple Headphones — Black',price:599,mrp:899,rating:4.6,reviews:'540',tone:'#111111',image_url:'/products/lola-headphones-front.webp?v=1',amazon,flipkart,description:'Black T-shirt with a bold purple headphones graphic and relaxed everyday fit.'},
+  {id:10,name:'Purple Headphones — Black (Back)',price:599,mrp:899,rating:4.6,reviews:'540',tone:'#111111',image_url:'/products/lola-headphones-back.webp?v=1',amazon,flipkart,description:'Black T-shirt with a clean back view and relaxed everyday fit.'},
 ];
