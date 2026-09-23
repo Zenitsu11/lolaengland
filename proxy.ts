@@ -1,11 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
+import { isAdminRequest } from '@/lib/admin-auth';
 
-export default function proxy(request: NextRequest) {
-  if (!request.nextUrl.pathname.startsWith('/admin')) return NextResponse.next();
-  if (request.nextUrl.pathname === '/admin/login') return NextResponse.next();
-  const session = request.cookies.get('lola_admin_session')?.value;
-  if (!session) return NextResponse.redirect(new URL('/admin/login', request.url));
+export async function proxy(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const loggedIn = await isAdminRequest();
+
+  if (pathname === '/admin/login') {
+    if (loggedIn) return NextResponse.redirect(new URL('/admin', request.url));
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith('/admin')) {
+    if (!loggedIn) {
+      const loginUrl = new URL('/admin/login', request.url);
+      loginUrl.searchParams.set('next', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 
-export const config = { matcher: ['/admin/:path*'] };
+export const config = {
+  matcher: ['/admin/:path*'],
+};
