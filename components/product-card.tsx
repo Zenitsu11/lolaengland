@@ -1,5 +1,8 @@
+'use client';
+
 import Link from 'next/link';
-import { ArrowUpRight, Star } from 'lucide-react';
+import { ArrowUpRight, Star, Repeat2 } from 'lucide-react';
+import { useState } from 'react';
 import { SafeImage } from '@/components/safe-image';
 
 export type Product = {
@@ -20,13 +23,39 @@ export type Product = {
 const fallbackModels = ['/models/generated-pink.webp','/models/generated-pink-2.webp','/models/generated-black.webp','/models/generated-floral.webp'];
 
 export function ProductCard({ product, visualIndex = 0 }: { product: Product; visualIndex?: number }) {
+  const [showBack, setShowBack] = useState(false);
   const reviews = Number(product.reviews || 0).toLocaleString('en-IN');
   const fallback = fallbackModels[visualIndex % fallbackModels.length];
+  const hasBack = Boolean(product.secondary_image_url);
+  const toggleView = (event?: React.MouseEvent | React.KeyboardEvent) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (hasBack) setShowBack(value => !value);
+  };
+
   return <article className="product-card">
     <Link className="product-card-main" href={`/product/${encodeURIComponent(String(product.id))}`}>
-      <div className="product-art" style={{ background: product.tone }}>
+      <div
+        className="product-art"
+        style={{ background: product.tone }}
+        onMouseEnter={() => hasBack && setShowBack(true)}
+        onMouseLeave={() => hasBack && setShowBack(false)}
+      >
         <span className="pill">TRENDING</span>
-        <div className="product-image-wrap"><SafeImage className="product-image product-image-primary" src={product.image_url || fallback} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt front view`} width={800} height={900} loading="eager" decoding="async" />{product.secondary_image_url ? <SafeImage className="product-image product-image-secondary" src={product.secondary_image_url} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt back view`} width={800} height={900} loading="eager" decoding="async" /> : null}</div>
+        <div
+          className="product-image-wrap"
+          role={hasBack ? 'button' : undefined}
+          tabIndex={hasBack ? 0 : undefined}
+          aria-label={hasBack ? `Show ${showBack ? 'front' : 'back'} view` : undefined}
+          onClick={toggleView}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') toggleView(event);
+          }}
+        >
+          <SafeImage className={`product-image product-image-primary${showBack ? ' is-hidden' : ''}`} src={product.image_url || fallback} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt front view`} width={800} height={900} loading="eager" decoding="async" />
+          {hasBack ? <SafeImage className={`product-image product-image-secondary${showBack ? ' is-visible' : ''}`} src={product.secondary_image_url!} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt back view`} width={800} height={900} loading="eager" decoding="async" /> : null}
+          {hasBack ? <span className="image-flip-hint"><Repeat2 size={14}/> {showBack ? 'BACK' : 'FRONT'}</span> : null}
+        </div>
       </div>
       <div className="product-info">
         <h3>{product.name}</h3>
