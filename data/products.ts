@@ -2,7 +2,7 @@ import type { Product } from '@/components/product-card';
 
 const amazon = 'https://www.amazon.in/roadster-Womens-Tops-T-Shirts-Shirts/s?k=roadster&rh=n%3A1968542031';
 const flipkart = 'https://www.flipkart.com/womens-tshirts/oversized~fit/pr?sid=clo%2Cank%2Cloi';
-const v = '?v=4';
+const v = '?v=5';
 
 export const products: Product[] = [
   {id:1,name:'Give Me Space — Mint (Back)',price:599,mrp:899,rating:4.5,reviews:'850',tone:'#c8f3e8',image_url:'/products/lola-mint-back.webp'+v,amazon,flipkart,description:'Mint T-shirt with a clean back view and relaxed everyday fit.'},
