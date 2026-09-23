@@ -34,3 +34,33 @@
 .editorial-join-image{min-height:430px;background:#eadde1;border-radius:28px}
 @media(max-width:900px){.editorial-lookbook,.campaign-grid{grid-template-columns:1fr}.model-rail{grid-template-columns:repeat(2,minmax(0,1fr))}.editorial-hero-image{min-height:460px}.campaign-card{min-height:500px}}
 @media(max-width:560px){.brand{width:112px!important;height:62px!important;flex-basis:112px!important}.brand-logo{width:92px!important;height:62px!important;max-width:92px!important;max-height:62px!important}.model-rail{grid-template-columns:1fr}.editorial-look-media{min-height:250px}.product-art{min-height:330px}}
+
+/* Product image stability: give the absolute image layer a real containing box. */
+.product-art{
+  position:relative!important;
+  min-height:360px!important;
+  height:360px!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+.product-art .product-image-wrap{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+  overflow:hidden!important;
+  background:#fff!important;
+}
+.product-art .product-image-wrap .product-image{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  display:block!important;
+  object-fit:contain!important;
+  object-position:center!important;
+}
+@media(max-width:560px){
+  .product-art{height:330px!important;min-height:330px!important}
+}
