@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowUpRight, Star, Repeat2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { SafeImage } from '@/components/safe-image';
 
 export type Product = {
@@ -27,7 +27,7 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
   const reviews = Number(product.reviews || 0).toLocaleString('en-IN');
   const fallback = fallbackModels[visualIndex % fallbackModels.length];
   const hasBack = Boolean(product.secondary_image_url);
-  const toggleView = (event?: React.MouseEvent | React.KeyboardEvent) => {
+  const toggleView = (event?: MouseEvent | KeyboardEvent) => {
     event?.preventDefault();
     event?.stopPropagation();
     if (hasBack) setShowBack(value => !value);
