@@ -12,6 +12,7 @@ export type Product = {
   tone: string;
   description?: string;
   image_url?: string;
+  secondary_image_url?: string;
   amazon?: string;
   flipkart?: string;
 };
@@ -25,7 +26,7 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
     <Link className="product-card-main" href={`/product/${encodeURIComponent(String(product.id))}`}>
       <div className="product-art" style={{ background: product.tone }}>
         <span className="pill">TRENDING</span>
-        <SafeImage className="product-image" src={product.image_url || fallback} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt`} width={800} height={900} loading="eager" decoding="async" />
+        <div className="product-image-wrap"><SafeImage className="product-image product-image-primary" src={product.image_url || fallback} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt front view`} width={800} height={900} loading="eager" decoding="async" />{product.secondary_image_url ? <SafeImage className="product-image product-image-secondary" src={product.secondary_image_url} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt back view`} width={800} height={900} loading="eager" decoding="async" /> : null}</div>
       </div>
       <div className="product-info">
         <h3>{product.name}</h3>
