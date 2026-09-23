@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowUpRight, Star, Repeat2 } from 'lucide-react';
-import { useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { useState } from 'react';
 import { SafeImage } from '@/components/safe-image';
 
 export type Product = {
@@ -27,11 +27,6 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
   const reviews = Number(product.reviews || 0).toLocaleString('en-IN');
   const fallback = fallbackModels[visualIndex % fallbackModels.length];
   const hasBack = Boolean(product.secondary_image_url);
-  const toggleView = (event?: MouseEvent | KeyboardEvent) => {
-    event?.preventDefault();
-    event?.stopPropagation();
-    if (hasBack) setShowBack(value => !value);
-  };
 
   return <article className="product-card">
     <Link className="product-card-main" href={`/product/${encodeURIComponent(String(product.id))}`}>
@@ -42,19 +37,30 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
         onMouseLeave={() => hasBack && setShowBack(false)}
       >
         <span className="pill">TRENDING</span>
-        <div
-          className="product-image-wrap"
-          role={hasBack ? 'button' : undefined}
-          tabIndex={hasBack ? 0 : undefined}
-          aria-label={hasBack ? `Show ${showBack ? 'front' : 'back'} view` : undefined}
-          onClick={toggleView}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') toggleView(event);
-          }}
-        >
-          <SafeImage className={`product-image product-image-primary${showBack ? ' is-hidden' : ''}`} src={product.image_url || fallback} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt front view`} width={800} height={900} loading="eager" decoding="async" />
-          {hasBack ? <SafeImage className={`product-image product-image-secondary${showBack ? ' is-visible' : ''}`} src={product.secondary_image_url!} fallbackSrc="/models/hero-model.webp" alt={`${product.name} — LOLA ENGLAND women's T-shirt back view`} width={800} height={900} loading="eager" decoding="async" /> : null}
-          {hasBack ? <span className="image-flip-hint"><Repeat2 size={14}/> {showBack ? 'BACK' : 'FRONT'}</span> : null}
+        <div className="product-image-wrap">
+          <SafeImage
+            className={`product-image product-image-primary${showBack ? ' is-hidden' : ''}`}
+            src={product.image_url || fallback}
+            fallbackSrc="/models/hero-model.webp"
+            alt={`${product.name} — LOLA ENGLAND women's T-shirt front view`}
+            width={800}
+            height={900}
+            loading="eager"
+            decoding="async"
+          />
+          {hasBack ? (
+            <SafeImage
+              className={`product-image product-image-secondary${showBack ? ' is-visible' : ''}`}
+              src={product.secondary_image_url!}
+              fallbackSrc="/models/hero-model.webp"
+              alt={`${product.name} — LOLA ENGLAND women's T-shirt back view`}
+              width={800}
+              height={900}
+              loading="eager"
+              decoding="async"
+            />
+          ) : null}
+          {hasBack ? <span className="image-flip-hint"><Repeat2 size={14}/> {showBack ? 'BACK' : 'FRONT'} · HOVER TO VIEW</span> : null}
         </div>
       </div>
       <div className="product-info">
