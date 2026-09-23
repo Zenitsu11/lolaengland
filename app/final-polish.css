@@ -64,3 +64,70 @@
 @media(max-width:560px){
   .product-art{height:330px!important;min-height:330px!important}
 }
+
+
+/* Responsive model framing pass: never crop faces or the T-shirt artwork. */
+.editorial-hero-image>img,
+.editorial-look-media>img,
+.campaign-card>img,
+.model-rail-card>img,
+.editorial-join-image>img{
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:#fff!important;
+}
+.editorial-hero-image{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-height:620px!important;
+  background:#fff!important;
+}
+.editorial-look-media{
+  aspect-ratio:4/5!important;
+  min-height:0!important;
+  background:#fff!important;
+}
+.editorial-look-media>img{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+}
+.campaign-card{
+  aspect-ratio:4/5!important;
+  min-height:0!important;
+  background:#fff!important;
+}
+.campaign-card>img{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+}
+.model-rail-card{
+  aspect-ratio:4/5!important;
+  min-height:0!important;
+  background:#fff!important;
+}
+.model-rail-card>img{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+}
+.editorial-join-image{
+  background:#fff!important;
+}
+@media(max-width:900px){
+  .editorial-hero-image{min-height:520px!important}
+  .editorial-look-media{aspect-ratio:4/5!important}
+  .campaign-card{aspect-ratio:4/5!important}
+  .model-rail-card{aspect-ratio:4/5!important}
+}
+@media(max-width:560px){
+  .editorial-hero-image{min-height:460px!important}
+  .editorial-look-media{aspect-ratio:4/5!important}
+  .campaign-card{aspect-ratio:4/5!important}
+  .model-rail-card{aspect-ratio:4/5!important}
+}
