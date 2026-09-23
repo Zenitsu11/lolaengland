@@ -131,3 +131,60 @@
   .campaign-card{aspect-ratio:4/5!important}
   .model-rail-card{aspect-ratio:4/5!important}
 }
+
+
+/* Final responsive media framing: match the portrait source ratio so no letterbox gaps and no face/tee crop. */
+.editorial-hero-image,
+.editorial-look-media,
+.campaign-card,
+.model-rail-card,
+.editorial-join-image{
+  aspect-ratio:1071/1536!important;
+}
+.editorial-hero-image{min-height:0!important;height:auto!important}
+.editorial-look-media{min-height:0!important}
+.campaign-card{min-height:0!important}
+.model-rail-card{min-height:0!important}
+.editorial-join-image{min-height:0!important}
+.editorial-hero-image>img,
+.editorial-look-media>img,
+.campaign-card>img,
+.model-rail-card>img,
+.editorial-join-image>img{
+  object-fit:cover!important;
+  object-position:center center!important;
+  width:100%!important;
+  height:100%!important;
+  image-rendering:auto!important;
+}
+
+/* Product cards use the same portrait ratio as the original model photos. */
+.product-art{
+  height:auto!important;
+  min-height:0!important;
+  aspect-ratio:1071/1536!important;
+  background:#fff!important;
+}
+.product-art .product-image-wrap{
+  height:100%!important;
+  background:#fff!important;
+}
+.product-art .product-image-wrap .product-image{
+  object-fit:cover!important;
+  object-position:center center!important;
+  image-rendering:auto!important;
+}
+
+/* Product detail: use the full portrait frame instead of a short 4:5 box. */
+.product-detail-slide{
+  aspect-ratio:1071/1536!important;
+  background:#fff!important;
+}
+.product-detail-slide img{
+  object-fit:cover!important;
+  object-position:center center!important;
+  image-rendering:auto!important;
+}
+@media(max-width:800px){
+  .product-detail-slide{aspect-ratio:1071/1536!important}
+}
