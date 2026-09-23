@@ -39,6 +39,7 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
     const delta = endX - touchStartX.current;
     touchStartX.current = null;
     if (Math.abs(delta) < 35) return;
+    event.preventDefault();
     setShowBack(delta < 0);
   };
 
