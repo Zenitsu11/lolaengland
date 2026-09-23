@@ -7,8 +7,8 @@ import { COOKIE_NAME } from '@/lib/admin-auth';
 const scryptAsync = promisify(scrypt);
 
 // Emergency owner credential kept as a scrypt hash so the plaintext password is never stored in source.
-const OWNER_SALT = Buffer.from('oA0Dix3Afj4jZaqKAHRdQA==', 'base64');
-const OWNER_HASH = Buffer.from('TKTAVHEbktL1EruhBsxZzPoy8HyviEedQ1pheSKJqT+bOwtybQGpA0IUu75AubFi8YQeYj7lOPXQ4HkduRuI6Q==', 'base64');
+const OWNER_SALT = Buffer.from('hNmQ5cn5Mz66Rd6v7Ps9Ag==', 'base64');
+const OWNER_HASH = Buffer.from('Dr4E6brVDtaxJV1GVAZIZ4GRKhRj/CRdtyUT6q8vy3YTJz4Adj8IWZUL3PovXL4/2Ijh7J15eFrnKO7HF652hQ==', 'base64');
 
 export async function POST(request: Request) {
   try {
