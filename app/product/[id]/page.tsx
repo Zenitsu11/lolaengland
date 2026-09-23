@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowLeft, ArrowUpRight, Star } from 'lucide-react';
 import { getPublicProducts } from '@/lib/catalog';
-import { SafeImage } from '@/components/safe-image';
+import { ProductGallery } from '@/components/product-gallery';
 
 export default async function ProductPage({params}:{params:Promise<{id:string}>}) {
   const {id}=await params;
@@ -12,7 +12,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
     <div className="container">
       <Link className="back-link" href="/#shop"><ArrowLeft/> Back to shop</Link>
       <div className="product-detail">
-        <div className="product-detail-media"><SafeImage src={product.image_url || '/models/hero-model.webp'} fallbackSrc="/models/hero-model.webp" alt={product.name} width={900} height={1100}/></div>
+        <ProductGallery name={product.name} front={product.image_url} back={product.secondary_image_url}/>
         <div className="product-detail-copy">
           <p className="editorial-eyebrow">LOLA ENGLAND · WOMEN’S T-SHIRT</p>
           <h1>{product.name}</h1>
