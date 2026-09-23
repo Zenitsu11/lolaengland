@@ -37,3 +37,15 @@
 @media(max-width:560px){
   .product-detail-slide{aspect-ratio:4/5}
 }
+
+
+/* Final image clarity pass */
+.product-art .product-image,
+.product-image-wrap .product-image{object-fit:contain!important;object-position:center!important;background:#fff}
+.product-image-wrap{background:#fff}
+.product-card .product-art{background:var(--card-tone,#f4e5e8)}
+.product-card .product-image{image-rendering:auto}
+@media(max-width:800px){
+  .product-image-wrap{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+  .product-image-wrap .product-image{object-fit:contain!important}
+}
