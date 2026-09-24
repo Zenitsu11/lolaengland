@@ -6,10 +6,6 @@ import { COOKIE_NAME } from '@/lib/admin-auth';
 
 const scryptAsync = promisify(scrypt);
 
-// Emergency owner credential kept as a scrypt hash so the plaintext password is never stored in source.
-const OWNER_SALT = Buffer.from('hNmQ5cn5Mz66Rd6v7Ps9Ag==', 'base64');
-const OWNER_HASH = Buffer.from('Dr4E6brVDtaxJV1GVAZIZ4GRKhRj/CRdtyUT6q8vy3YTJz4Adj8IWZUL3PovXL4/2Ijh7J15eFrnKO7HF652hQ==', 'base64');
-
 export async function POST(request: Request) {
   try {
     const { username, password } = await request.json();
@@ -22,15 +18,21 @@ export async function POST(request: Request) {
 
     const { data: account } = await db
       .from('admin_accounts')
-      .select('id,username,active')
+      .select('id,username,active,password_salt,password_hash')
       .eq('username', username.trim().toLowerCase())
       .eq('active', true)
       .maybeSingle();
 
     if (!account) return NextResponse.json({ ok: false }, { status: 401 });
 
-    const derived = await scryptAsync(password, OWNER_SALT, 64) as Buffer;
-    if (derived.length !== OWNER_HASH.length || !derived.equals(OWNER_HASH)) {
+    if (!account.password_salt || !account.password_hash) {
+      return NextResponse.json({ ok: false, error: 'Admin password is not configured.' }, { status: 503 });
+    }
+
+    const salt = Buffer.from(account.password_salt, 'base64');
+    const expectedHash = Buffer.from(account.password_hash, 'base64');
+    const derived = await scryptAsync(password, salt, expectedHash.length) as Buffer;
+    if (derived.length !== expectedHash.length || !derived.equals(expectedHash)) {
       return NextResponse.json({ ok: false }, { status: 401 });
     }
 
