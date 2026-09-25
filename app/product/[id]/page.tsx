@@ -12,7 +12,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
     <div className="container">
       <Link className="back-link" href="/#shop"><ArrowLeft/> Back to shop</Link>
       <div className="product-detail">
-        <ProductGallery name={product.name} front={product.image_url} back={product.secondary_image_url}/>
+        <ProductGallery name={product.name} front={product.image_url} back={product.secondary_image_url} images={product.image_urls}/>
         <div className="product-detail-copy">
           <p className="editorial-eyebrow">LOLA ENGLAND · WOMEN’S T-SHIRT</p>
           <h1>{product.name}</h1>
