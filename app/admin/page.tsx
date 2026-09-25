@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { BarChart3, ExternalLink, Package, Settings, ShoppingBag, Plus, Pencil, Trash2, Save, LogOut, Upload, X, Images } from 'lucide-react';
+import { BarChart3, ExternalLink, Package, Settings, ShoppingBag, Plus, Pencil, Trash2, Save, LogOut, Upload, X, Images, WalletCards } from 'lucide-react';
 import { products as demoProducts } from '@/data/products';
 
 type Product = {
@@ -65,6 +65,8 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [paymentAccounts, setPaymentAccounts] = useState<any[]>([]);
+  const [paymentForm, setPaymentForm] = useState({id:'',name:'',key_id:'',secret_key:'',upi_id:'',active:true,sort_order:0});
 
   async function loadProducts() {
     try {
@@ -89,7 +91,18 @@ export default function AdminPage() {
     } catch {}
   }
 
-  useEffect(() => { loadProducts(); loadSettings(); }, []);
+  async function loadPayments() { try { const response=await fetch('/api/admin/payments',{cache:'no-store'}); if(!response.ok)return; const data=await response.json(); setPaymentAccounts(data.accounts||[]); } catch {} }
+  useEffect(() => { loadProducts(); loadSettings(); loadPayments(); }, []);
+  async function savePaymentAccount() {
+    setLoading(true); setMessage('');
+    const method=paymentForm.id?'PUT':'POST';
+    const response=await fetch('/api/admin/payments',{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(paymentForm)});
+    const data=await response.json(); setLoading(false);
+    if(!response.ok)return setMessage(data.error||'Could not save payment account.');
+    setPaymentForm({id:'',name:'',key_id:'',secret_key:'',upi_id:'',active:false,sort_order:paymentAccounts.length}); await loadPayments(); setMessage('Payment account saved securely.');
+  }
+  async function deletePaymentAccount(id:string){ if(!confirm('Remove this payment account?'))return; const response=await fetch('/api/admin/payments',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}); if(response.ok){await loadPayments();setMessage('Payment account removed.');} }
+
 
   async function saveProduct() {
     if (!editing?.name.trim()) return setMessage('Product name is required.');
@@ -181,6 +194,7 @@ export default function AdminPage() {
         <button onClick={() => setTab('overview')} className={tab === 'overview' ? 'active' : ''}><BarChart3 /> Overview</button>
         <button onClick={() => setTab('products')} className={tab === 'products' ? 'active' : ''}><Package /> Products</button>
         <button onClick={() => setTab('marketplaces')} className={tab === 'marketplaces' ? 'active' : ''}><ShoppingBag /> Marketplaces</button>
+        <button onClick={() => setTab('payments')} className={tab === 'payments' ? 'active' : ''}><WalletCards /> Payments</button>
         <button onClick={() => setTab('settings')} className={tab === 'settings' ? 'active' : ''}><Settings /> Store settings</button>
         <a href="/"><ExternalLink /> View store</a>
         <button onClick={logout}><LogOut /> Logout</button>
@@ -188,7 +202,7 @@ export default function AdminPage() {
 
       <section className="admin-main">
         <div className="admin-top">
-          <div><p className="eyebrow">PRIVATE OWNER AREA</p><h1>{tab === 'overview' ? 'Good evening.' : tab === 'products' ? 'Products' : tab === 'marketplaces' ? 'Marketplace links' : 'Store settings'}</h1></div>
+          <div><p className="eyebrow">PRIVATE OWNER AREA</p><h1>{tab === 'overview' ? 'Good evening.' : tab === 'products' ? 'Products'  : tab === 'marketplaces' ? 'Marketplace links' : tab === 'payments' ? 'Payment methods' : 'Store settings'}</h1></div>
           <span className="secure">{connected ? 'DATABASE CONNECTED' : 'DEMO MODE'}</span>
         </div>
         {message && <div className="admin-message">{message}</div>}
@@ -277,6 +291,28 @@ export default function AdminPage() {
               <label>Amazon Seller Account URL<input type="url" value={settings.amazon_seller_url} onChange={(event) => setSettings({ ...settings, amazon_seller_url: event.target.value })} placeholder="https://sellercentral.amazon.in/..." /></label>
               <label>Flipkart Seller Account URL<input type="url" value={settings.flipkart_seller_url} onChange={(event) => setSettings({ ...settings, flipkart_seller_url: event.target.value })} placeholder="https://seller.flipkart.com/..." /></label>
             </div>
+          </div>
+        )}
+
+        {tab === 'payments' && (
+          <div className="admin-card">
+            <div className="admin-row"><div><h2>Payment accounts</h2><p>Add multiple Razorpay merchant accounts. Only the account marked Active receives new online orders. Secret keys are encrypted server-side and are never returned to the browser.</p></div></div>
+            <div className="payment-account-list">
+              {paymentAccounts.map(account => <div className="payment-account" key={account.id}><div><b>{account.name}</b><small>{account.provider.toUpperCase()} · Key {account.key_id} · {account.active ? 'ACTIVE FOR CHECKOUT' : 'INACTIVE'}</small>{account.upi_id&&<small>Fallback UPI: {account.upi_id}</small>}</div><div className="admin-actions"><button className="admin-btn ghost" onClick={()=>setPaymentForm({...account,secret_key:''})}>Edit</button><button className="admin-btn ghost" onClick={()=>deletePaymentAccount(account.id)}>Remove</button></div></div>)}
+              {!paymentAccounts.length&&<p>No payment gateway account configured yet.</p>}
+            </div>
+            <div className="payment-form">
+              <h3>{paymentForm.id?'Edit account':'Add Razorpay account'}</h3>
+              <div className="admin-form-grid">
+                <label>Account label<input value={paymentForm.name} onChange={e=>setPaymentForm({...paymentForm,name:e.target.value})} placeholder="LOLA Primary" /></label>
+                <label>Razorpay Key ID<input value={paymentForm.key_id} onChange={e=>setPaymentForm({...paymentForm,key_id:e.target.value})} placeholder="rzp_live_..." /></label>
+                <label>Razorpay Secret Key<input type="password" value={paymentForm.secret_key} onChange={e=>setPaymentForm({...paymentForm,secret_key:e.target.value})} placeholder={paymentForm.id?'Leave blank to keep existing secret':'Your live/test secret'} /></label>
+                <label>Fallback UPI ID<input value={paymentForm.upi_id} onChange={e=>setPaymentForm({...paymentForm,upi_id:e.target.value})} placeholder="brand@upi" /></label>
+                <label className="wide"><input type="checkbox" checked={paymentForm.active} onChange={e=>setPaymentForm({...paymentForm,active:e.target.checked})} /> Make this the active checkout account</label>
+              </div>
+              <button className="admin-btn" onClick={savePaymentAccount} disabled={loading}>{loading?'Saving…':'Save payment account'}</button>
+            </div>
+            <div className="payment-note"><b>What customers see:</b> Razorpay Checkout can present UPI, cards, netbanking, wallets, EMI and other methods enabled for your merchant account. Google Pay, PhonePe, Paytm and other UPI apps are selected by the customer inside UPI; they do not need separate buttons or separate merchant integrations. </div>
           </div>
         )}
 
