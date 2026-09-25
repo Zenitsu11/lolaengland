@@ -23,9 +23,25 @@ function makeSession() {
 
 export async function POST(request: Request) {
   try {
-    const { username, password } = await request.json();
+    const contentType = request.headers.get('content-type') || '';
+    let username: unknown;
+    let password: unknown;
+
+    if (contentType.includes('application/json')) {
+      const body = await request.json();
+      username = body?.username;
+      password = body?.password;
+    } else {
+      const form = await request.formData();
+      username = form.get('username');
+      password = form.get('password');
+    }
+
     if (typeof username !== 'string' || typeof password !== 'string') {
-      return NextResponse.json({ ok: false }, { status: 401 });
+      if (contentType.includes('application/json')) {
+        return NextResponse.json({ ok: false }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL('/admin/login?error=1', request.url), 303);
     }
 
     const normalized = username.trim().toLowerCase();
@@ -58,7 +74,12 @@ export async function POST(request: Request) {
       valid = derived.equals(OWNER_HASH);
     }
 
-    if (!valid) return NextResponse.json({ ok: false }, { status: 401 });
+    if (!valid) {
+      if (contentType.includes('application/json')) {
+        return NextResponse.json({ ok: false }, { status: 401 });
+      }
+      return NextResponse.redirect(new URL('/admin/login?error=1', request.url), 303);
+    }
 
     const token = makeSession();
 
@@ -70,7 +91,9 @@ export async function POST(request: Request) {
       await db.from('admin_sessions').insert({ account_id: accountId, token_hash: tokenHash, expires_at: expiresAt });
     }
 
-    const response = NextResponse.json({ ok: true });
+    const response = contentType.includes('application/json')
+      ? NextResponse.json({ ok: true })
+      : NextResponse.redirect(new URL('/admin', request.url), 303);
     response.cookies.set(COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
