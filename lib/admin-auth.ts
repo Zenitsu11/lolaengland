@@ -1,31 +1,25 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHash } from 'crypto';
 import { cookies } from 'next/headers';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 const COOKIE_NAME = 'lola_admin_session';
-const OWNER_USERNAME = 'admin@lolaengland.com';
-const OWNER_HASH = Buffer.from('GFckZFJ9x4kNBGuqVWucMTNOx1n46Fs0Xnd9fCyUi4EOKUZ+yB8WTYNQ4lcOrbcWPhA4zFfYhHNNVZ+dr+NyPw==', 'base64');
 
 export async function isAdminRequest() {
   const token = (await cookies()).get(COOKIE_NAME)?.value;
   if (!token) return false;
 
-  const parts = token.split('.');
-  if (parts.length !== 4) return false;
+  const db = getSupabaseAdmin();
+  if (!db) return false;
 
-  const [username, expiresText, nonce, signature] = parts;
-  if (username !== OWNER_USERNAME || !/^\d+$/.test(expiresText) || !nonce || !signature) return false;
+  const tokenHash = createHash('sha256').update(token).digest('hex');
+  const { data } = await db
+    .from('admin_sessions')
+    .select('id,expires_at,account_id')
+    .eq('token_hash', tokenHash)
+    .gt('expires_at', new Date().toISOString())
+    .maybeSingle();
 
-  const expiresAt = Number(expiresText);
-  if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return false;
-
-  const payload = `${username}.${expiresText}.${nonce}`;
-  const expected = createHmac('sha256', OWNER_HASH).update(payload).digest('hex');
-
-  try {
-    return timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'));
-  } catch {
-    return false;
-  }
+  return Boolean(data?.id && data?.account_id);
 }
 
 export { COOKIE_NAME };
