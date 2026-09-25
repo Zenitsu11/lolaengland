@@ -23,6 +23,7 @@ export async function POST(request: Request) {
       .eq('active', true)
       .maybeSingle();
 
+    console.log('[admin-login] account lookup', { found: Boolean(account), username: username.trim().toLowerCase() });
     if (!account) return NextResponse.json({ ok: false }, { status: 401 });
 
     if (!account.password_salt || !account.password_hash) {
@@ -32,6 +33,7 @@ export async function POST(request: Request) {
     const salt = Buffer.from(account.password_salt, 'base64');
     const expectedHash = Buffer.from(account.password_hash, 'base64');
     const derived = await scryptAsync(password, salt, expectedHash.length) as Buffer;
+    console.log('[admin-login] password verification', { saltBytes: salt.length, hashBytes: expectedHash.length, match: derived.length === expectedHash.length && derived.equals(expectedHash) });
     if (derived.length !== expectedHash.length || !derived.equals(expectedHash)) {
       return NextResponse.json({ ok: false }, { status: 401 });
     }
