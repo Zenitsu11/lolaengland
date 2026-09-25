@@ -12,7 +12,14 @@ export async function POST(request:Request){
   const {data:account,error:accountError}=await db.from('payment_accounts').select('*').eq('active',true).order('sort_order').limit(1).maybeSingle();
   if(accountError||!account) return NextResponse.json({error:'Online payment is not configured yet. Enable a payment account in Admin.'},{status:503});
   let secret; try{secret=decryptSecret(account.secret_key_encrypted);}catch{return NextResponse.json({error:'Payment encryption key is missing on the server.'},{status:503});}
-  const safeItems=items.map((i:any)=>({id:String(i.id),name:String(i.name).slice(0,200),price:Number(i.price),quantity:Math.max(1,Math.min(20,Number(i.quantity)||1))}));
+  const ids=items.map((i:any)=>String(i.id)).filter(Boolean);
+  const {data:products,error:productError}=await db.from('products').select('id,name,price,image_url').in('id',ids).eq('active',true);
+  if(productError||!products?.length) return NextResponse.json({error:'One or more products are no longer available.'},{status:400});
+  const safeItems=items.map((i:any)=>{
+    const product=products.find((p:any)=>String(p.id)===String(i.id));
+    return product ? {id:String(product.id),name:String(product.name).slice(0,200),price:Number(product.price),quantity:Math.max(1,Math.min(20,Number(i.quantity)||1))} : null;
+  }).filter(Boolean);
+  if(safeItems.length!==ids.length) return NextResponse.json({error:'One or more products are no longer available.'},{status:400});
   const amount=safeItems.reduce((sum:number,i:any)=>sum+i.price*i.quantity,0);
   if(!Number.isFinite(amount)||amount<=0) return NextResponse.json({error:'Invalid order amount.'},{status:400});
   const auth=Buffer.from(account.key_id+':'+secret).toString('base64');
