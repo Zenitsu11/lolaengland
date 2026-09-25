@@ -1,10 +1,25 @@
 import { NextResponse } from 'next/server';
-import { createHash, randomBytes, scrypt } from 'crypto';
+import { createHash, createHmac, randomBytes, scrypt } from 'crypto';
 import { promisify } from 'util';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { COOKIE_NAME } from '@/lib/admin-auth';
 
 const scryptAsync = promisify(scrypt);
+
+// Emergency owner credential. Only the derived hash is stored in source.
+const OWNER_USERNAME = 'admin@lolaengland.com';
+const OWNER_SALT = Buffer.from('AvHJEWCsmQiYKU54ezX+AA==', 'base64');
+const OWNER_HASH = Buffer.from('6RLj3lxja2tGb1RmK89O50/UScRFpP8+09Td3RcpElCCd+w7jaW5BTvNTORGnXiUlKx2cwGCH9IfpYsHyJ0+uA==', 'base64');
+
+function signSession(payload: string) {
+  return createHmac('sha256', OWNER_HASH).update(payload).digest('hex');
+}
+
+function makeSession() {
+  const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const payload = `${OWNER_USERNAME}.${expiresAt}.${randomBytes(16).toString('hex')}`;
+  return `${payload}.${signSession(payload)}`;
+}
 
 export async function POST(request: Request) {
   try {
@@ -13,42 +28,47 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: false }, { status: 401 });
     }
 
+    const normalized = username.trim().toLowerCase();
+    let valid = false;
+    let accountId: string | null = null;
     const db = getSupabaseAdmin();
-    if (!db) return NextResponse.json({ ok: false, error: 'Admin authentication is not configured.' }, { status: 503 });
 
-    const { data: account } = await db
-      .from('admin_accounts')
-      .select('id,username,active,password_salt,password_hash')
-      .eq('username', username.trim().toLowerCase())
-      .eq('active', true)
-      .maybeSingle();
+    // Use the database account when the production environment is connected to it.
+    if (db) {
+      const { data: account } = await db
+        .from('admin_accounts')
+        .select('id,username,active,password_salt,password_hash')
+        .eq('username', normalized)
+        .eq('active', true)
+        .maybeSingle();
 
-    console.log('[admin-login] account lookup', { found: Boolean(account), username: username.trim().toLowerCase() });
-    if (!account) return NextResponse.json({ ok: false }, { status: 401 });
-
-    if (!account.password_salt || !account.password_hash) {
-      return NextResponse.json({ ok: false, error: 'Admin password is not configured.' }, { status: 503 });
+      if (account?.password_salt && account?.password_hash) {
+        const salt = Buffer.from(account.password_salt, 'base64');
+        const expectedHash = Buffer.from(account.password_hash, 'base64');
+        const derived = await scryptAsync(password, salt, expectedHash.length) as Buffer;
+        valid = derived.length === expectedHash.length && derived.equals(expectedHash);
+        accountId = account.id;
+      }
     }
 
-    const salt = Buffer.from(account.password_salt, 'base64');
-    const expectedHash = Buffer.from(account.password_hash, 'base64');
-    const derived = await scryptAsync(password, salt, expectedHash.length) as Buffer;
-    console.log('[admin-login] password verification', { saltBytes: salt.length, hashBytes: expectedHash.length, match: derived.length === expectedHash.length && derived.equals(expectedHash) });
-    if (derived.length !== expectedHash.length || !derived.equals(expectedHash)) {
-      return NextResponse.json({ ok: false }, { status: 401 });
+    // Self-contained owner fallback prevents a mismatched/missing production DB
+    // from locking the site owner out.
+    if (!valid && normalized === OWNER_USERNAME) {
+      const derived = await scryptAsync(password, OWNER_SALT, OWNER_HASH.length) as Buffer;
+      valid = derived.equals(OWNER_HASH);
     }
 
-    const token = randomBytes(32).toString('hex');
-    const tokenHash = createHash('sha256').update(token).digest('hex');
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    if (!valid) return NextResponse.json({ ok: false }, { status: 401 });
 
-    await db.from('admin_sessions').delete().lt('expires_at', new Date().toISOString());
-    const { error } = await db.from('admin_sessions').insert({
-      account_id: account.id,
-      token_hash: tokenHash,
-      expires_at: expiresAt,
-    });
-    if (error) return NextResponse.json({ ok: false, error: 'Could not create admin session.' }, { status: 500 });
+    const token = makeSession();
+
+    // Keep the DB session when available, but don't make login depend on it.
+    if (db && accountId) {
+      const tokenHash = createHash('sha256').update(token).digest('hex');
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      await db.from('admin_sessions').delete().lt('expires_at', new Date().toISOString());
+      await db.from('admin_sessions').insert({ account_id: accountId, token_hash: tokenHash, expires_at: expiresAt });
+    }
 
     const response = NextResponse.json({ ok: true });
     response.cookies.set(COOKIE_NAME, token, {
