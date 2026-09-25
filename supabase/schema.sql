@@ -67,3 +67,38 @@ on conflict (id) do update set public = true;
 
 drop policy if exists "Public can view product images" on storage.objects;
 create policy "Public can view product images" on storage.objects for select using (bucket_id = 'product-images');
+
+-- Payment gateway accounts and customer orders.
+create table if not exists public.payment_accounts (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  provider text not null default 'razorpay',
+  key_id text not null,
+  secret_key_encrypted text not null,
+  upi_id text not null default '',
+  active boolean not null default false,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.orders (
+  id uuid primary key default gen_random_uuid(),
+  razorpay_order_id text unique,
+  razorpay_payment_id text,
+  razorpay_signature text,
+  payment_account_id uuid references public.payment_accounts(id) on delete set null,
+  amount numeric(12,2) not null check (amount >= 0),
+  currency text not null default 'INR',
+  status text not null default 'created',
+  payment_method text not null default 'razorpay',
+  customer_name text not null,
+  customer_phone text not null,
+  customer_email text not null default '',
+  shipping_address text not null,
+  items jsonb not null default '[]'::jsonb,
+  paid_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+alter table public.payment_accounts enable row level security;
+alter table public.orders enable row level security;
