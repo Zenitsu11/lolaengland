@@ -42,6 +42,7 @@ export default function AdminLogin() {
           </button>
           {error && <div className="login-error">{error}</div>}
         </form>
+        <a className="forgot-password" href="/admin/forgot-password">Forgot password?</a>
         <a className="back-store" href="/">← Back to store</a>
       </div>
     </main>
