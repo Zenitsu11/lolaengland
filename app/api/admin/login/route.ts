@@ -47,31 +47,39 @@ export async function POST(request: Request) {
     const normalized = username.trim().toLowerCase();
     let valid = false;
     let accountId: string | null = null;
-    const db = getSupabaseAdmin();
 
-    // Use the database account when the production environment is connected to it.
-    if (db) {
-      const { data: account } = await db
-        .from('admin_accounts')
-        .select('id,username,active,password_salt,password_hash')
-        .eq('username', normalized)
-        .eq('active', true)
-        .maybeSingle();
+    // Authenticate against the Supabase Auth user created for the owner.
+    // This keeps the password out of the application database and source code.
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-      if (account?.password_salt && account?.password_hash) {
-        const salt = Buffer.from(account.password_salt, 'base64');
-        const expectedHash = Buffer.from(account.password_hash, 'base64');
-        const derived = await scryptAsync(password, salt, expectedHash.length) as Buffer;
-        valid = derived.length === expectedHash.length && derived.equals(expectedHash);
-        accountId = account.id;
+    if (supabaseUrl && supabaseKey) {
+      const { createClient } = await import('@supabase/supabase-js');
+      const authClient = createClient(supabaseUrl, supabaseKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      const { data: authData, error: authError } = await authClient.auth.signInWithPassword({
+        email: normalized,
+        password,
+      });
+
+      if (!authError && authData.user?.email?.toLowerCase() === normalized) {
+        const db = getSupabaseAdmin();
+        if (db) {
+          const { data: account } = await db
+            .from('admin_accounts')
+            .select('id,username,active')
+            .eq('username', normalized)
+            .eq('active', true)
+            .maybeSingle();
+
+          if (account) {
+            accountId = account.id;
+            valid = true;
+          }
+        }
       }
-    }
-
-    // Self-contained owner fallback prevents a mismatched/missing production DB
-    // from locking the site owner out.
-    if (!valid && normalized === OWNER_USERNAME) {
-      const derived = await scryptAsync(password, OWNER_SALT, OWNER_HASH.length) as Buffer;
-      valid = derived.equals(OWNER_HASH);
     }
 
     if (!valid) {
