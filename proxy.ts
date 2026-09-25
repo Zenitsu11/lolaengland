@@ -5,7 +5,7 @@ export default async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const loggedIn = await isAdminRequest();
 
-  if (pathname === '/admin/login') {
+  if (pathname === '/admin/login' || pathname === '/admin/forgot-password' || pathname === '/admin/update-password') {
     if (loggedIn) return NextResponse.redirect(new URL('/admin', request.url));
     return NextResponse.next();
   }
