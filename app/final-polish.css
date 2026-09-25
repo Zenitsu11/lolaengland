@@ -188,3 +188,56 @@
 @media(max-width:800px){
   .product-detail-slide{aspect-ratio:1071/1536!important}
 }
+
+
+/* Universal responsive layout pass: desktop, tablet, mobile */
+html,body{width:100%;max-width:100%;overflow-x:hidden}
+img{max-width:100%}
+.header,.nav,.category-strip{width:100%}
+.category-strip{border-bottom:1px solid var(--line);background:#fff}
+.category-strip-inner{display:flex;align-items:center;justify-content:center;gap:clamp(18px,3vw,42px);min-height:44px;font-size:11px;font-weight:800;letter-spacing:.12em}
+.mobile-brand-link{display:block;align-self:flex-start}
+
+/* Tablets: keep the editorial layout spacious without forcing desktop-sized elements */
+@media (min-width:701px) and (max-width:1100px){
+  .container{width:min(100% - 32px,1100px)}
+  .nav{height:76px}
+  .brand{width:130px!important;flex-basis:130px!important;height:70px!important}
+  .brand-logo{width:108px!important;height:auto!important;max-height:60px!important}
+  .desktop-nav{gap:18px;font-size:12px}
+  .actions{gap:13px}
+  .actions svg{width:22px;height:22px}
+  .category-strip-inner{gap:22px;font-size:10px;overflow-x:auto;justify-content:flex-start;white-space:nowrap;padding:0 4px}
+  .editorial-hero-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:18px!important}
+  .editorial-hero-copy{padding:48px 5%!important}
+  .editorial-hero-copy h1{font-size:clamp(58px,7vw,82px)!important}
+  .editorial-hero-image{min-width:0!important}
+  .editorial-lookbook{gap:18px!important}
+  .model-rail{gap:14px!important}
+  .product-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .editorial-section{padding-left:0;padding-right:0}
+}
+
+/* Small tablets / large phones: switch navigation before it becomes cramped */
+@media (min-width:701px) and (max-width:850px){
+  .desktop-nav{display:none}
+  .menu{display:block!important;width:27px;border:0;background:transparent;padding:0}
+  .nav{justify-content:space-between}
+  .editorial-hero-grid{grid-template-columns:1fr!important}
+  .editorial-hero-image{max-height:none}
+  .product-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .editorial-section-head{gap:18px}
+}
+
+/* Touch devices: comfortable controls and horizontal category scrolling */
+@media (max-width:850px){
+  .category-strip-inner{justify-content:flex-start;overflow-x:auto;scrollbar-width:none}
+  .category-strip-inner::-webkit-scrollbar{display:none}
+  .category-strip-inner a{flex:0 0 auto;padding:14px 2px}
+  .actions a,.menu,.close{min-width:42px;min-height:42px;display:grid;place-items:center}
+  .actions{align-items:center}
+  .mobile-menu{overflow-y:auto;-webkit-overflow-scrolling:touch}
+}
+
+/* Prevent long titles/descriptions from causing horizontal overflow */
+.editorial-section-head>*,.editorial-hero-copy,.product-info,.editorial-look-copy,.campaign-copy,.editorial-join-copy{min-width:0}
