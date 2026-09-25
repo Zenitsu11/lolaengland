@@ -27,6 +27,8 @@ type StoreSettings = {
   instagram_url: string;
   whatsapp_url: string;
   contact_email: string;
+  amazon_seller_url: string;
+  flipkart_seller_url: string;
 };
 
 const emptyProduct: Product = {
@@ -39,6 +41,7 @@ const defaultSettings: StoreSettings = {
   brand_name: 'LOLA ENGLAND',
   shipping_message: 'FREE SHIPPING ON ORDERS OVER ₹799',
   instagram_url: '', whatsapp_url: '', contact_email: '',
+  amazon_seller_url: '', flipkart_seller_url: '',
 };
 
 export default function AdminPage() {
@@ -194,7 +197,16 @@ export default function AdminPage() {
           </>
         )}
 
-        {tab === 'marketplaces' && <div className="admin-card"><h2>Marketplace connections</h2><p>Add the official Amazon or Flipkart listing URL to each product. Buttons appear on the storefront only when a URL exists.</p><button className="admin-btn" onClick={() => setTab('products')}>Open product links →</button></div>}
+        {tab === 'marketplaces' && (
+          <div className="admin-card">
+            <div className="admin-row"><div><h2>Marketplace seller accounts</h2><p>Paste your official seller/store URLs here. These links are saved with your store settings.</p></div><button className="admin-btn" onClick={saveStoreSettings} disabled={loading}><Save /> {loading ? 'Saving…' : 'Save marketplace links'}</button></div>
+            <div className="admin-form-grid">
+              <label>Amazon Seller Account URL<input type="url" value={settings.amazon_seller_url} onChange={(event) => setSettings({ ...settings, amazon_seller_url: event.target.value })} placeholder="https://sellercentral.amazon.in/..." /></label>
+              <label>Flipkart Seller Account URL<input type="url" value={settings.flipkart_seller_url} onChange={(event) => setSettings({ ...settings, flipkart_seller_url: event.target.value })} placeholder="https://seller.flipkart.com/..." /></label>
+            </div>
+            <div className="admin-card" style={{ marginTop: 18 }}><h3>Product listing links</h3><p>For individual product Amazon/Flipkart listing URLs, open <button className="text-button" onClick={() => setTab('products')}>Products</button> and edit the product.</p></div>
+          </div>
+        )}
 
         {tab === 'settings' && (
           <div className="admin-card">
