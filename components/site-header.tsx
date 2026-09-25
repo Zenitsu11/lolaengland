@@ -31,7 +31,7 @@ export function SiteHeader(){
     </header>
     <div className="category-strip">
       <div className="container category-strip-inner">
-        <a href="#shop">ALL TEES</a><a href="#shop">OVERSIZED</a><a href="#shop">GRAPHIC</a><a href="#shop">EVERYDAY</a><a href="#contact">JOIN LOLA</a>
+        <a href="/collection/all">ALL TEES</a><a href="/collection/oversized">OVERSIZED</a><a href="/collection/graphics">GRAPHIC</a><a href="/collection/everyday">EVERYDAY</a><a href="#contact">JOIN LOLA</a>
       </div>
     </div>
     {open&&<div className="mobile-menu">
