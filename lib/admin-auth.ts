@@ -13,7 +13,7 @@ export async function isAdminRequest() {
   if (parts.length !== 4) return false;
 
   const [username, expiresText, nonce, signature] = parts;
-  if (username !== OWNER_USERNAME || !/^\\d+$/.test(expiresText) || !nonce || !signature) return false;
+  if (username !== OWNER_USERNAME || !/^\d+$/.test(expiresText) || !nonce || !signature) return false;
 
   const expiresAt = Number(expiresText);
   if (!Number.isFinite(expiresAt) || expiresAt <= Date.now()) return false;
