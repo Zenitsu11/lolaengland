@@ -9,8 +9,11 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
   if(!db) return NextResponse.json({error:'Supabase is not configured'},{status:503});
   const {id}=await params;
   const body=await request.json();
-  const allowed=['name','slug','price','mrp','rating','reviews','description','image_url','amazon_url','flipkart_url','featured','active','sort_order'];
+  const allowed=['name','slug','price','mrp','rating','reviews','description','image_url','image_urls','amazon_url','flipkart_url','featured','active','sort_order','categories'];
   const payload=Object.fromEntries(Object.entries(body).filter(([key])=>allowed.includes(key)));
+  if('image_urls' in payload) payload.image_urls=Array.isArray(payload.image_urls) ? payload.image_urls.map((value:unknown)=>String(value).trim()).filter(Boolean).slice(0,12) : [];
+  if('image_urls' in payload) payload.image_url=(payload.image_urls as string[])[0] || '';
+  if('categories' in payload) payload.categories=Array.isArray(payload.categories) ? payload.categories.map((value:unknown)=>String(value).trim().toLowerCase()).filter(Boolean).slice(0,10) : [];
   for(const key of ['price','mrp','rating','reviews','sort_order']) if(key in payload) payload[key]=Number(payload[key]);
   for(const key of ['featured','active']) if(key in payload) payload[key]=Boolean(payload[key]);
   const price=payload.price as number|undefined, mrp=payload.mrp as number|undefined, rating=payload.rating as number|undefined, reviews=payload.reviews as number|undefined;
