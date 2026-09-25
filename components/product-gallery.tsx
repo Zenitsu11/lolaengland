@@ -8,16 +8,16 @@ type ProductGalleryProps = {
   name: string;
   front?: string;
   back?: string;
+  images?: string[];
 };
 
-export function ProductGallery({ name, front, back }: ProductGalleryProps) {
+export function ProductGallery({ name, front, back, images: providedImages }: ProductGalleryProps) {
   const [active, setActive] = useState(0);
   const startX = useRef<number | null>(null);
 
-  const images = [
-    { src: front, label: 'FRONT' },
-    ...(back ? [{ src: back, label: 'BACK' }] : []),
-  ].filter((item): item is { src: string; label: string } => Boolean(item.src));
+  const rawImages = providedImages?.length ? providedImages : [front, back].filter(Boolean) as string[];
+  const labels = ['FRONT','BACK','SIDE','DETAIL 4','DETAIL 5','DETAIL 6','DETAIL 7','DETAIL 8','DETAIL 9','DETAIL 10','DETAIL 11','DETAIL 12'];
+  const images = rawImages.map((src,index)=>({src,label:labels[index] ?? `VIEW ${index + 1}`})).filter((item): item is { src: string; label: string } => Boolean(item.src));
 
   if (!images.length) {
     return <div className="product-detail-media"><SafeImage src="/products/lola-brown-front.webp?v=6" fallbackSrc="/products/lola-brown-front.webp?v=6" alt={name} width={900} height={1100}/></div>;
