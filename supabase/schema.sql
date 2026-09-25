@@ -102,3 +102,8 @@ create table if not exists public.orders (
 
 alter table public.payment_accounts enable row level security;
 alter table public.orders enable row level security;
+
+
+-- Direct UPI QR payment additions.
+alter table public.orders add column if not exists upi_transaction_id text;
+create index if not exists orders_upi_transaction_idx on public.orders (upi_transaction_id);
