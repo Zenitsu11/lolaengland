@@ -47,6 +47,7 @@ export async function POST(request: Request) {
     const normalized = username.trim().toLowerCase();
     let valid = false;
     let accountId: string | null = null;
+    const db = getSupabaseAdmin();
 
     // Authenticate against the Supabase Auth user created for the owner.
     // This keeps the password out of the application database and source code.
@@ -65,7 +66,6 @@ export async function POST(request: Request) {
       });
 
       if (!authError && authData.user?.email?.toLowerCase() === normalized) {
-        const db = getSupabaseAdmin();
         if (db) {
           const { data: account } = await db
             .from('admin_accounts')
