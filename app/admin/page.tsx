@@ -65,7 +65,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [connected, setConnected] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [paymentAccounts, setPaymentAccounts] = useState<any[]>([]);
+  const [paymentAccounts, setPaymentAccounts] = useState<any[]>([]);\n  const [orders, setOrders] = useState<any[]>([]);
   const [paymentForm, setPaymentForm] = useState({id:'',name:'',key_id:'',secret_key:'',upi_id:'',active:true,sort_order:0});
 
   async function loadProducts() {
@@ -91,8 +91,8 @@ export default function AdminPage() {
     } catch {}
   }
 
-  async function loadPayments() { try { const response=await fetch('/api/admin/payments',{cache:'no-store'}); if(!response.ok)return; const data=await response.json(); setPaymentAccounts(data.accounts||[]); } catch {} }
-  useEffect(() => { loadProducts(); loadSettings(); loadPayments(); }, []);
+  async function loadPayments() { try { const response=await fetch('/api/admin/payments',{cache:'no-store'}); if(!response.ok)return; const data=await response.json(); setPaymentAccounts(data.accounts||[]); } catch {} }\n  async function loadOrders() { try { const response=await fetch('/api/admin/orders',{cache:'no-store'}); if(!response.ok)return; const data=await response.json(); setOrders(data.orders||[]); } catch {} }
+  useEffect(() => { loadProducts(); loadSettings(); loadPayments(); loadOrders(); }, []);
   async function savePaymentAccount() {
     setLoading(true); setMessage('');
     const method=paymentForm.id?'PUT':'POST';
@@ -296,39 +296,27 @@ export default function AdminPage() {
 
         {tab === 'payments' && (
           <div className="admin-card">
-            <div className="admin-row"><div><h2>Payment accounts</h2><p>Add multiple Razorpay merchant accounts. Only the account marked Active receives new online orders. Secret keys are encrypted server-side and are never returned to the browser.</p></div></div>
+            <div className="admin-row"><div><h2>Payment & checkout settings</h2><p>All customer-facing checkout charges are editable here. Changes apply to new orders.</p></div></div>
+            <div className="admin-form-grid">
+              <label>Shipping fee (₹)<input type="number" min="0" value={settings.shipping_fee} onChange={e=>setSettings({...settings,shipping_fee:Number(e.target.value)})}/></label>
+              <label>Free shipping above (₹)<input type="number" min="0" value={settings.free_shipping_threshold} onChange={e=>setSettings({...settings,free_shipping_threshold:Number(e.target.value)})}/></label>
+              <label>Platform fee (₹)<input type="number" min="0" value={settings.platform_fee} onChange={e=>setSettings({...settings,platform_fee:Number(e.target.value)})}/></label>
+              <label>GST rate (%)<input type="number" min="0" max="100" step="0.01" value={settings.gst_rate} onChange={e=>setSettings({...settings,gst_rate:Number(e.target.value)})}/></label>
+            </div>
+            <button className="admin-btn" onClick={saveStoreSettings} disabled={loading}><Save/> {loading?'Saving…':'Save charges'}</button>
+            <div className="payment-note"><b>Current defaults:</b> ₹40 shipping below ₹799, ₹10 platform fee, and 5% GST. For readymade apparel sold at a transaction value of ₹2,500 or less per piece, the current GST Council notification places apparel in the 5% slab. citeturn0search15 Confirm the tax treatment for your specific registration/HSN with your tax professional.</div>
+
+            <div className="payment-form"><h3>UPI QR payment</h3><p>Customers see a QR for the exact final order amount. No UTR field is shown to customers. The owner verifies the payment from the bank/payment account and can record the UTR here.</p></div>
             <div className="payment-account-list">
-              {paymentAccounts.map(account => <div className="payment-account" key={account.id}><div><b>{account.name}</b><small>{account.provider.toUpperCase()} · Key {account.key_id} · {account.active ? 'ACTIVE FOR CHECKOUT' : 'INACTIVE'}</small>{account.upi_id&&<small>Fallback UPI: {account.upi_id}</small>}</div><div className="admin-actions"><button className="admin-btn ghost" onClick={()=>setPaymentForm({...account,secret_key:''})}>Edit</button><button className="admin-btn ghost" onClick={()=>deletePaymentAccount(account.id)}>Remove</button></div></div>)}
-              {!paymentAccounts.length&&<p>No payment gateway account configured yet.</p>}
+              {orders.map(order=><div className="payment-account" key={order.id}>
+                <div><b>{order.customer_name} · ₹{Number(order.total_amount||order.amount).toLocaleString('en-IN')}</b><small>{String(order.status).toUpperCase()} · {new Date(order.created_at).toLocaleString('en-IN')} · {order.customer_phone}</small><small>Subtotal ₹{Number(order.subtotal||0).toLocaleString('en-IN')} · Shipping ₹{Number(order.shipping_fee||0).toLocaleString('en-IN')} · Platform ₹{Number(order.platform_fee||0).toLocaleString('en-IN')} · GST ₹{Number(order.gst_amount||0).toLocaleString('en-IN')}</small></div>
+                <div className="admin-actions">
+                  <button className="admin-btn ghost" onClick={async()=>{const utr=prompt('Enter bank UTR / transaction reference:');if(utr===null)return;const res=await fetch('/api/admin/orders',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:order.id,utr,status:'paid'})});if(res.ok){await loadOrders();setMessage('Payment verified and UTR saved.');}else{const d=await res.json();setMessage(d.error||'Could not verify payment.');}}}>Mark paid + UTR</button>
+                  {order.status!=='cancelled'?<button className="admin-btn ghost" onClick={async()=>{const res=await fetch('/api/admin/orders',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:order.id,status:'cancelled'})});if(res.ok){await loadOrders();setMessage('Order cancelled.');}}}>Cancel</button>:null}
+                </div>
+              </div>)}
+              {!orders.length&&<p>No orders yet.</p>}
             </div>
-            <div className="payment-form">
-              <h3>{paymentForm.id?'Edit account':'Add Razorpay account'}</h3>
-              <div className="admin-form-grid">
-                <label>Account label<input value={paymentForm.name} onChange={e=>setPaymentForm({...paymentForm,name:e.target.value})} placeholder="LOLA Primary" /></label>
-                <label>Razorpay Key ID<input value={paymentForm.key_id} onChange={e=>setPaymentForm({...paymentForm,key_id:e.target.value})} placeholder="rzp_live_..." /></label>
-                <label>Razorpay Secret Key<input type="password" value={paymentForm.secret_key} onChange={e=>setPaymentForm({...paymentForm,secret_key:e.target.value})} placeholder={paymentForm.id?'Leave blank to keep existing secret':'Your live/test secret'} /></label>
-                <label>Fallback UPI ID<input value={paymentForm.upi_id} onChange={e=>setPaymentForm({...paymentForm,upi_id:e.target.value})} placeholder="brand@upi" /></label>
-                <label className="wide"><input type="checkbox" checked={paymentForm.active} onChange={e=>setPaymentForm({...paymentForm,active:e.target.checked})} /> Make this the active checkout account</label>
-              </div>
-              <button className="admin-btn" onClick={savePaymentAccount} disabled={loading}>{loading?'Saving…':'Save payment account'}</button>
-            </div>
-            <div className="payment-note"><b>What customers see:</b> Razorpay Checkout can present UPI, cards, netbanking, wallets, EMI and other methods enabled for your merchant account. Google Pay, PhonePe, Paytm and other UPI apps are selected by the customer inside UPI; they do not need separate buttons or separate merchant integrations. </div>
           </div>
         )}
 
-        {tab === 'settings' && (
-          <div className="admin-card">
-            <div className="admin-row"><div><h2>Brand settings</h2><p>These settings are stored in Supabase.</p></div><button className="admin-btn" onClick={saveStoreSettings} disabled={loading}><Save /> {loading ? 'Saving…' : 'Save settings'}</button></div>
-            <div className="admin-form-grid">
-              {field('Brand name', settings.brand_name, (v) => setSettings({ ...settings, brand_name: v }))}
-              {field('Shipping message', settings.shipping_message, (v) => setSettings({ ...settings, shipping_message: v }))}
-              {field('Instagram URL', settings.instagram_url, (v) => setSettings({ ...settings, instagram_url: v }))}
-              {field('WhatsApp URL', settings.whatsapp_url, (v) => setSettings({ ...settings, whatsapp_url: v }))}
-              <label className="wide">Contact email<input type="email" value={settings.contact_email} onChange={(event) => setSettings({ ...settings, contact_email: event.target.value })} /></label>
-            </div>
-          </div>
-        )}
-      </section>
-    </div>
-  );
-}
