@@ -107,3 +107,16 @@ alter table public.orders enable row level security;
 -- Direct UPI QR payment additions.
 alter table public.orders add column if not exists upi_transaction_id text;
 create index if not exists orders_upi_transaction_idx on public.orders (upi_transaction_id);
+
+-- Checkout charges are configurable from the private Payments admin tab.
+alter table public.store_settings add column if not exists shipping_fee numeric(10,2) not null default 40;
+alter table public.store_settings add column if not exists free_shipping_threshold numeric(10,2) not null default 799;
+alter table public.store_settings add column if not exists platform_fee numeric(10,2) not null default 10;
+alter table public.store_settings add column if not exists gst_rate numeric(5,2) not null default 5;
+
+alter table public.orders add column if not exists subtotal numeric(12,2) not null default 0;
+alter table public.orders add column if not exists shipping_fee numeric(12,2) not null default 0;
+alter table public.orders add column if not exists platform_fee numeric(12,2) not null default 0;
+alter table public.orders add column if not exists gst_rate numeric(5,2) not null default 0;
+alter table public.orders add column if not exists gst_amount numeric(12,2) not null default 0;
+alter table public.orders add column if not exists total_amount numeric(12,2) not null default 0;
