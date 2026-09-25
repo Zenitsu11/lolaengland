@@ -34,7 +34,7 @@ export default function AdminLogin() {
         <p className="eyebrow">PRIVATE OWNER AREA</p>
         <h1>Welcome back.</h1>
         <p>Sign in to manage products, prices and marketplace links.</p>
-        <form onSubmit={submit}>
+        <form action="/api/admin/login" method="post" onSubmit={submit}>
           <label>Admin ID<input name="username" type="email" autoComplete="username" required placeholder="Enter admin ID" /></label>
           <label>Password<input name="password" type="password" autoComplete="current-password" required placeholder="Enter password" /></label>
           <button className="btn btn-dark" type="submit" disabled={loading}>
