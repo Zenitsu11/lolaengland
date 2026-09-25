@@ -16,6 +16,8 @@ export type Product = {
   description?: string;
   image_url?: string;
   secondary_image_url?: string;
+  image_urls?: string[];
+  categories?: string[];
   amazon?: string;
   flipkart?: string;
 };
