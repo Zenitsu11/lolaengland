@@ -304,7 +304,7 @@ export default function AdminPage() {
               <label>GST rate (%)<input type="number" min="0" max="100" step="0.01" value={settings.gst_rate} onChange={e=>setSettings({...settings,gst_rate:Number(e.target.value)})}/></label>
             </div>
             <button className="admin-btn" onClick={saveStoreSettings} disabled={loading}><Save/> {loading?'Saving…':'Save charges'}</button>
-            <div className="payment-note"><b>Current defaults:</b> ₹40 shipping below ₹799, ₹10 platform fee, and 5% GST. For readymade apparel sold at a transaction value of ₹2,500 or less per piece, the current GST Council notification places apparel in the 5% slab. citeturn0search15 Confirm the tax treatment for your specific registration/HSN with your tax professional.</div>
+            <div className="payment-note"><b>Current defaults:</b> ₹40 shipping below ₹799, ₹10 platform fee, and 5% GST. For readymade apparel sold at a transaction value of ₹2,500 or less per piece, the current GST Council notification places apparel in the 5% slab. Confirm the tax treatment for your specific registration/HSN with your tax professional.</div>
 
             <div className="payment-form"><h3>UPI QR payment</h3><p>Customers see a QR for the exact final order amount. No UTR field is shown to customers. The owner verifies the payment from the bank/payment account and can record the UTR here.</p></div>
             <div className="payment-account-list">
