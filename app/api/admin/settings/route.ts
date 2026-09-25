@@ -23,6 +23,8 @@ export async function PUT(request: Request) {
     instagram_url: String(body.instagram_url ?? '').trim().slice(0, 500),
     whatsapp_url: String(body.whatsapp_url ?? '').trim().slice(0, 500),
     contact_email: String(body.contact_email ?? '').trim().slice(0, 320),
+    amazon_seller_url: String(body.amazon_seller_url ?? '').trim().slice(0, 500),
+    flipkart_seller_url: String(body.flipkart_seller_url ?? '').trim().slice(0, 500),
   };
   const { data, error } = await db.from('store_settings').upsert({ id: true, ...payload }).select('*').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
