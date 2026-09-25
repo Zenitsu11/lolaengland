@@ -3,7 +3,7 @@ import { cookies } from 'next/headers';
 
 const COOKIE_NAME = 'lola_admin_session';
 const OWNER_USERNAME = 'admin@lolaengland.com';
-const OWNER_HASH = Buffer.from('6RLj3lxja2tGb1RmK89O50/UScRFpP8+09Td3RcpElCCd+w7jaW5BTvNTORGnXiUlKx2cwGCH9IfpYsHyJ0+uA==', 'base64');
+const OWNER_HASH = Buffer.from('GFckZFJ9x4kNBGuqVWucMTNOx1n46Fs0Xnd9fCyUi4EOKUZ+yB8WTYNQ4lcOrbcWPhA4zFfYhHNNVZ+dr+NyPw==', 'base64');
 
 export async function isAdminRequest() {
   const token = (await cookies()).get(COOKIE_NAME)?.value;
