@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import { Heart, Search, ShoppingBag, X, Menu } from 'lucide-react';
 import { useState } from 'react';
 
@@ -16,29 +17,31 @@ export function SiteHeader(){
     <header className="header">
       <div className="nav container">
         <button className="menu" onClick={()=>setOpen(true)} aria-label="Open menu"><Menu/></button>
-        <a className="brand" href="#top" aria-label="LOLA ENGLAND home">
+        <Link className="brand" href="/" aria-label="LOLA ENGLAND home" onClick={()=>setOpen(false)}>
           <span className="brand-frame"><img className="brand-logo" src="/Lola england.jpg" alt="LOLA ENGLAND"/></span>
-        </a>
+        </Link>
         <nav className="desktop-nav">
           {links.map(([label,href])=><a key={label} href={href}>{label}</a>)}
         </nav>
         <div className="actions">
           <a href="#shop" aria-label="Search products"><Search/></a>
-          <a href="/wishlist" aria-label="Wishlist"><Heart/></a>
-          <a href="/cart" aria-label="Shopping bag"><ShoppingBag/></a>
+          <Link href="/wishlist" aria-label="Wishlist"><Heart/></Link>
+          <Link href="/cart" aria-label="Shopping bag"><ShoppingBag/></Link>
         </div>
       </div>
     </header>
     <div className="category-strip">
       <div className="container category-strip-inner">
-        <a href="/collection/all">ALL TEES</a><a href="/collection/oversized">OVERSIZED</a><a href="/collection/graphics">GRAPHIC</a><a href="/collection/everyday">EVERYDAY</a><a href="#contact">JOIN LOLA</a>
+        <Link href="/collection/all">ALL TEES</Link><Link href="/collection/oversized">OVERSIZED</Link><Link href="/collection/graphics">GRAPHIC</Link><Link href="/collection/everyday">EVERYDAY</Link><a href="#contact">JOIN LOLA</a>
       </div>
     </div>
     {open&&<div className="mobile-menu">
       <button className="close" onClick={()=>setOpen(false)} aria-label="Close"><X/></button>
-      <span className="brand-frame mobile-brand-frame"><img className="mobile-logo" src="/Lola england.jpg" alt="LOLA ENGLAND"/></span>
+      <Link href="/" className="mobile-brand-link" onClick={()=>setOpen(false)} aria-label="LOLA ENGLAND home">
+        <span className="brand-frame mobile-brand-frame"><img className="mobile-logo" src="/Lola england.jpg" alt="LOLA ENGLAND"/></span>
+      </Link>
       {links.map(([label,href])=><a key={label} href={href} onClick={()=>setOpen(false)}>{label}</a>)}
-      <a href="#shop" onClick={()=>setOpen(false)}>SHOP ALL T-SHIRTS</a>
+      <Link href="/collection/all" onClick={()=>setOpen(false)}>SHOP ALL T-SHIRTS</Link>
     </div>}
   </>;
 }
