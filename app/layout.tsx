@@ -8,6 +8,7 @@ import './final-polish.css';
 import './clickable-store.css';
 import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
+import { CartProvider } from '@/components/cart-provider';
 
 export const metadata: Metadata = {
   title: 'LOLA ENGLAND — Women’s T-Shirts',
@@ -19,9 +20,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en">
       <body>
-        <SiteHeader />
-        <main>{children}</main>
-        <Footer />
+        <CartProvider>
+          <SiteHeader />
+          <main>{children}</main>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );
