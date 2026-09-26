@@ -10,11 +10,12 @@ export async function POST(request:Request){
   if(!upiId)return NextResponse.json({error:'UPI payment is not configured yet. Add LOLA_UPI_ID in Vercel.'},{status:503});
   const db=getSupabaseAdmin(); if(!db)return NextResponse.json({error:'Order backend is not configured.'},{status:503});
   const couponCode=String(body.couponCode||'').trim().toUpperCase();
-  const [{data:products,error:productError},{data:settings,error:settingsError},{data:coupon,error:couponError}]=await Promise.all([
+  const [{data:products,error:productError},{data:settings,error:settingsError}]=await Promise.all([
    db.from('products').select('id,name,price,image_url').in('id',items.map((i:any)=>String(i.id)).filter(Boolean)).eq('active',true),
-   db.from('store_settings').select('shipping_fee,free_shipping_threshold,platform_fee,gst_rate').eq('id',true).single(),
-   couponCode?db.from('coupons').select('*').eq('code',couponCode).eq('active',true).maybeSingle():Promise.resolve({data:null,error:null})
+   db.from('store_settings').select('shipping_fee,free_shipping_threshold,platform_fee,gst_rate').eq('id',true).single()
   ]);
+  let coupon:any=null; let couponError:any=null;
+  if(couponCode){ const result=await db.from('coupons').select('*').eq('code',couponCode).eq('active',true).maybeSingle(); coupon=result.data; couponError=result.error; }
   if(productError||!products?.length)return NextResponse.json({error:'One or more products are no longer available.'},{status:400});
   if(settingsError||!settings)return NextResponse.json({error:'Checkout charges are not configured.'},{status:503});
   const safeItems=items.map((i:any)=>{const product=products.find((p:any)=>String(p.id)===String(i.id));const size=String(i.size||'').toUpperCase();return product&&['XS','S','M','L','XL','XXL','3XL'].includes(size)?{id:String(product.id),name:String(product.name).slice(0,200),price:Number(product.price),quantity:Math.max(1,Math.min(20,Number(i.quantity)||1)),size}:null;}).filter(Boolean);
