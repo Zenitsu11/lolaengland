@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowUpRight, Star, Repeat2 } from 'lucide-react';
-import { useRef, useState, type MouseEvent, type TouchEvent } from 'react';
+import { ArrowUpRight, Star, Repeat2, Heart } from 'lucide-react';
+import { useEffect, useRef, useState, type MouseEvent, type TouchEvent } from 'react';
 import { SafeImage } from '@/components/safe-image';
 
 export type Product = {
@@ -27,11 +27,28 @@ const fallbackModels = ['/products/lola-mint-front.webp?v=6','/products/lola-nav
 
 export function ProductCard({ product, visualIndex = 0 }: { product: Product; visualIndex?: number }) {
   const [showBack, setShowBack] = useState(false);
+  const [wishlisted, setWishlisted] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const didSwipe = useRef(false);
   const reviews = Number(product.reviews || 0).toLocaleString('en-IN');
   const fallback = fallbackModels[visualIndex % fallbackModels.length];
   const hasBack = Boolean(product.secondary_image_url);
+
+  useEffect(() => {
+    try { setWishlisted(JSON.parse(localStorage.getItem('lola-wishlist') || '[]').includes(String(product.id))); } catch {}
+  }, [product.id]);
+
+  const toggleWishlist = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault(); event.stopPropagation();
+    try {
+      const key='lola-wishlist';
+      const ids:string[]=JSON.parse(localStorage.getItem(key)||'[]');
+      const next=wishlisted ? ids.filter(id=>id!==String(product.id)) : [...new Set([...ids,String(product.id)])];
+      localStorage.setItem(key,JSON.stringify(next));
+      setWishlisted(!wishlisted);
+      window.dispatchEvent(new CustomEvent('lola-wishlist-change'));
+    } catch {}
+  };
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
     touchStartX.current = event.touches[0]?.clientX ?? null;
@@ -59,6 +76,7 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
         onTouchEnd={handleTouchEnd}
       >
         <span className="pill">TRENDING</span>
+        <button type="button" className={"product-wishlist" + (wishlisted ? " is-active" : "")} onClick={toggleWishlist} aria-label={wishlisted ? "Remove from wishlist" : "Save to wishlist"} aria-pressed={wishlisted}><Heart/></button>
         <div
           className="product-image-wrap"
           onClick={(event: MouseEvent<HTMLDivElement>) => {
