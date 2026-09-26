@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import './globals.css';
 import './lola-enhancements.css';
 import './lola-editorial.css';
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://lolaengland.vercel.app'),
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
       <body>
