@@ -12,6 +12,7 @@ create table if not exists public.products (
   reviews integer not null default 0 check (reviews >= 0),
   description text not null default '',
   image_url text not null default '',
+  video_urls text[] not null default '{}',
   amazon_url text not null default '',
   flipkart_url text not null default '',
   featured boolean not null default true,
@@ -213,3 +214,6 @@ alter table public.newsletter_subscribers enable row level security;
 drop policy if exists "Public can subscribe to newsletter" on public.newsletter_subscribers;
 create policy "Public can subscribe to newsletter" on public.newsletter_subscribers for insert with check (active = true);
 create index if not exists newsletter_subscribers_subscribed_at_idx on public.newsletter_subscribers (subscribed_at desc);
+
+-- Product video media (up to 2 URLs are enforced by the admin API).
+alter table public.products add column if not exists video_urls text[] not null default '{}';
