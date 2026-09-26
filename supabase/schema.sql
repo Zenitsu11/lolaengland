@@ -120,3 +120,60 @@ alter table public.orders add column if not exists platform_fee numeric(12,2) no
 alter table public.orders add column if not exists gst_rate numeric(5,2) not null default 0;
 alter table public.orders add column if not exists gst_amount numeric(12,2) not null default 0;
 alter table public.orders add column if not exists total_amount numeric(12,2) not null default 0;
+
+-- Owner admin catalogue, inventory and coupons.
+create table if not exists public.categories (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  slug text unique not null,
+  description text not null default '',
+  active boolean not null default true,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create table if not exists public.product_inventory (
+  product_id uuid primary key references public.products(id) on delete cascade,
+  stock_qty integer not null default 0 check (stock_qty >= 0),
+  reserved_qty integer not null default 0 check (reserved_qty >= 0),
+  low_stock_threshold integer not null default 5 check (low_stock_threshold >= 0),
+  track_inventory boolean not null default true,
+  updated_at timestamptz not null default now()
+);
+create table if not exists public.coupons (
+  id uuid primary key default gen_random_uuid(),
+  code text unique not null,
+  description text not null default '',
+  discount_type text not null default 'percent' check (discount_type in ('percent','fixed')),
+  discount_value numeric(12,2) not null default 0 check (discount_value >= 0),
+  minimum_order_value numeric(12,2) not null default 0 check (minimum_order_value >= 0),
+  maximum_discount numeric(12,2),
+  usage_limit integer,
+  used_count integer not null default 0 check (used_count >= 0),
+  starts_at timestamptz,
+  expires_at timestamptz,
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.orders add column if not exists coupon_code text;
+alter table public.orders add column if not exists discount_amount numeric(12,2) not null default 0;
+alter table public.categories enable row level security;
+alter table public.product_inventory enable row level security;
+alter table public.coupons enable row level security;
+drop policy if exists "Public can view active categories" on public.categories;
+create policy "Public can view active categories" on public.categories for select using (active = true);
+drop policy if exists "Public can view product inventory" on public.product_inventory;
+create policy "Public can view product inventory" on public.product_inventory for select using (true);
+drop policy if exists "Public can view active coupons" on public.coupons;
+create policy "Public can view active coupons" on public.coupons for select using (active = true);
+create index if not exists categories_active_sort_idx on public.categories (active, sort_order, created_at desc);
+create index if not exists coupons_active_dates_idx on public.coupons (active, starts_at, expires_at);
+create index if not exists orders_coupon_idx on public.orders (coupon_code);
+insert into public.categories (name,slug,sort_order) values ('Oversized','oversized',10),('Graphics','graphics',20),('Everyday','everyday',30) on conflict (slug) do nothing;
+drop trigger if exists categories_updated_at on public.categories;
+create trigger categories_updated_at before update on public.categories for each row execute function public.set_updated_at();
+drop trigger if exists product_inventory_updated_at on public.product_inventory;
+create trigger product_inventory_updated_at before update on public.product_inventory for each row execute function public.set_updated_at();
+drop trigger if exists coupons_updated_at on public.coupons;
+create trigger coupons_updated_at before update on public.coupons for each row execute function public.set_updated_at();
