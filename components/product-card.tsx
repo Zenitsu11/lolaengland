@@ -66,6 +66,7 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
   };
 
   return <article className="product-card">
+    <button type="button" className={"product-wishlist" + (wishlisted ? " is-active" : "")} onClick={toggleWishlist} aria-label={wishlisted ? "Remove from wishlist" : "Save to wishlist"} aria-pressed={wishlisted}><Heart/></button>
     <Link className="product-card-main" href={'/product/' + encodeURIComponent(String(product.id))}>
       <div
         className="product-art"
@@ -76,7 +77,6 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
         onTouchEnd={handleTouchEnd}
       >
         <span className="pill">TRENDING</span>
-        <button type="button" className={"product-wishlist" + (wishlisted ? " is-active" : "")} onClick={toggleWishlist} aria-label={wishlisted ? "Remove from wishlist" : "Save to wishlist"} aria-pressed={wishlisted}><Heart/></button>
         <div
           className="product-image-wrap"
           onClick={(event: MouseEvent<HTMLDivElement>) => {
