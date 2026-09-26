@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import {
@@ -77,6 +78,17 @@ export default function AdminPage(){
     if(!confirm('Delete this product permanently?'))return;
     try{await api('/api/admin/products/'+id,{method:'DELETE'});setMessage('Product deleted.');await refresh();}catch(e){setMessage(e instanceof Error?e.message:'Delete failed.');}
   }
+  async function uploadDirectMedia(file:File){
+    const sign=await api('/api/admin/upload/sign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:file.name,type:file.type,size:file.size})});
+    const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if(!url||!key) throw new Error('Supabase public configuration is missing.');
+    const client=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+    const {error}=await client.storage.from('product-images').uploadToSignedUrl(sign.path,sign.token,file,{contentType:file.type,cacheControl:'31536000'});
+    if(error) throw new Error(error.message);
+    return sign.url as string;
+  }
+
   async function uploadImages(files:File[]){
     if(!editingProduct||!files.length)return;
     const remaining=12-(editingProduct.image_urls?.length||0);
@@ -84,7 +96,7 @@ export default function AdminPage(){
     setUploading(true);
     try{
       const urls:string[]=[];
-      for(const file of files.slice(0,remaining)){const form=new FormData();form.append('file',file);const d=await api('/api/admin/upload',{method:'POST',body:form});urls.push(d.url);}
+      for(const file of files.slice(0,remaining)){const d=await api('/api/admin/upload',{method:'POST',body:(()=>{const f=new FormData();f.append('file',file);return f;})()});urls.push(d.url);}
       setEditingProduct(p=>p?{...p,image_urls:[...(p.image_urls||[]),...urls],image_url:(p.image_urls?.[0]||urls[0]||'')}:p);
       setMessage('Images uploaded. Save the product to publish them.');
     }catch(e){setMessage(e instanceof Error?e.message:'Image upload failed.');}finally{setUploading(false);}
@@ -97,7 +109,7 @@ export default function AdminPage(){
     setUploading(true);
     try{
       const urls:string[]=[];
-      for(const file of files.slice(0,remaining)){const form=new FormData();form.append('file',file);const d=await api('/api/admin/upload',{method:'POST',body:form});urls.push(d.url);}
+      for(const file of files.slice(0,remaining)){urls.push(await uploadDirectMedia(file));}
       setEditingProduct(p=>p?{...p,video_urls:[...(p.video_urls||[]),...urls]}:p);
       setMessage('Videos uploaded. Save the product to publish them.');
     }catch(e){setMessage(e instanceof Error?e.message:'Video upload failed.');}finally{setUploading(false);}
