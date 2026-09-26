@@ -14,16 +14,33 @@ const slides = [
 
 const INTERVAL = 5000;
 
-export function MoodHero() {
+type MoodHeroProps = {
+  imageUrls?: string[];
+  videoUrls?: string[];
+};
+
+export function MoodHero({ imageUrls = [], videoUrls = [] }: MoodHeroProps) {
+  const mediaSlides = [
+    ...mediaSlides.map((slide,index) => ({ ...slide, image: imageUrls[index] || slide.image, video: '' })),
+    ...videoUrls.slice(0,2).map((video,index) => ({
+      image: '',
+      video,
+      kicker: `05 · LOLA FILM ${index + 1}`,
+      title: 'Move with', italic: 'the mood.',
+      copy: 'A little motion, a little attitude — discover the LOLA edit in motion.',
+      quote: '“Wear it. Feel it. Own it.”',
+      note: 'LOLA FILM', label: 'LOLA GIRL', href: '/collection/all'
+    }))
+  ];
   const [active,setActive] = useState(0);
   const touchStart = useRef<number|null>(null);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setActive(current => (current + 1) % slides.length), INTERVAL);
+    const timer = window.setTimeout(() => setActive(current => (current + 1) % mediaSlides.length), INTERVAL);
     return () => window.clearTimeout(timer);
   }, [active]);
 
-  const goTo = (index:number) => setActive((index + slides.length) % slides.length);
+  const goTo = (index:number) => setActive((index + mediaSlides.length) % mediaSlides.length);
 
   const onKeyDown = (event:KeyboardEvent<HTMLElement>) => {
     if(event.key === 'ArrowRight') goTo(active + 1);
@@ -45,7 +62,7 @@ export function MoodHero() {
   return (
     <section className="mood-hero" aria-label="LOLA ENGLAND mood collection" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onKeyDown={onKeyDown} tabIndex={0}>
       <div className="mood-hero-slides">
-        {slides.map((slide,index) => (
+        {mediaSlides.map((slide,index) => (
           <article className={'mood-hero-slide ' + (index === active ? 'is-active' : '')} key={slide.kicker}>
             <div className="mood-hero-copy">
               <p className="editorial-kicker">{slide.kicker}</p>
@@ -55,7 +72,11 @@ export function MoodHero() {
               <Link className="btn btn-dark" href={slide.href}>SHOP THE EDIT <ArrowRight/></Link>
             </div>
             <Link className="mood-hero-image image-safe" href={slide.href} aria-label={'Shop ' + slide.label}>
-              <SafeImage src={slide.image} fallbackSrc={slide.image} alt={'LOLA ENGLAND ' + slide.label + ' women’s T-shirt'} width={1071} height={1536} fetchPriority={index===0 ? 'high' : undefined} />
+              {slide.video ? (
+                <video className="mood-hero-video" src={slide.video} autoPlay muted loop playsInline preload={index===4 ? 'metadata' : 'none'} />
+              ) : (
+                <SafeImage src={slide.image} fallbackSrc={slide.image} alt={'LOLA ENGLAND ' + slide.label + ' women’s T-shirt'} width={1071} height={1536} fetchPriority={index===0 ? 'high' : undefined} />
+              )}
               <div className="mood-hero-note"><span>{slide.note}</span><strong>{slide.label}</strong></div>
             </Link>
           </article>
@@ -63,7 +84,7 @@ export function MoodHero() {
       </div>
       <div className="mood-hero-controls">
         <button type="button" onClick={() => goTo(active - 1)} aria-label="Previous mood"><ChevronLeft/></button>
-        <div className="mood-progress" aria-label={'Slide ' + (active+1) + ' of ' + slides.length}>
+        <div className="mood-progress" aria-label={'Slide ' + (active+1) + ' of ' + mediaSlides.length}>
           <svg viewBox="0 0 44 44" aria-hidden="true">
             <circle className="mood-progress-track" cx="22" cy="22" r="18"/>
             <circle key={active} className="mood-progress-fill" cx="22" cy="22" r="18"/>
@@ -71,7 +92,7 @@ export function MoodHero() {
         </div>
         <button type="button" onClick={() => goTo(active + 1)} aria-label="Next mood"><ChevronRight/></button>
       </div>
-      <div className="mood-dots" aria-hidden="true">{slides.map((slide,index)=><span key={slide.kicker} className={index===active?'is-active':''}/>)}</div>
+      <div className="mood-dots" aria-hidden="true">{mediaSlides.map((slide,index)=><span key={slide.kicker} className={index===active?'is-active':''}/>)}</div>
     </section>
   );
 }
