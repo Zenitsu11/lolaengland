@@ -14,10 +14,10 @@ type Product={id:string|number;name:string;slug?:string;price:number;mrp:number;
 type Category={id:string;name:string;slug:string;description:string;active:boolean;sort_order:number};
 type Inventory={product_id:string;stock_qty:number;reserved_qty:number;low_stock_threshold:number;track_inventory:boolean;products?:Product};
 type Coupon={id:string;code:string;description:string;discount_type:'percent'|'fixed';discount_value:number;minimum_order_value:number;maximum_discount:number|null;usage_limit:number|null;used_count:number;starts_at:string|null;expires_at:string|null;active:boolean};
-type Settings={brand_name:string;shipping_message:string;instagram_url:string;whatsapp_url:string;contact_email:string;amazon_seller_url:string;flipkart_seller_url:string;shipping_fee:number;free_shipping_threshold:number;platform_fee:number;gst_rate:number};
+type Settings={brand_name:string;shipping_message:string;instagram_url:string;whatsapp_url:string;contact_email:string;amazon_seller_url:string;flipkart_seller_url:string;shipping_fee:number;free_shipping_threshold:number;platform_fee:number;gst_rate:number;hero_image_urls:string[];hero_video_urls:string[]};
 
 const emptyProduct:Product={id:'new',name:'',slug:'',price:599,mrp:899,rating:4.5,reviews:0,description:'',image_url:'',image_urls:[],video_urls:[],categories:[],amazon_url:'',flipkart_url:'',featured:true,active:true,sort_order:0};
-const defaultSettings:Settings={brand_name:'LOLA ENGLAND',shipping_message:'FREE SHIPPING ON ORDERS OVER ₹799',instagram_url:'',whatsapp_url:'',contact_email:'',amazon_seller_url:'',flipkart_seller_url:'',shipping_fee:40,free_shipping_threshold:799,platform_fee:10,gst_rate:5};
+const defaultSettings:Settings={brand_name:'LOLA ENGLAND',shipping_message:'FREE SHIPPING ON ORDERS OVER ₹799',instagram_url:'',whatsapp_url:'',contact_email:'',amazon_seller_url:'',flipkart_seller_url:'',shipping_fee:40,free_shipping_threshold:799,platform_fee:10,gst_rate:5,hero_image_urls:[],hero_video_urls:[]};
 
 const nav=[
   ['overview','Overview',BarChart3],['products','Products',Package],['categories','Categories',Layers3],
@@ -123,6 +123,24 @@ export default function AdminPage(){
 
   async function updateOrder(id:string,status:string,utr?:string){
     try{await api('/api/admin/orders',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status,utr})});setMessage(status==='paid'?'Payment verified.':'Order updated.');await refresh();}catch(e){setMessage(e instanceof Error?e.message:'Could not update order.');}
+  }
+
+  async function uploadHeroMedia(files:File[], kind:'image'|'video'){
+    const current=kind==='image'?settings.hero_image_urls:settings.hero_video_urls;
+    const max=kind==='image'?4:2;
+    const remaining=max-current.length;
+    if(remaining<=0){setMessage(`Maximum ${max} hero ${kind === 'image' ? 'images' : 'videos'} reached.`);return;}
+    setUploading(true);setMessage('');
+    try{
+      const urls:string[]=[];
+      for(const file of files.slice(0,remaining)){
+        const form=new FormData();form.append('file',file);
+        const d=await api('/api/admin/upload',{method:'POST',body:form});
+        urls.push(d.url);
+      }
+      setSettings(s=>({...s,...(kind==='image'?{hero_image_urls:[...s.hero_image_urls,...urls]}:{hero_video_urls:[...s.hero_video_urls,...urls]})}));
+      setMessage(`Hero ${kind === 'image' ? 'images' : 'videos'} uploaded. Click Save website settings to publish them.`);
+    }catch(e){setMessage(e instanceof Error?e.message:`Hero ${kind} upload failed.`);}finally{setUploading(false);}
   }
 
   async function saveSettings(){
@@ -244,7 +262,15 @@ export default function AdminPage(){
         {field('GST rate %',settings.gst_rate,v=>setSettings({...settings,gst_rate:Number(v)}),'number')}
       </div><button className="admin-btn" onClick={saveSettings} disabled={loading}><Save/> Save payment settings</button><div className="payment-note"><b>UPI:</b> customers get the exact QR amount. The owner verifies payment and records the bank UTR in Orders. No customer UTR field is used.</div></div>}
 
-      {tab==='settings'&&<div className="admin-card"><h2>Website settings</h2><p>Brand, contact, social, marketplace and checkout messaging.</p><div className="admin-form-grid">
+      {tab==='settings'&&<div className="admin-card"><h2>Website settings</h2><p>Brand, contact, social, marketplace and checkout messaging.</p>
+      <div className="admin-card admin-hero-media-card"><div className="admin-row"><div><h2>Wear your mood — hero media</h2><p>Upload up to 4 clean model images and up to 2 short videos. These power the full-screen homepage mood carousel. The carousel keeps the model’s face and full T-shirt visible.</p></div></div>
+        <div className="gallery-header"><div><b>Hero images</b><span>{settings.hero_image_urls.length}/4</span></div><label className="admin-btn upload-label"><Images/> Upload hero images<input type="file" multiple accept="image/jpeg,image/png,image/webp" hidden onChange={e=>{const f=Array.from(e.target.files||[]);if(f.length)uploadHeroMedia(f,'image');e.currentTarget.value=''}}/></label></div>
+        <div className="gallery-grid hero-media-grid">{settings.hero_image_urls.map((u,i)=><div className="gallery-item" key={u+i}><img src={u} alt="Hero media"/><span>MOOD {i+1}</span><button onClick={()=>setSettings(s=>({...s,hero_image_urls:s.hero_image_urls.filter((_,n)=>n!==i)}))}><X size={14}/></button></div>)}</div>
+        <div className="gallery-header video-gallery-header"><div><b>Hero videos</b><span>{settings.hero_video_urls.length}/2</span></div><label className="admin-btn upload-label"><Upload/> Upload hero videos<input type="file" multiple accept="video/mp4,video/webm,video/quicktime" hidden onChange={e=>{const f=Array.from(e.target.files||[]);if(f.length)uploadHeroMedia(f,'video');e.currentTarget.value=''}}/></label></div>
+        <div className="gallery-grid video-gallery-grid">{settings.hero_video_urls.map((u,i)=><div className="gallery-item video-gallery-item" key={u+i}><video src={u} muted playsInline controls preload="metadata"/><span>FILM {i+1}</span><button onClick={()=>setSettings(s=>({...s,hero_video_urls:s.hero_video_urls.filter((_,n)=>n!==i)}))}><X size={14}/></button></div>)}</div>
+        <small className="media-help">Images: portrait editorial photos with the whole face and T-shirt visible. Videos: short MP4/WebM clips, up to 2. Remove a media item here, then save settings.</small>
+      </div>
+      <div className="admin-form-grid">
         {field('Brand name',settings.brand_name,v=>setSettings({...settings,brand_name:v}))}{field('Shipping message',settings.shipping_message,v=>setSettings({...settings,shipping_message:v}))}
         {field('Contact email',settings.contact_email,v=>setSettings({...settings,contact_email:v}),'email')}{field('Instagram URL',settings.instagram_url,v=>setSettings({...settings,instagram_url:v}),'url')}
         {field('WhatsApp URL',settings.whatsapp_url,v=>setSettings({...settings,whatsapp_url:v}),'url')}{field('Amazon seller URL',settings.amazon_seller_url,v=>setSettings({...settings,amazon_seller_url:v}),'url')}
