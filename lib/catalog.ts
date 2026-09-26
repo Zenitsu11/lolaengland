@@ -39,3 +39,18 @@ export async function getPublicProducts():Promise<Product[]>{
   const mapped=data.map(p=>{const urls=Array.isArray(p.image_urls) ? p.image_urls.filter((value:unknown)=>typeof value==='string' && value.trim()) as string[] : []; const front=p.image_url || urls[0] || ''; return {id:p.id,name:p.name,price:p.price,mrp:p.mrp,rating:p.rating,reviews:p.reviews,description:p.description,image_url:front,image_urls:urls,secondary_image_url:urls[1],video_urls:Array.isArray(p.video_urls)?p.video_urls.filter((value:unknown)=>typeof value==='string' && value.trim()) as string[]:[],categories:Array.isArray(p.categories)?p.categories:[],amazon:p.amazon_url,flipkart:p.flipkart_url,tone:'#f0e2e5'};});
   return mapped;
 }
+
+
+export async function getStoreSettings(){
+  const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const fallback={hero_image_urls:[],hero_video_urls:[]};
+  if(!url || !key) return fallback;
+  const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+  const {data,error}=await db.from('store_settings').select('hero_image_urls,hero_video_urls').eq('id',true).single();
+  if(error || !data) return fallback;
+  return {
+    hero_image_urls:Array.isArray(data.hero_image_urls)?data.hero_image_urls.filter((x:unknown)=>typeof x==='string' && x.trim()).slice(0,4):[],
+    hero_video_urls:Array.isArray(data.hero_video_urls)?data.hero_video_urls.filter((x:unknown)=>typeof x==='string' && x.trim()).slice(0,2):[],
+  };
+}
