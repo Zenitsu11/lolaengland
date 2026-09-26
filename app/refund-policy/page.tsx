@@ -1,0 +1,3 @@
+import { PolicyPage } from '@/components/policy-page';
+export default function Refund(){return <PolicyPage eyebrow="REFUND POLICY" title="Refunds, simply explained." intro="Refunds are handled after the owner reviews the returned or cancelled order.">
+<h2>Eligibility</h2><p>Refund eligibility depends on the condition of the item and the applicable order policy.</p><h2>Processing</h2><p>Once approved, the owner records the order outcome. Any refund timing depends on the payment method and banking process.</p><p>For a specific order, contact support with your order number.</p></PolicyPage>}
