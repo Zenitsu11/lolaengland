@@ -1,9 +1,10 @@
 'use client';
+import type { ReactNode } from 'react';
 import {createContext,useContext,useEffect,useMemo,useState} from 'react';
 export type CartItem={id:string|number,name:string,price:number,image:string,quantity:number,size:string,lineId:string};
 type CartContext={items:CartItem[],total:number,add:(item:Omit<CartItem,'quantity'>)=>void,remove:(lineId:string)=>void,setQuantity:(lineId:string,quantity:number)=>void,clear:()=>void};
 const C=createContext<CartContext|null>(null);
-export function CartProvider({children}:{children:React.ReactNode}){
+export function CartProvider({children}:{children:ReactNode}){
  const [items,setItems]=useState<CartItem[]>([]);
  useEffect(()=>{try{const x=localStorage.getItem('lola-cart');if(x){const parsed=JSON.parse(x);setItems(Array.isArray(parsed)?parsed.map((i:any)=>({...i,size:i.size||'M',lineId:i.lineId||`${i.id}-${i.size||'M'}`})):[]);}}catch{}},[]);
  useEffect(()=>{try{localStorage.setItem('lola-cart',JSON.stringify(items));}catch{}},[items]);
