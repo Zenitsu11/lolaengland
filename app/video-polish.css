@@ -1,0 +1,28 @@
+/* LOLA ENGLAND video media polish */
+.product-detail-slide.is-video{
+  aspect-ratio:9 / 16!important;
+  background:transparent!important;
+}
+.product-detail-slide.is-video .product-detail-video{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+  background:transparent!important;
+  border-radius:inherit;
+}
+.product-detail-video::-webkit-media-controls,
+.product-detail-video::-webkit-media-controls-enclosure,
+.product-detail-video::-webkit-media-controls-panel{
+  display:none!important;
+  -webkit-appearance:none!important;
+}
+.mood-hero-video{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  object-fit:contain!important;
+  object-position:center center!important;
+  background:transparent!important;
+}

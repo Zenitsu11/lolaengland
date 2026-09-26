@@ -34,6 +34,7 @@ export function MoodHero({ imageUrls = [], videoUrls = [] }: MoodHeroProps) {
   ];
   const [active,setActive] = useState(0);
   const touchStart = useRef<number|null>(null);
+  const heroVideoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
 
   useEffect(() => {
     const timer = window.setTimeout(() => setActive(current => (current + 1) % mediaSlides.length), INTERVAL);
@@ -41,6 +42,19 @@ export function MoodHero({ imageUrls = [], videoUrls = [] }: MoodHeroProps) {
   }, [active]);
 
   const goTo = (index:number) => setActive((index + mediaSlides.length) % mediaSlides.length);
+
+  // Hero films always stay muted and restart when their slide becomes active.
+  useEffect(() => {
+    Object.values(heroVideoRefs.current).forEach(video => {
+      if (!video) return;
+      video.pause();
+      video.currentTime = 0;
+    });
+    const activeVideo = heroVideoRefs.current[active];
+    if (!activeVideo) return;
+    activeVideo.muted = true;
+    void activeVideo.play().catch(() => {});
+  }, [active, mediaSlides.length]);
 
   const onKeyDown = (event:KeyboardEvent<HTMLElement>) => {
     if(event.key === 'ArrowRight') goTo(active + 1);
@@ -73,7 +87,7 @@ export function MoodHero({ imageUrls = [], videoUrls = [] }: MoodHeroProps) {
             </div>
             <Link className="mood-hero-image image-safe" href={slide.href} aria-label={'Shop ' + slide.label}>
               {slide.video ? (
-                <video className="mood-hero-video" src={slide.video} autoPlay muted loop playsInline preload={index===4 ? 'metadata' : 'none'} />
+                <video ref={element => { heroVideoRefs.current[index] = element; }} className="mood-hero-video" src={slide.video} autoPlay muted loop playsInline preload="auto" aria-hidden="true" />
               ) : (
                 <SafeImage src={slide.image} fallbackSrc={slide.image} alt={'LOLA ENGLAND ' + slide.label + ' women’s T-shirt'} width={1071} height={1536} fetchPriority={index===0 ? 'high' : undefined} />
               )}
