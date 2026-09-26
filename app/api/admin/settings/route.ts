@@ -28,6 +28,8 @@ export async function PUT(request: Request) {
     free_shipping_threshold: num(body.free_shipping_threshold,799),
     platform_fee: num(body.platform_fee,10),
     gst_rate: Math.min(100,num(body.gst_rate,5)),
+    hero_image_urls: Array.isArray(body.hero_image_urls) ? body.hero_image_urls.filter((x:any)=>typeof x==='string' && x.trim()).slice(0,4) : [],
+    hero_video_urls: Array.isArray(body.hero_video_urls) ? body.hero_video_urls.filter((x:any)=>typeof x==='string' && x.trim()).slice(0,2) : [],
   };
   const { data, error } = await db.from('store_settings').upsert({ id: true, ...payload }).select('*').single();
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
