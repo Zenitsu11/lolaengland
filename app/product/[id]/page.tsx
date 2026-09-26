@@ -11,7 +11,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
   if(!product) return <main className="inner-page"><div className="container"><h1>Product not found</h1></div></main>;
   return <main className="inner-page product-detail-page"><div className="container">
     <Link className="back-link" href="/collection/all"><ArrowLeft/> Back to shop</Link>
-    <div className="product-detail"><ProductGallery name={product.name} front={product.image_url} back={product.secondary_image_url} images={product.image_urls}/>
+    <div className="product-detail"><ProductGallery name={product.name} front={product.image_url} back={product.secondary_image_url} images={product.image_urls} videos={product.video_urls}/>
       <div className="product-detail-copy"><p className="editorial-eyebrow">LOLA ENGLAND · WOMEN’S T-SHIRT</p><h1>{product.name}</h1>
         <div className="detail-rating"><Star/><Star/><Star/><Star/><Star/> <span>{product.rating} · {Number(product.reviews||0).toLocaleString('en-IN')} ratings</span></div>
         <div className="detail-price">₹{product.price.toLocaleString('en-IN')} <del>₹{product.mrp.toLocaleString('en-IN')}</del></div>
