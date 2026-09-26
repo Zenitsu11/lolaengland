@@ -29,7 +29,7 @@ export async function getPublicProducts():Promise<Product[]>{
   if(!url || !key) return pairFrontAndBack(demoProducts);
 
   const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
-  const {data,error}=await db.from('products').select('id,name,price,mrp,rating,reviews,description,image_url,image_urls,categories,amazon_url,flipkart_url,featured,active').eq('active',true).order('sort_order',{ascending:true}).order('created_at',{ascending:false});
+  const {data,error}=await db.from('products').select('id,name,price,mrp,rating,reviews,description,image_url,image_urls,video_urls,categories,amazon_url,flipkart_url,featured,active').eq('active',true).order('sort_order',{ascending:true}).order('created_at',{ascending:false});
 
   // The existing placeholder rows have no product images. Keep the real LOLA
   // catalog visible until the admin catalog contains actual image URLs.
