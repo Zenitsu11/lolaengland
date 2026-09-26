@@ -13,7 +13,7 @@ export async function PUT(request:Request){
  if(!(await isAdminRequest()))return NextResponse.json({error:'Unauthorized'},{status:401});
  const body=await request.json();if(!body.id)return NextResponse.json({error:'Order ID required.'},{status:400});
  const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Supabase is not configured'},{status:503});
- const {data:current,error:readError}=await db.from('orders').select('id,status,items,coupon_code,paid_at').eq('id',body.id).single();
+ const {data:current,error:readError}=await db.from('orders').select('id,status,items,coupon_code,paid_at,customer_id,total_amount').eq('id',body.id).single();
  if(readError||!current)return NextResponse.json({error:'Order not found.'},{status:404});
  const status=['payment_submitted','paid','cancelled','awaiting_payment'].includes(body.status)?body.status:null;
  if(!status)return NextResponse.json({error:'Invalid order status.'},{status:400});
@@ -28,6 +28,7 @@ export async function PUT(request:Request){
      const {data:coupon}=await db.from('coupons').select('id,used_count').eq('code',current.coupon_code).maybeSingle();
      if(coupon) await db.from('coupons').update({used_count:Number(coupon.used_count||0)+1}).eq('id',coupon.id);
    }
+   if(current.customer_id){ const {data:customer}=await db.from('customers').select('total_spent').eq('id',current.customer_id).maybeSingle(); if(customer) await db.from('customers').update({total_spent:Number(customer.total_spent||0)+Number(current.total_amount||0),last_order_at:new Date().toISOString()}).eq('id',current.customer_id); }
    const items=Array.isArray(current.items)?current.items:[];
    for(const item of items){
      const productId=String(item.id||''); const qty=Math.max(1,Math.min(20,Number(item.quantity)||1));
