@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
 import {
   BarChart3, Package, Layers3, Boxes, ShoppingCart, Users, TicketPercent,
   WalletCards, Settings, ExternalLink, LogOut, Plus, Pencil, Trash2, Save,
@@ -39,6 +41,7 @@ export default function AdminPage(){
   const [editingCoupon,setEditingCoupon]=useState<Coupon|null>(null);
   const [search,setSearch]=useState('');
   const [uploading,setUploading]=useState(false);
+  const [exporting,setExporting]=useState(false);
 
   const api=async(path:string,options?:RequestInit)=>{
     const r=await fetch(path,{cache:'no-store',...options});
@@ -114,6 +117,36 @@ export default function AdminPage(){
     try{const d=await api('/api/admin/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(settings)});setSettings(d.settings);setMessage('Website settings saved.');}catch(e){setMessage(e instanceof Error?e.message:'Could not save settings.');}finally{setLoading(false);}
   }
   async function logout(){await fetch('/api/admin/logout',{method:'POST'});window.location.href='/admin/login';}
+  async function exportData(type:'xlsx'|'pdf',dataset:'customers'|'orders'|'products'|'inventory'|'all'){
+    setExporting(true); setMessage('');
+    try{
+      const d=await api('/api/admin/export');
+      const rows:any=(d as any)[dataset];
+      const stamp=new Date().toISOString().slice(0,10);
+      if(type==='xlsx'){
+        const wb=XLSX.utils.book_new();
+        const add=(name:string,data:any[])=>{const ws=XLSX.utils.json_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,name.slice(0,31));};
+        if(dataset==='all'){add('Customers',d.customers);add('Orders',d.orders);add('Products',d.products);add('Inventory',d.inventory);}
+        else add(dataset.charAt(0).toUpperCase()+dataset.slice(1),rows||[]);
+        XLSX.writeFile(wb,'LOLA-ENGLAND-'+dataset+'-'+stamp+'.xlsx');
+      }else{
+        const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
+        const sections:any[] = dataset==='all' ? [['Customers',d.customers],['Orders',d.orders],['Products',d.products],['Inventory',d.inventory]] : [[dataset.charAt(0).toUpperCase()+dataset.slice(1),rows||[]]];
+        sections.forEach((section,idx)=>{
+          if(idx)doc.addPage();
+          doc.setFontSize(16);doc.text('LOLA ENGLAND — '+section[0],40,40);
+          const data=section[1]||[]; if(!data.length){doc.setFontSize(10);doc.text('No records.',40,65);return;}
+          const headers=Object.keys(data[0]).slice(0,10); const startY=65; const rowH=18; const colW=740/Math.max(headers.length,1);
+          doc.setFontSize(7);
+          headers.forEach((h,i)=>doc.text(String(h).slice(0,18),40+i*colW,startY));
+          data.slice(0,45).forEach((row:any,ri:number)=>headers.forEach((h,i)=>doc.text(String(row[h]??'').replace(/\\s+/g,' ').slice(0,20),40+i*colW,startY+(ri+1)*rowH)));
+          if(data.length>45)doc.text('Showing first 45 rows of '+data.length+'. Use Excel for the complete dataset.',40,820);
+        });
+        doc.save('LOLA-ENGLAND-'+dataset+'-'+stamp+'.pdf');
+      }
+      setMessage((dataset==='all'?'All data':dataset)+' exported as '+type.toUpperCase()+'.');
+    }catch(e){setMessage(e instanceof Error?e.message:'Export failed.');}finally{setExporting(false);}
+  }
 
   const filteredProducts=useMemo(()=>products.filter(p=>!search||p.name.toLowerCase().includes(search.toLowerCase())),[products,search]);
   const lowStock=inventory.filter(x=>x.track_inventory&&x.stock_qty-x.reserved_qty<=x.low_stock_threshold).length;
@@ -134,7 +167,7 @@ export default function AdminPage(){
       <div className="admin-top"><div><p className="eyebrow">PRIVATE OWNER AREA</p><h1>{title}</h1></div><span className="secure">DATABASE CONNECTED</span></div>
       {message&&<div className="admin-message">{message}</div>}
 
-      {tab==='overview'&&<><div className="stats">
+      {tab==='overview'&&<><div className="admin-card"><div className="admin-row"><div><h2>Data exports</h2><p>Download owner data for printing, accounting or offline records.</p></div><div className="admin-actions"><button className="admin-btn" disabled={exporting} onClick={()=>exportData('xlsx','all')}>Download Excel</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('pdf','all')}>Download PDF</button></div></div></div><div className="stats">
         <div><span>Products</span><strong>{products.length}</strong></div><div><span>Paid orders</span><strong>{paidOrders}</strong></div>
         <div><span>Customers</span><strong>{customers.length}</strong></div><div><span>Revenue</span><strong>₹{revenue.toLocaleString('en-IN')}</strong></div>
       </div><div className="admin-card"><h2>Store control centre</h2><p>Products, categories, stock, orders, customers, coupons, payments and website settings are all managed from this owner-only panel.</p><div className="admin-actions">
@@ -143,7 +176,7 @@ export default function AdminPage(){
         <div><span>Low stock items</span><strong>{lowStock}</strong></div><div><span>Active coupons</span><strong>{coupons.filter(c=>c.active).length}</strong></div><div><span>Pending payments</span><strong>{orders.filter(o=>o.status==='payment_submitted'||o.status==='awaiting_payment').length}</strong></div><div><span>Live products</span><strong>{products.filter(p=>p.active!==false).length}</strong></div>
       </div></>}
 
-      {tab==='products'&&<><div className="admin-card"><div className="admin-row"><div><h2>Products</h2><p>Add, edit, hide or delete products. Upload up to 12 images per product.</p></div><button className="admin-btn" onClick={()=>setEditingProduct({...emptyProduct})}><Plus/> Add product</button></div><div className="admin-search"><Search size={16}/><input placeholder="Search products…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
+      {tab==='products'&&<><div className="admin-card"><div className="admin-row"><div><h2>Products</h2><p>Add, edit, hide or delete products. Upload up to 12 images per product.</p></div><div className="admin-actions"><button className="admin-btn ghost" disabled={exporting} onClick={()=>exportData('xlsx','products')}>Excel</button><button className="admin-btn ghost" disabled={exporting} onClick={()=>exportData('pdf','products')}>PDF</button><button className="admin-btn" onClick={()=>setEditingProduct({...emptyProduct})}><Plus/> Add product</button></div></div><div className="admin-search"><Search size={16}/><input placeholder="Search products…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
       {filteredProducts.map(p=><div className="product-row" key={String(p.id)}>{p.image_url?<img className="admin-thumb" src={p.image_url} alt=""/>:<div className="admin-thumb placeholder">TEE</div>}<span><b>{p.name}</b><small>{p.active===false?'Hidden':'Live'} · {(p.image_urls||[]).length} images · {(p.categories||[]).join(', ')||'No category'}</small></span><b>₹{p.price}</b><div className="product-actions"><button onClick={()=>setEditingProduct({...p,image_urls:p.image_urls||[]})}><Pencil size={15}/></button><button onClick={()=>deleteProduct(p.id)}><Trash2 size={15}/></button></div></div>)}
       </div>
       {editingProduct&&<div className="admin-card"><div className="admin-row"><div><h2>{editingProduct.id==='new'?'Add product':'Edit product'}</h2><p>Front, Back, Side and extra product views can all be stored.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={()=>setEditingProduct(null)}><X/> Cancel</button><button className="admin-btn" disabled={loading||uploading} onClick={saveProduct}><Save/> Save</button></div></div>
@@ -169,16 +202,16 @@ export default function AdminPage(){
       {editingCategory&&<div className="admin-form-grid">{field('Name',editingCategory.name,v=>setEditingCategory({...editingCategory,name:v}))}{field('Slug',editingCategory.slug,v=>setEditingCategory({...editingCategory,slug:v}))}{field('Sort order',editingCategory.sort_order,v=>setEditingCategory({...editingCategory,sort_order:Number(v)}),'number')}<label>Visibility<select value={editingCategory.active?'live':'hidden'} onChange={e=>setEditingCategory({...editingCategory,active:e.target.value==='live'})}><option value="live">Live</option><option value="hidden">Hidden</option></select></label><label className="wide">Description<textarea value={editingCategory.description} onChange={e=>setEditingCategory({...editingCategory,description:e.target.value})}/></label></div>}
       {editingCategory&&<button className="admin-btn" onClick={saveCategory} disabled={loading}><Save/> Save category</button>}</div>}
 
-      {tab==='inventory'&&<div className="admin-card"><div className="admin-row"><div><h2>Inventory</h2><p>Track stock, reserved quantity and low-stock alerts for every product.</p></div></div>
+      {tab==='inventory'&&<div className="admin-card"><div className="admin-row"><div><h2>Inventory</h2><p>Track stock, reserved quantity and low-stock alerts for every product.</p></div><div className="admin-actions"><button className="admin-btn" disabled={exporting} onClick={()=>exportData('xlsx','inventory')}>Excel</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('pdf','inventory')}>PDF</button></div></div>
       {inventory.map(x=><div className="inventory-row" key={x.product_id}><div><b>{x.products?.name||x.product_id}</b><small>Available: {Math.max(0,x.stock_qty-x.reserved_qty)} · Reserved: {x.reserved_qty}</small></div><label>Stock<input type="number" min="0" value={x.stock_qty} onChange={e=>setInventory(a=>a.map(y=>y.product_id===x.product_id?{...y,stock_qty:Number(e.target.value)}:y))}/></label><label>Low stock<input type="number" min="0" value={x.low_stock_threshold} onChange={e=>setInventory(a=>a.map(y=>y.product_id===x.product_id?{...y,low_stock_threshold:Number(e.target.value)}:y))}/></label><button className="admin-btn ghost" onClick={()=>saveInventory(x)}><Save/></button></div>)}
       {products.filter(p=>!inventory.some(x=>x.product_id===p.id)).map(p=><div className="inventory-row" key={String(p.id)}><div><b>{p.name}</b><small>No inventory record yet.</small></div><button className="admin-btn" onClick={()=>saveInventory({product_id:String(p.id),stock_qty:0,reserved_qty:0,low_stock_threshold:5,track_inventory:true})}>Initialize</button></div>)}</div>}
 
-      {tab==='orders'&&<div className="admin-card"><div className="admin-row"><div><h2>Orders</h2><p>Review customer details, payment status, charges and UTR. Customer never has to type the UTR.</p></div><button className="admin-btn ghost" onClick={refresh}>Refresh</button></div>
+      {tab==='orders'&&<div className="admin-card"><div className="admin-row"><div><h2>Orders</h2><p>Review customer details, payment status, charges and UTR. Customer never has to type the UTR.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={refresh}>Refresh</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('xlsx','orders')}>Excel</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('pdf','orders')}>PDF</button></div></div>
       {orders.map(o=><div className="order-admin-row" key={o.id}><div><b>{o.customer_name} · ₹{Number(o.total_amount||o.amount||0).toLocaleString('en-IN')}</b><small>{String(o.status).toUpperCase()} · {new Date(o.created_at).toLocaleString('en-IN')} · {o.customer_phone}</small><small>{o.customer_email||'No email'} · {o.shipping_address}</small><small>Subtotal ₹{Number(o.subtotal||0).toLocaleString('en-IN')} · Shipping ₹{Number(o.shipping_fee||0).toLocaleString('en-IN')} · Platform ₹{Number(o.platform_fee||0).toLocaleString('en-IN')} · Discount ₹{Number(o.discount_amount||0).toLocaleString('en-IN')} · GST ₹{Number(o.gst_amount||0).toLocaleString('en-IN')}</small>{o.upi_transaction_id&&<small>UTR: <b>{o.upi_transaction_id}</b></small>}</div><div className="admin-actions">{o.status!=='paid'&&o.status!=='cancelled'&&<button className="admin-btn" onClick={()=>{const utr=prompt('Enter bank UTR / transaction reference');if(utr!==null)updateOrder(o.id,'paid',utr)}}><CheckCircle2/> Mark paid</button>}{o.status!=='cancelled'&&<button className="admin-btn ghost" onClick={()=>updateOrder(o.id,'cancelled')}><Ban/> Cancel</button>}</div></div>)}
       {!orders.length&&<p>No orders yet.</p>}</div>}
 
-      {tab==='customers'&&<div className="admin-card"><div className="admin-row"><div><h2>Customers</h2><p>Customer list is built from completed and pending orders. No separate customer password is required.</p></div><button className="admin-btn ghost" onClick={refresh}>Refresh</button></div>
-      {customers.map(c=><div className="customer-row" key={c.key}><div><b>{c.name||'Customer'}</b><small>{c.phone} · {c.email||'No email'}</small><small>{c.address||'No address saved'}</small></div><div><b>{c.orders} orders</b><small>₹{Number(c.spent).toLocaleString('en-IN')} total</small></div></div>)}</div>}
+      {tab==='customers'&&<div className="admin-card"><div className="admin-row"><div><h2>Customers</h2><p>Every checkout creates or updates a persistent customer record. No customer login is required.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={refresh}>Refresh</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('xlsx','customers')}>Excel</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('pdf','customers')}>PDF</button></div></div>
+      {customers.map((c:any)=><div className="customer-row" key={c.id||c.key}><div><b>{c.name||'Customer'}</b><small>{c.phone} · {c.email||'No email'}</small><small>{c.shipping_address||c.address||'No address saved'}</small></div><div><b>{c.total_orders??c.orders??0} orders</b><small>₹{Number(c.total_spent??c.spent??0).toLocaleString('en-IN')} total</small></div></div>)}</div>}
 
       {tab==='coupons'&&<div className="admin-card"><div className="admin-row"><div><h2>Coupons & discounts</h2><p>Create percentage or fixed discounts, minimum order rules, caps, dates and usage limits.</p></div><button className="admin-btn" onClick={()=>setEditingCoupon({id:'',code:'',description:'',discount_type:'percent',discount_value:10,minimum_order_value:0,maximum_discount:null,usage_limit:null,used_count:0,starts_at:null,expires_at:null,active:true})}><Plus/> Add coupon</button></div>
       {coupons.map(c=><div className="product-row" key={c.id}><span><b>{c.code}</b><small>{c.discount_type==='percent'?c.discount_value+'%':'₹'+c.discount_value} off · Used {c.used_count}{c.usage_limit?'/'+c.usage_limit:''} · {c.active?'Active':'Disabled'}</small></span><b>₹{c.minimum_order_value}+</b><div className="product-actions"><button onClick={()=>setEditingCoupon(c)}><Pencil size={15}/></button><button onClick={()=>deleteCoupon(c.id)}><Trash2 size={15}/></button></div></div>)}
