@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { useEffect, useRef, useState, type KeyboardEvent, type TouchEvent } from 'react';
 import { SafeImage } from '@/components/safe-image';
 
@@ -82,17 +82,9 @@ export function MoodHero({ imageUrls = [], videoUrls = [] }: MoodHeroProps) {
           </article>
         ))}
       </div>
-      <div className="mood-hero-controls">
-        <button type="button" onClick={() => goTo(active - 1)} aria-label="Previous mood"><ChevronLeft/></button>
-        <div className="mood-progress" aria-label={'Slide ' + (active+1) + ' of ' + mediaSlides.length}>
-          <svg viewBox="0 0 44 44" aria-hidden="true">
-            <circle className="mood-progress-track" cx="22" cy="22" r="18"/>
-            <circle key={active} className="mood-progress-fill" cx="22" cy="22" r="18"/>
-          </svg>
-        </div>
-        <button type="button" onClick={() => goTo(active + 1)} aria-label="Next mood"><ChevronRight/></button>
-      </div>
-      <div className="mood-dots" aria-hidden="true">{mediaSlides.map((slide,index)=><span key={slide.kicker} className={index===active?'is-active':''}/>)}</div>
+      <div className="mood-dots" role="tablist" aria-label="Choose mood">
+  {mediaSlides.map((slide,index)=><button key={slide.kicker} type="button" role="tab" aria-label={'Go to '+slide.label} aria-selected={index===active} className={index===active?'is-active':''} onClick={()=>goTo(index)} />)}
+</div>
     </section>
   );
 }
