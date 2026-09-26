@@ -1,0 +1,3 @@
+import { PolicyPage } from '@/components/policy-page';
+export default function About(){return <PolicyPage eyebrow="OUR STORY" title="Made for your mood." intro="LOLA ENGLAND is a women’s T-shirt label built around expressive graphics, easy fits and everyday confidence.">
+<h2>Style should feel like you.</h2><p>We keep the collection focused: wearable silhouettes, playful graphics and pieces that can move from slow mornings to busy days.</p><h2>Small edits, strong personality.</h2><p>LOLA is designed to make getting dressed easier without making your style feel ordinary.</p></PolicyPage>}
