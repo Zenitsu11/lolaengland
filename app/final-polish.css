@@ -388,3 +388,58 @@ img{max-width:100%}
   .hero-media-grid{grid-template-columns:1fr 1fr}
   .admin-hero-media-card{padding:15px}
 }
+
+
+/* Wishlist: product-level save control + polished saved looks page */
+.product-art{position:relative!important}
+.product-wishlist{
+  position:absolute;top:14px;right:14px;z-index:7;width:44px;height:44px;border:1px solid rgba(17,17,17,.12);
+  border-radius:50%;background:rgba(255,255,255,.94);display:grid;place-items:center;color:#111;
+  box-shadow:0 10px 28px rgba(0,0,0,.10);backdrop-filter:blur(8px);transition:transform .2s ease,background .2s ease;
+}
+.product-wishlist svg{width:20px;height:20px;stroke-width:1.7}
+.product-wishlist:hover{transform:scale(1.06)}
+.product-wishlist.is-active{background:#111;color:#fff}
+.wishlist-action{position:relative}
+.wishlist-count{position:absolute;right:-8px;top:-7px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:#111;color:#fff;font:700 9px/17px 'DM Sans',sans-serif;text-align:center}
+.wishlist-page{background:#fffaf8;min-height:75vh;padding:72px 0 110px}
+.wishlist-head{display:flex;justify-content:space-between;align-items:end;gap:30px;margin-bottom:48px}
+.wishlist-head h1{font:600 clamp(54px,7vw,92px)/.88 'Playfair Display',Georgia,serif;letter-spacing:-.045em;margin:15px 0}
+.wishlist-head h1 em{font-weight:500}
+.wishlist-head>div>p:last-child{color:#74696c;max-width:560px;line-height:1.65}
+.wishlist-clear{display:inline-flex;align-items:center;gap:8px;border:1px solid #ddd0d1;background:#fff;padding:13px 18px;border-radius:999px;font-weight:800}
+.wishlist-clear svg{width:16px}
+.wishlist-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.wishlist-empty{min-height:430px;border:1px solid #eadfe1;background:#fff;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:50px}
+.wishlist-empty>svg{width:52px;height:52px;stroke-width:1.2;margin-bottom:22px}
+.wishlist-empty h2{font:600 44px/.95 'Playfair Display',Georgia,serif;margin:0 0 12px}
+.wishlist-empty p{color:#74696c;margin:0 0 24px}
+.mood-dots{
+  position:absolute;z-index:10;left:50%;right:auto;bottom:clamp(22px,3vw,40px);transform:translateX(-50%);
+  display:flex;align-items:center;gap:9px;padding:7px 11px;border-radius:999px;background:rgba(17,17,17,.20);
+  backdrop-filter:blur(10px);
+}
+.mood-dots button{
+  position:relative;width:7px;height:7px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.78);
+  opacity:.78;cursor:pointer;overflow:hidden;transition:width .25s ease,opacity .25s ease,transform .25s ease;
+}
+.mood-dots button.is-active{width:28px;opacity:1;border-radius:999px;background:rgba(255,255,255,.28)}
+.mood-dots button.is-active::after{
+  content:'';position:absolute;inset:0;background:#fff;border-radius:inherit;transform-origin:left center;
+  animation:moodDotDrain 5000ms linear forwards;
+}
+@keyframes moodDotDrain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.mood-hero-controls,.mood-progress{display:none!important}
+@media(max-width:700px){
+  .mood-dots{bottom:22px}
+  .product-wishlist{top:10px;right:10px;width:40px;height:40px}
+  .wishlist-page{padding:48px 0 80px}
+  .wishlist-head{align-items:flex-start;flex-direction:column;margin-bottom:32px}
+  .wishlist-head h1{font-size:56px}
+  .wishlist-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+}
+@media(max-width:520px){
+  .wishlist-grid{grid-template-columns:1fr 1fr}
+  .wishlist-empty{min-height:360px;padding:30px 20px}
+  .wishlist-empty h2{font-size:35px}
+}
