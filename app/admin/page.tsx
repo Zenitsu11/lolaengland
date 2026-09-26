@@ -130,7 +130,7 @@ export default function AdminPage(){
     try{const d=await api('/api/admin/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(settings)});setSettings(d.settings);setMessage('Website settings saved.');}catch(e){setMessage(e instanceof Error?e.message:'Could not save settings.');}finally{setLoading(false);}
   }
   async function logout(){await fetch('/api/admin/logout',{method:'POST'});window.location.href='/admin/login';}
-  async function exportData(type:'xlsx'|'pdf',dataset:'customers'|'orders'|'products'|'inventory'|'all'){
+  async function exportData(type:'xlsx'|'pdf',dataset:'customers'|'orders'|'products'|'inventory'|'newsletter'|'all'){
     setExporting(true); setMessage('');
     try{
       const d=await api('/api/admin/export');
@@ -139,12 +139,12 @@ export default function AdminPage(){
       if(type==='xlsx'){
         const wb=XLSX.utils.book_new();
         const add=(name:string,data:any[])=>{const ws=XLSX.utils.json_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,name.slice(0,31));};
-        if(dataset==='all'){add('Customers',d.customers);add('Orders',d.orders);add('Products',d.products);add('Inventory',d.inventory);}
+        if(dataset==='all'){add('Customers',d.customers);add('Orders',d.orders);add('Products',d.products);add('Inventory',d.inventory);add('Newsletter',d.newsletter);}
         else add(dataset.charAt(0).toUpperCase()+dataset.slice(1),rows||[]);
         XLSX.writeFile(wb,'LOLA-ENGLAND-'+dataset+'-'+stamp+'.xlsx');
       }else{
         const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
-        const sections:any[] = dataset==='all' ? [['Customers',d.customers],['Orders',d.orders],['Products',d.products],['Inventory',d.inventory]] : [[dataset.charAt(0).toUpperCase()+dataset.slice(1),rows||[]]];
+        const sections:any[] = dataset==='all' ? [['Customers',d.customers],['Orders',d.orders],['Products',d.products],['Inventory',d.inventory],['Newsletter',d.newsletter]] : [[dataset.charAt(0).toUpperCase()+dataset.slice(1),rows||[]]];
         sections.forEach((section,idx)=>{
           if(idx)doc.addPage();
           doc.setFontSize(16);doc.text('LOLA ENGLAND — '+section[0],40,40);
@@ -190,7 +190,7 @@ export default function AdminPage(){
       </div></>}
 
       {tab==='products'&&<><div className="admin-card"><div className="admin-row"><div><h2>Products</h2><p>Add, edit, hide or delete products. Upload up to 12 images + 2 videos per product.</p></div><div className="admin-actions"><button className="admin-btn ghost" disabled={exporting} onClick={()=>exportData('xlsx','products')}>Excel</button><button className="admin-btn ghost" disabled={exporting} onClick={()=>exportData('pdf','products')}>PDF</button><button className="admin-btn" onClick={()=>setEditingProduct({...emptyProduct})}><Plus/> Add product</button></div></div><div className="admin-search"><Search size={16}/><input placeholder="Search products…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
-      {filteredProducts.map(p=><div className="product-row" key={String(p.id)}>{p.image_url?<img className="admin-thumb" src={p.image_url} alt=""/>:<div className="admin-thumb placeholder">TEE</div>}<span><b>{p.name}</b><small>{p.active===false?'Hidden':'Live'} · {(p.image_urls||[]).length} images · {(p.categories||[]).join(', ')||'No category'}</small></span><b>₹{p.price}</b><div className="product-actions"><button onClick={()=>setEditingProduct({...p,image_urls:p.image_urls||[],video_urls:p.video_urls||[]})}><Pencil size={15}/></button><button onClick={()=>deleteProduct(p.id)}><Trash2 size={15}/></button></div></div>)}
+      {filteredProducts.map(p=><div className="product-row" key={String(p.id)}>{p.image_url?<img className="admin-thumb" src={p.image_url} alt=""/>:<div className="admin-thumb placeholder">TEE</div>}<span><b>{p.name}</b><small>{p.active===false?'Hidden':'Live'} · {(p.image_urls||[]).length}/12 images · {(p.video_urls||[]).length}/2 videos · {(p.categories||[]).join(', ')||'No category'}</small></span><b>₹{p.price}</b><div className="product-actions"><button onClick={()=>setEditingProduct({...p,image_urls:p.image_urls||[],video_urls:p.video_urls||[]})}><Pencil size={15}/></button><button onClick={()=>deleteProduct(p.id)}><Trash2 size={15}/></button></div></div>)}
       </div>
       {editingProduct&&<div className="admin-card"><div className="admin-row"><div><h2>{editingProduct.id==='new'?'Add product':'Edit product'}</h2><p>Front, Back, Side, extra views and short product videos can all be stored.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={()=>setEditingProduct(null)}><X/> Cancel</button><button className="admin-btn" disabled={loading||uploading} onClick={saveProduct}><Save/> Save</button></div></div>
         <div className="gallery-uploader">
