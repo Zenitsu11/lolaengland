@@ -10,13 +10,13 @@ import {
 } from 'lucide-react';
 import { products as demoProducts } from '@/data/products';
 
-type Product={id:string|number;name:string;slug?:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[];categories?:string[];amazon_url?:string;flipkart_url?:string;featured?:boolean;active?:boolean;sort_order?:number};
+type Product={id:string|number;name:string;slug?:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[];video_urls?:string[];categories?:string[];amazon_url?:string;flipkart_url?:string;featured?:boolean;active?:boolean;sort_order?:number};
 type Category={id:string;name:string;slug:string;description:string;active:boolean;sort_order:number};
 type Inventory={product_id:string;stock_qty:number;reserved_qty:number;low_stock_threshold:number;track_inventory:boolean;products?:Product};
 type Coupon={id:string;code:string;description:string;discount_type:'percent'|'fixed';discount_value:number;minimum_order_value:number;maximum_discount:number|null;usage_limit:number|null;used_count:number;starts_at:string|null;expires_at:string|null;active:boolean};
 type Settings={brand_name:string;shipping_message:string;instagram_url:string;whatsapp_url:string;contact_email:string;amazon_seller_url:string;flipkart_seller_url:string;shipping_fee:number;free_shipping_threshold:number;platform_fee:number;gst_rate:number};
 
-const emptyProduct:Product={id:'new',name:'',slug:'',price:599,mrp:899,rating:4.5,reviews:0,description:'',image_url:'',image_urls:[],categories:[],amazon_url:'',flipkart_url:'',featured:true,active:true,sort_order:0};
+const emptyProduct:Product={id:'new',name:'',slug:'',price:599,mrp:899,rating:4.5,reviews:0,description:'',image_url:'',image_urls:[],video_urls:[],categories:[],amazon_url:'',flipkart_url:'',featured:true,active:true,sort_order:0};
 const defaultSettings:Settings={brand_name:'LOLA ENGLAND',shipping_message:'FREE SHIPPING ON ORDERS OVER ₹799',instagram_url:'',whatsapp_url:'',contact_email:'',amazon_seller_url:'',flipkart_seller_url:'',shipping_fee:40,free_shipping_threshold:799,platform_fee:10,gst_rate:5};
 
 const nav=[
@@ -56,7 +56,7 @@ export default function AdminPage(){
         api('/api/admin/products'),api('/api/admin/categories'),api('/api/admin/inventory'),
         api('/api/admin/orders'),api('/api/admin/customers'),api('/api/admin/coupons'),api('/api/admin/settings')
       ]);
-      setProducts((p.products||[]).map((x:Product)=>({...x,image_urls:Array.isArray(x.image_urls)?x.image_urls:(x.image_url?[x.image_url]:[]),categories:Array.isArray(x.categories)?x.categories:[] })));
+      setProducts((p.products||[]).map((x:Product)=>({...x,image_urls:Array.isArray(x.image_urls)?x.image_urls:(x.image_url?[x.image_url]:[]),video_urls:Array.isArray(x.video_urls)?x.video_urls:[],categories:Array.isArray(x.categories)?x.categories:[] })));
       setCategories(c.categories||[]);setInventory(i.inventory||[]);setOrders(o.orders||[]);setCustomers(cu.customers||[]);setCoupons(co.coupons||[]);setSettings({...defaultSettings,...s.settings});
     }catch(e){setMessage(e instanceof Error?e.message:'Could not load admin data.');}
   }
@@ -68,8 +68,8 @@ export default function AdminPage(){
     setLoading(true);setMessage('');
     try{
       const isNew=editingProduct.id==='new';
-      const urls=(editingProduct.image_urls||[]).filter(Boolean).slice(0,12);
-      await api(isNew?'/api/admin/products':'/api/admin/products/'+editingProduct.id,{method:isNew?'POST':'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...editingProduct,image_urls:urls,image_url:urls[0]||''})});
+      const urls=(editingProduct.image_urls||[]).filter(Boolean).slice(0,12); const videos=(editingProduct.video_urls||[]).filter(Boolean).slice(0,2);
+      await api(isNew?'/api/admin/products':'/api/admin/products/'+editingProduct.id,{method:isNew?'POST':'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({...editingProduct,image_urls:urls,video_urls:videos,image_url:urls[0]||''})});
       setEditingProduct(null);setMessage('Product saved successfully.');await refresh();
     }catch(e){setMessage(e instanceof Error?e.message:'Could not save product.');}finally{setLoading(false);}
   }
@@ -88,6 +88,19 @@ export default function AdminPage(){
       setEditingProduct(p=>p?{...p,image_urls:[...(p.image_urls||[]),...urls],image_url:(p.image_urls?.[0]||urls[0]||'')}:p);
       setMessage('Images uploaded. Save the product to publish them.');
     }catch(e){setMessage(e instanceof Error?e.message:'Image upload failed.');}finally{setUploading(false);}
+  }
+
+  async function uploadVideos(files:File[]){
+    if(!editingProduct||!files.length)return;
+    const remaining=2-(editingProduct.video_urls?.length||0);
+    if(remaining<=0)return setMessage('Maximum 2 videos reached.');
+    setUploading(true);
+    try{
+      const urls:string[]=[];
+      for(const file of files.slice(0,remaining)){const form=new FormData();form.append('file',file);const d=await api('/api/admin/upload',{method:'POST',body:form});urls.push(d.url);}
+      setEditingProduct(p=>p?{...p,video_urls:[...(p.video_urls||[]),...urls]}:p);
+      setMessage('Videos uploaded. Save the product to publish them.');
+    }catch(e){setMessage(e instanceof Error?e.message:'Video upload failed.');}finally{setUploading(false);}
   }
 
   async function saveCategory(){
@@ -176,11 +189,17 @@ export default function AdminPage(){
         <div><span>Low stock items</span><strong>{lowStock}</strong></div><div><span>Active coupons</span><strong>{coupons.filter(c=>c.active).length}</strong></div><div><span>Pending payments</span><strong>{orders.filter(o=>o.status==='payment_submitted'||o.status==='awaiting_payment').length}</strong></div><div><span>Live products</span><strong>{products.filter(p=>p.active!==false).length}</strong></div>
       </div></>}
 
-      {tab==='products'&&<><div className="admin-card"><div className="admin-row"><div><h2>Products</h2><p>Add, edit, hide or delete products. Upload up to 12 images per product.</p></div><div className="admin-actions"><button className="admin-btn ghost" disabled={exporting} onClick={()=>exportData('xlsx','products')}>Excel</button><button className="admin-btn ghost" disabled={exporting} onClick={()=>exportData('pdf','products')}>PDF</button><button className="admin-btn" onClick={()=>setEditingProduct({...emptyProduct})}><Plus/> Add product</button></div></div><div className="admin-search"><Search size={16}/><input placeholder="Search products…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
-      {filteredProducts.map(p=><div className="product-row" key={String(p.id)}>{p.image_url?<img className="admin-thumb" src={p.image_url} alt=""/>:<div className="admin-thumb placeholder">TEE</div>}<span><b>{p.name}</b><small>{p.active===false?'Hidden':'Live'} · {(p.image_urls||[]).length} images · {(p.categories||[]).join(', ')||'No category'}</small></span><b>₹{p.price}</b><div className="product-actions"><button onClick={()=>setEditingProduct({...p,image_urls:p.image_urls||[]})}><Pencil size={15}/></button><button onClick={()=>deleteProduct(p.id)}><Trash2 size={15}/></button></div></div>)}
+      {tab==='products'&&<><div className="admin-card"><div className="admin-row"><div><h2>Products</h2><p>Add, edit, hide or delete products. Upload up to 12 images + 2 videos per product.</p></div><div className="admin-actions"><button className="admin-btn ghost" disabled={exporting} onClick={()=>exportData('xlsx','products')}>Excel</button><button className="admin-btn ghost" disabled={exporting} onClick={()=>exportData('pdf','products')}>PDF</button><button className="admin-btn" onClick={()=>setEditingProduct({...emptyProduct})}><Plus/> Add product</button></div></div><div className="admin-search"><Search size={16}/><input placeholder="Search products…" value={search} onChange={e=>setSearch(e.target.value)}/></div>
+      {filteredProducts.map(p=><div className="product-row" key={String(p.id)}>{p.image_url?<img className="admin-thumb" src={p.image_url} alt=""/>:<div className="admin-thumb placeholder">TEE</div>}<span><b>{p.name}</b><small>{p.active===false?'Hidden':'Live'} · {(p.image_urls||[]).length} images · {(p.categories||[]).join(', ')||'No category'}</small></span><b>₹{p.price}</b><div className="product-actions"><button onClick={()=>setEditingProduct({...p,image_urls:p.image_urls||[],video_urls:p.video_urls||[]})}><Pencil size={15}/></button><button onClick={()=>deleteProduct(p.id)}><Trash2 size={15}/></button></div></div>)}
       </div>
-      {editingProduct&&<div className="admin-card"><div className="admin-row"><div><h2>{editingProduct.id==='new'?'Add product':'Edit product'}</h2><p>Front, Back, Side and extra product views can all be stored.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={()=>setEditingProduct(null)}><X/> Cancel</button><button className="admin-btn" disabled={loading||uploading} onClick={saveProduct}><Save/> Save</button></div></div>
-        <div className="gallery-uploader"><div className="gallery-header"><div><b>Product images</b><span>{editingProduct.image_urls?.length||0}/12</span></div><label className="admin-btn upload-label"><Images/> Upload images<input type="file" multiple accept="image/jpeg,image/png,image/webp" hidden onChange={e=>{const f=Array.from(e.target.files||[]);if(f.length)uploadImages(f);e.currentTarget.value=''}}/></label></div><div className="gallery-grid">{(editingProduct.image_urls||[]).map((u,i)=><div className="gallery-item" key={u+i}><img src={u} alt=""/><span>{i===0?'FRONT':i===1?'BACK':i===2?'SIDE':'VIEW '+(i+1)}</span><button onClick={()=>setEditingProduct(p=>p?{...p,image_urls:(p.image_urls||[]).filter((_,n)=>n!==i),image_url:(p.image_urls||[]).filter((_,n)=>n!==i)[0]||''}:p)}><X size={14}/></button></div>)}</div></div>
+      {editingProduct&&<div className="admin-card"><div className="admin-row"><div><h2>{editingProduct.id==='new'?'Add product':'Edit product'}</h2><p>Front, Back, Side, extra views and short product videos can all be stored.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={()=>setEditingProduct(null)}><X/> Cancel</button><button className="admin-btn" disabled={loading||uploading} onClick={saveProduct}><Save/> Save</button></div></div>
+        <div className="gallery-uploader">
+          <div className="gallery-header"><div><b>Product images</b><span>{editingProduct.image_urls?.length||0}/12</span></div><label className="admin-btn upload-label"><Images/> Upload images<input type="file" multiple accept="image/jpeg,image/png,image/webp" hidden onChange={e=>{const f=Array.from(e.target.files||[]);if(f.length)uploadImages(f);e.currentTarget.value=''}}/></label></div>
+          <div className="gallery-grid">{(editingProduct.image_urls||[]).map((u,i)=><div className="gallery-item" key={u+i}><img src={u} alt=""/><span>{i===0?'FRONT':i===1?'BACK':i===2?'SIDE':'VIEW '+(i+1)}</span><button onClick={()=>setEditingProduct(p=>p?{...p,image_urls:(p.image_urls||[]).filter((_,n)=>n!==i),image_url:(p.image_urls||[]).filter((_,n)=>n!==i)[0]||''}:p)}><X size={14}/></button></div>)}</div>
+          <div className="gallery-header video-gallery-header"><div><b>Product videos</b><span>{editingProduct.video_urls?.length||0}/2</span></div><label className="admin-btn upload-label"><Upload/> Upload videos<input type="file" multiple accept="video/mp4,video/webm,video/quicktime" hidden onChange={e=>{const f=Array.from(e.target.files||[]);if(f.length)uploadVideos(f);e.currentTarget.value=''}}/></label></div>
+          <div className="gallery-grid video-gallery-grid">{(editingProduct.video_urls||[]).map((u,i)=><div className="gallery-item video-gallery-item" key={u+i}><video src={u} muted playsInline controls preload="metadata"/><span>VIDEO {i+1}</span><button onClick={()=>setEditingProduct(p=>p?{...p,video_urls:(p.video_urls||[]).filter((_,n)=>n!==i)}:p)}><X size={14}/></button></div>)}</div>
+          <small className="media-help">Recommended: MP4/WebM, short vertical or square clips. Maximum 2 videos per product.</small>
+        </div>
         <div className="admin-form-grid">
           {field('Product name',editingProduct.name,v=>setEditingProduct({...editingProduct,name:v}))}
           {field('Slug',editingProduct.slug,v=>setEditingProduct({...editingProduct,slug:v}))}
