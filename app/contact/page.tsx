@@ -1,0 +1,3 @@
+import { PolicyPage } from '@/components/policy-page';
+export default function Contact(){return <PolicyPage eyebrow="GET IN TOUCH" title="We’re here to help." intro="For product, order, delivery or sizing questions, reach out through the contact details provided by the LOLA ENGLAND owner.">
+<div className="contact-card"><h2>Customer support</h2><p>For the fastest help, include your order number and the phone number used at checkout.</p><a href="/#contact">Use the LOLA community form →</a></div><div className="contact-card"><h2>Order help</h2><p>Your order details are stored securely in the owner dashboard, including guest-checkout customers.</p></div></PolicyPage>}
