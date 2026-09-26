@@ -146,9 +146,7 @@ export default function AdminPage(){
     try{
       const urls:string[]=[];
       for(const file of files.slice(0,remaining)){
-        const form=new FormData();form.append('file',file);
-        const d=await api('/api/admin/upload',{method:'POST',body:form});
-        urls.push(d.url);
+        urls.push(kind==='video' ? await uploadDirectMedia(file) : (await api('/api/admin/upload',{method:'POST',body:(()=>{const f=new FormData();f.append('file',file);return f;})()})).url);
       }
       setSettings(s=>({...s,...(kind==='image'?{hero_image_urls:[...s.hero_image_urls,...urls]}:{hero_video_urls:[...s.hero_video_urls,...urls]})}));
       setMessage(`Hero ${kind === 'image' ? 'images' : 'videos'} uploaded. Click Save website settings to publish them.`);
