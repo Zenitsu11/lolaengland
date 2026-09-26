@@ -50,7 +50,7 @@ export function MoodHero() {
               <Link className="btn btn-dark" href={slide.href}>SHOP THE EDIT <ArrowRight/></Link>
             </div>
             <Link className="mood-hero-image image-safe" href={slide.href} aria-label={'Shop ' + slide.label}>
-              <SafeImage src={slide.image} fallbackSrc={slide.image} alt={'LOLA ENGLAND ' + slide.label + ' women’s T-shirt'} width={1071} height={1536} priority={index===0} />
+              <SafeImage src={slide.image} fallbackSrc={slide.image} alt={'LOLA ENGLAND ' + slide.label + ' women’s T-shirt'} width={1071} height={1536} fetchPriority={index===0 ? 'high' : undefined} />
               <div className="mood-hero-note"><span>{slide.note}</span><strong>{slide.label}</strong></div>
             </Link>
           </article>
