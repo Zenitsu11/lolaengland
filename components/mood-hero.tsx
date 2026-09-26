@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useEffect, useRef, useState, type TouchEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent, type TouchEvent } from 'react';
 import { SafeImage } from '@/components/safe-image';
 
 const slides = [
@@ -19,11 +19,16 @@ export function MoodHero() {
   const touchStart = useRef<number|null>(null);
 
   useEffect(() => {
-    const timer = setInterval(() => setActive(current => (current + 1) % slides.length), INTERVAL);
-    return () => clearInterval(timer);
-  }, []);
+    const timer = window.setTimeout(() => setActive(current => (current + 1) % slides.length), INTERVAL);
+    return () => window.clearTimeout(timer);
+  }, [active]);
 
   const goTo = (index:number) => setActive((index + slides.length) % slides.length);
+
+  const onKeyDown = (event:KeyboardEvent<HTMLElement>) => {
+    if(event.key === 'ArrowRight') goTo(active + 1);
+    if(event.key === 'ArrowLeft') goTo(active - 1);
+  };
 
   const onTouchStart = (event:TouchEvent<HTMLElement>) => {
     touchStart.current = event.touches[0]?.clientX ?? null;
@@ -38,7 +43,7 @@ export function MoodHero() {
   };
 
   return (
-    <section className="mood-hero" aria-label="LOLA ENGLAND mood collection" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <section className="mood-hero" aria-label="LOLA ENGLAND mood collection" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onKeyDown={onKeyDown} tabIndex={0}>
       <div className="mood-hero-slides">
         {slides.map((slide,index) => (
           <article className={'mood-hero-slide ' + (index === active ? 'is-active' : '')} key={slide.kicker}>
