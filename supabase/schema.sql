@@ -199,3 +199,17 @@ drop policy if exists "No public customer access" on public.customers;
 create policy "No public customer access" on public.customers for select using (false);
 drop trigger if exists customers_updated_at on public.customers;
 create trigger customers_updated_at before update on public.customers for each row execute function public.set_updated_at();
+
+
+-- Newsletter subscribers for the storefront community signup.
+create table if not exists public.newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text unique not null,
+  source text not null default 'website',
+  subscribed_at timestamptz not null default now(),
+  active boolean not null default true
+);
+alter table public.newsletter_subscribers enable row level security;
+drop policy if exists "Public can subscribe to newsletter" on public.newsletter_subscribers;
+create policy "Public can subscribe to newsletter" on public.newsletter_subscribers for insert with check (active = true);
+create index if not exists newsletter_subscribers_subscribed_at_idx on public.newsletter_subscribers (subscribed_at desc);
