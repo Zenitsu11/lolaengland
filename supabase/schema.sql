@@ -217,3 +217,7 @@ create index if not exists newsletter_subscribers_subscribed_at_idx on public.ne
 
 -- Product video media (up to 2 URLs are enforced by the admin API).
 alter table public.products add column if not exists video_urls text[] not null default '{}';
+
+
+alter table public.store_settings add column if not exists hero_image_urls text[] not null default '{}';
+alter table public.store_settings add column if not exists hero_video_urls text[] not null default '{}';
