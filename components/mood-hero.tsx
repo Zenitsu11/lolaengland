@@ -21,7 +21,7 @@ type MoodHeroProps = {
 
 export function MoodHero({ imageUrls = [], videoUrls = [] }: MoodHeroProps) {
   const mediaSlides = [
-    ...mediaSlides.map((slide,index) => ({ ...slide, image: imageUrls[index] || slide.image, video: '' })),
+    ...slides.map((slide,index) => ({ ...slide, image: imageUrls[index] || slide.image, video: '' })),
     ...videoUrls.slice(0,2).map((video,index) => ({
       image: '',
       video,
