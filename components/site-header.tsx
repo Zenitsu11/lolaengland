@@ -1,10 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { Heart, Search, ShoppingBag, X, Menu } from 'lucide-react';
+import { useCart } from '@/components/cart-provider';
 import { useState } from 'react';
 
 export function SiteHeader(){
   const [open,setOpen]=useState(false);
+  const { items } = useCart();
+  const cartCount = items.reduce((sum,item)=>sum + item.quantity, 0);
   const links=[
     ['NEW IN','#shop'],
     ['T-SHIRTS','#shop'],
@@ -24,9 +27,9 @@ export function SiteHeader(){
           {links.map(([label,href])=><a key={label} href={href}>{label}</a>)}
         </nav>
         <div className="actions">
-          <a href="#shop" aria-label="Search products"><Search/></a>
+          <Link href="/search" aria-label="Search products"><Search/></Link>
           <Link href="/wishlist" aria-label="Wishlist"><Heart/></Link>
-          <Link href="/cart" aria-label="Shopping bag"><ShoppingBag/></Link>
+          <Link href="/cart" className="cart-action" aria-label={`Shopping bag, ${cartCount} items`}><ShoppingBag/>{cartCount>0 ? <span className="cart-count">{cartCount>99 ? "99+" : cartCount}</span> : null}</Link>
         </div>
       </div>
     </header>
