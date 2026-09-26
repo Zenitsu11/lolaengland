@@ -10,6 +10,7 @@ import './payment-checkout.css';
 import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 import { CartProvider } from '@/components/cart-provider';
+import { StoreExperience } from '@/components/store-experience';
 
 export const metadata: Metadata = {
   title: 'LOLA ENGLAND — Women’s T-Shirts',
