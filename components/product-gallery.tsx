@@ -56,7 +56,7 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
       </div>
       {media.length > 1 ? (
         <div className="product-detail-dots" aria-hidden="true">
-          {media.map((item, index) => <span key={item.label} className={active === index ? 'is-active' : ''}/>)
+          {media.map((item, index) => <span key={item.label} className={active === index ? 'is-active' : ''}/>)}
         </div>
       ) : null}
     </div>
