@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { ArrowUp, Check, MessageCircle, X } from 'lucide-react';
 
 export function NewsletterForm({ compact = false }: { compact?: boolean }) {
@@ -9,7 +9,7 @@ export function NewsletterForm({ compact = false }: { compact?: boolean }) {
   const [done, setDone] = useState(false);
   const [error, setError] = useState('');
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
     setBusy(true); setError('');
