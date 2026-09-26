@@ -17,6 +17,7 @@ export type Product = {
   image_url?: string;
   secondary_image_url?: string;
   image_urls?: string[];
+  video_urls?: string[];
   categories?: string[];
   amazon?: string;
   flipkart?: string;
