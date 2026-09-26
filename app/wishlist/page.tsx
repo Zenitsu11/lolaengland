@@ -1,1 +1,7 @@
-import Link from 'next/link'; import { Heart } from 'lucide-react'; export default function WishlistPage(){return <main className="utility-page"><div><Heart/><p className="editorial-eyebrow">YOUR WISHLIST</p><h1>Save the looks you love.</h1><p>Your wishlist will be connected to product accounts in the next store phase.</p><Link className="btn btn-dark" href="/collection/all">Browse T-shirts</Link></div></main>}
+import { getPublicProducts } from '@/lib/catalog';
+import { WishlistClient } from '@/components/wishlist-client';
+
+export default async function WishlistPage(){
+  const products=await getPublicProducts();
+  return <WishlistClient products={products}/>;
+}
