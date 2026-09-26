@@ -2,11 +2,13 @@
 import Link from 'next/link';
 import { Heart, Search, ShoppingBag, X, Menu } from 'lucide-react';
 import { useCart } from '@/components/cart-provider';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export function SiteHeader(){
   const [open,setOpen]=useState(false);
   const { items } = useCart();
+  const [wishlistCount,setWishlistCount]=useState(0);
+  useEffect(()=>{const sync=()=>{try{setWishlistCount(JSON.parse(localStorage.getItem('lola-wishlist')||'[]').length)}catch{setWishlistCount(0)}};sync();window.addEventListener('lola-wishlist-change',sync);return()=>window.removeEventListener('lola-wishlist-change',sync)},[]);
   const cartCount = items.reduce((sum,item)=>sum + item.quantity, 0);
   const links=[
     ['NEW IN','#shop'],
@@ -28,7 +30,7 @@ export function SiteHeader(){
         </nav>
         <div className="actions">
           <Link href="/search" aria-label="Search products"><Search/></Link>
-          <Link href="/wishlist" aria-label="Wishlist"><Heart/></Link>
+          <Link href="/wishlist" className="wishlist-action" aria-label={`Wishlist, ${wishlistCount} saved`}><Heart/>{wishlistCount>0 ? <span className="wishlist-count">{wishlistCount>99 ? "99+" : wishlistCount}</span> : null}</Link>
           <Link href="/cart" className="cart-action" aria-label={`Shopping bag, ${cartCount} items`}><ShoppingBag/>{cartCount>0 ? <span className="cart-count">{cartCount>99 ? "99+" : cartCount}</span> : null}</Link>
         </div>
       </div>
