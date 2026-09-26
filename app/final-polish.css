@@ -433,7 +433,8 @@ img{max-width:100%}
 @keyframes moodDotDrain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 .mood-hero-controls,.mood-progress{display:none!important}
 @media(max-width:700px){
-  .mood-dots{bottom:22px}
+  .mood-hero-copy{padding-bottom:52px}
+  .mood-dots{bottom:18px}
   .product-wishlist{top:10px;right:10px;width:40px;height:40px}
   .wishlist-page{padding:48px 0 80px}
   .wishlist-head{align-items:flex-start;flex-direction:column;margin-bottom:32px}
