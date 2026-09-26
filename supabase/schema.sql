@@ -177,3 +177,25 @@ drop trigger if exists product_inventory_updated_at on public.product_inventory;
 create trigger product_inventory_updated_at before update on public.product_inventory for each row execute function public.set_updated_at();
 drop trigger if exists coupons_updated_at on public.coupons;
 create trigger coupons_updated_at before update on public.coupons for each row execute function public.set_updated_at();
+
+-- Persistent guest-checkout customer records.
+create table if not exists public.customers (
+  id uuid primary key default gen_random_uuid(),
+  name text not null default '',
+  phone text not null default '',
+  email text not null default '',
+  shipping_address text not null default '',
+  total_orders integer not null default 0,
+  total_spent numeric(12,2) not null default 0,
+  last_order_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists customers_phone_unique_idx on public.customers(phone) where phone <> '';
+create index if not exists customers_email_idx on public.customers(lower(email)) where email <> '';
+alter table public.orders add column if not exists customer_id uuid references public.customers(id) on delete set null;
+alter table public.customers enable row level security;
+drop policy if exists "No public customer access" on public.customers;
+create policy "No public customer access" on public.customers for select using (false);
+drop trigger if exists customers_updated_at on public.customers;
+create trigger customers_updated_at before update on public.customers for each row execute function public.set_updated_at();
