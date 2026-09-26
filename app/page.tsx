@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { ArrowRight, Heart, Sparkles, Star } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
 import { SafeImage } from '@/components/safe-image';
-import { getPublicProducts } from '@/lib/catalog';
+import { getPublicProducts, getStoreSettings } from '@/lib/catalog';
 import { NewsletterForm } from '@/components/store-experience';
 import { MoodHero } from '@/components/mood-hero';
 
@@ -24,9 +24,9 @@ const railLooks = [
 export const metadata: Metadata = { title: 'LOLA ENGLAND — Women’s T-Shirts', description: 'Shop expressive women’s T-shirts, oversized fits and everyday styles from LOLA ENGLAND.' };
 
 export default async function Home() {
-  const products = await getPublicProducts();
+  const [products, storeSettings] = await Promise.all([getPublicProducts(), getStoreSettings()]);
   return <div id="top" className="editorial-home">
-    <MoodHero />
+    <MoodHero imageUrls={storeSettings.hero_image_urls} videoUrls={storeSettings.hero_video_urls} />
     <div className="mood-bar"><div className="mood-track container"><span>WOMEN’S TEES</span><b>✦</b><span>OVERSIZED FITS</span><b>✦</b><span>EVERYDAY STYLE</span><b>✦</b><span>LOLA ENGLAND</span><b>✦</b><span>WEAR YOUR MOOD</span></div></div>
     <section className="editorial-section" id="models"><div className="container"><div className="editorial-section-head"><div><p className="editorial-eyebrow">THE LOLA LOOKBOOK</p><h2>She wears<br /><em>the mood.</em></h2></div><p>Different days. Different energy. One easy wardrobe of women’s T-shirts made to move with you.</p></div><div className="editorial-lookbook">{looks.map((look,index)=><Link className="editorial-look" href={'/collection/' + look.slug} key={look.tag}><div className="editorial-look-media image-safe"><SafeImage src={look.image} fallbackSrc={look.image} alt={'LOLA ENGLAND ' + look.tag.toLowerCase() + ' T-shirt'} width={900} height={1100} loading="eager" decoding="async"/><span className="editorial-look-index">{String(index+1).padStart(2,'0')}</span></div><div className="editorial-look-copy"><span>{look.tag}</span><h3>“{look.quote}”</h3><p>{look.copy}</p><b>SHOP THIS MOOD →</b></div></Link>)}</div></div></section>
     <section className="editorial-campaign"><div className="container campaign-grid"><Link href="/collection/soft-pink" className="campaign-card image-safe"><SafeImage src="/products/lola-mint-front.webp?v=6" fallbackSrc="/products/lola-mint-front.webp?v=6" alt="LOLA ENGLAND mint fashion look" width={900} height={1100} loading="eager" decoding="async"/><div className="campaign-copy"><span>01 · SOFT MINT</span><h3>Pretty, but never predictable.</h3><p>Soft colour, relaxed energy and a tee you will actually want to wear again tomorrow.</p></div></Link><Link href="/collection/graphic-girl" className="campaign-card image-safe campaign-model-card"><SafeImage src="/products/lola-olive-front.webp?v=6" fallbackSrc="/products/lola-olive-front.webp?v=6" alt="LOLA ENGLAND olive graphic fashion look" width={900} height={1100} loading="eager" decoding="async"/><div className="campaign-copy"><span>02 · GRAPHIC MOOD</span><h3>Style that feels like you.</h3><p>Easy fits, expressive graphics and confidence without trying too hard.</p></div></Link></div></section>
