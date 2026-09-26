@@ -390,6 +390,8 @@ img{max-width:100%}
 }
 
 
+.product-card{position:relative}
+
 /* Wishlist: product-level save control + polished saved looks page */
 .product-art{position:relative!important}
 .product-wishlist{
