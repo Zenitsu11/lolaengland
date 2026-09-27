@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowUpRight, Star, Repeat2, Heart } from 'lucide-react';
+import { ArrowUpRight, Star, Heart } from 'lucide-react';
 import { useEffect, useRef, useState, type MouseEvent, type TouchEvent } from 'react';
 import { SafeImage } from '@/components/safe-image';
 
@@ -109,7 +109,6 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
               decoding="async"
             />
           ) : null}
-          {hasBack ? <span className="image-flip-hint"><Repeat2 size={14}/> {showBack ? 'BACK' : 'FRONT'}</span> : null}
         </div>
       </div>
       <div className="product-info">
