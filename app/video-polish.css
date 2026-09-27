@@ -1,12 +1,11 @@
 /* LOLA ENGLAND video media polish */
 .product-detail-gallery{position:relative;width:100%;overflow:hidden;border-radius:inherit}
-.product-detail-slides{position:relative;width:100%;overflow:hidden}
-.product-detail-slide{display:none;position:relative;width:100%;overflow:hidden}
-.product-detail-slide.is-active{display:block}
+.product-detail-slides{position:relative;width:100%}
+.product-detail-slide{position:relative;width:100%;overflow:hidden}
 .product-detail-slide.is-video{
-  aspect-ratio:9 / 16!important;
+  aspect-ratio:4 / 5!important;
   min-height:0!important;
-  background:transparent!important;
+  background:#fff!important;
 }
 .product-detail-slide.is-video .product-detail-video{
   display:block!important;
@@ -15,7 +14,7 @@
   min-height:0!important;
   object-fit:cover!important;
   object-position:center center!important;
-  background:transparent!important;
+  background:#fff!important;
   border-radius:inherit;
   cursor:pointer;
 }
@@ -33,10 +32,16 @@
   object-position:center center!important;
   background:transparent!important;
 }
+/* Desktop/tablet: show the complete product media set as an editorial grid. */
 @media(min-width:801px){
-  .product-detail-gallery{min-height:0!important}
+  .product-detail-slide{display:block!important}
   .product-detail-slide.is-video{width:100%!important}
+  .product-detail-slides{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px!important}
 }
+/* Mobile: keep the swipe carousel — one media item at a time. */
 @media(max-width:800px){
+  .product-detail-slides{display:flex!important;gap:0!important;overflow:hidden!important}
+  .product-detail-slide{display:none!important;flex:0 0 100%!important;aspect-ratio:4 / 5!important}
+  .product-detail-slide.is-active{display:block!important}
   .product-detail-slide.is-video{width:100%!important}
 }
