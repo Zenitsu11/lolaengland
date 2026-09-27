@@ -446,3 +446,81 @@ img{max-width:100%}
   .wishlist-empty{min-height:360px;padding:30px 20px}
   .wishlist-empty h2{font-size:35px}
 }
+/* =========================================================
+   Adaptive layout pass — use the available viewport cleanly.
+   Keeps the editorial rhythm tight while preserving breathing
+   room and full-bleed imagery at every practical width.
+   ========================================================= */
+
+.editorial-section{padding-block:clamp(48px,5.5vw,78px)!important}
+.editorial-section-head{gap:clamp(18px,3vw,42px)!important;margin-bottom:clamp(22px,3vw,32px)!important}
+.editorial-section-head>p{max-width:min(410px,42vw)!important}
+.editorial-lookbook{gap:clamp(10px,1.35vw,18px)!important}
+.editorial-look-media{aspect-ratio:1071/1536!important;height:auto!important;min-height:0!important}
+.editorial-look-media>img{width:100%!important;height:100%!important;object-fit:cover!important;object-position:center top!important}
+.editorial-look-copy{padding:clamp(14px,1.5vw,20px) clamp(12px,1.5vw,18px) clamp(16px,1.8vw,23px)!important}
+.editorial-look-copy h3{font-size:clamp(20px,2vw,24px)!important}
+.editorial-campaign{padding-bottom:clamp(38px,4.5vw,62px)!important}
+.campaign-grid{gap:clamp(10px,1.4vw,18px)!important}
+.campaign-card{aspect-ratio:1071/1536!important;min-height:0!important}
+.model-rail{gap:clamp(10px,1.35vw,18px)!important}
+.model-rail-card{min-height:0!important;aspect-ratio:1071/1536!important}
+.editorial-products{padding-top:clamp(46px,5vw,70px)!important}
+.product-grid{gap:clamp(10px,1.5vw,18px)!important}
+.editorial-join{margin-bottom:clamp(48px,5.5vw,78px)!important}
+.editorial-join-image{width:50%!important}
+.editorial-join-copy{max-width:58%!important;padding:clamp(54px,6vw,78px) clamp(24px,6vw,72px)!important}
+
+@media(min-width:1200px){
+  .container{width:min(1240px,calc(100% - 64px))!important}
+  .editorial-lookbook{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .editorial-section-head>p{max-width:440px!important}
+}
+@media(min-width:901px) and (max-width:1199px){
+  .container{width:min(1120px,calc(100% - 32px))!important}
+  .editorial-lookbook{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .editorial-look-copy p{font-size:12px}
+}
+@media(min-width:601px) and (max-width:900px){
+  .editorial-section{padding-block:52px!important}
+  .editorial-section-head{margin-bottom:24px!important}
+  .editorial-lookbook{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .editorial-look-media{aspect-ratio:1071/1536!important}
+  .campaign-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .campaign-copy{left:20px!important;right:20px!important;bottom:20px!important}
+  .campaign-copy h3{font-size:clamp(28px,4vw,40px)!important}
+  .model-rail{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .model-rail-card:first-child{grid-column:auto!important;min-height:0!important}
+  .editorial-join-copy{max-width:58%!important}
+}
+@media(max-width:600px){
+  .editorial-section{padding-block:44px!important}
+  .editorial-section-head{margin-bottom:22px!important}
+  .editorial-section-head>p{max-width:none!important;margin-top:14px!important}
+  .editorial-lookbook{grid-template-columns:1fr!important;gap:14px!important}
+  .editorial-look-media{aspect-ratio:1071/1536!important}
+  .editorial-look-copy{padding:14px 14px 18px!important}
+  .editorial-campaign{padding-bottom:42px!important}
+  .campaign-grid{gap:14px!important}
+  .campaign-card{aspect-ratio:1071/1536!important}
+  .model-rail{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  .model-rail-card,.model-rail-card:first-child{min-height:0!important;aspect-ratio:1071/1536!important;grid-column:auto!important}
+  .rail-copy{left:12px!important;right:12px!important;bottom:12px!important}
+  .rail-copy strong{font-size:clamp(18px,5vw,24px)!important}
+  .editorial-products{padding-top:44px!important}
+  .product-grid{gap:10px!important}
+  .editorial-join{margin-bottom:44px!important}
+  .editorial-join-image{width:52%!important}
+  .editorial-join-copy{max-width:100%!important;padding:46px 22px!important}
+}
+@media(max-width:380px){
+  .container{width:calc(100% - 22px)!important}
+  .editorial-section{padding-block:38px!important}
+  .editorial-section-head h2{font-size:clamp(40px,13vw,52px)!important}
+  .editorial-lookbook{gap:12px!important}
+  .product-grid{gap:8px!important}
+  .product-info{padding-inline:11px!important}
+  .product-info h3{font-size:15px!important}
+  .editorial-join-copy{padding:40px 18px!important}
+}
+.editorial-home,.editorial-home .container,.editorial-section,.editorial-campaign,.editorial-join,.editorial-look,.campaign-card,.model-rail-card,.product-card{min-width:0;max-width:100%}
