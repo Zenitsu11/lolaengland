@@ -9,6 +9,7 @@ import './final-polish.css';
 import './video-polish.css';
 import './clickable-store.css';
 import './payment-checkout.css';
+import './returns-polish.css';
 import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 import { CartProvider } from '@/components/cart-provider';
