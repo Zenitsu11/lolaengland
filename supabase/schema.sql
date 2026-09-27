@@ -261,3 +261,24 @@ create index if not exists return_requests_status_idx on public.return_requests(
 create index if not exists return_requests_phone_idx on public.return_requests(customer_phone);
 drop trigger if exists return_requests_updated_at on public.return_requests;
 create trigger return_requests_updated_at before update on public.return_requests for each row execute function public.set_updated_at();
+
+
+-- Admin-controlled storefront/editorial media library.
+create table if not exists public.site_media (
+  id uuid primary key default gen_random_uuid(),
+  section text not null,
+  slot_key text not null,
+  title text not null default '',
+  url text not null,
+  alt_text text not null default '',
+  href text not null default '',
+  active boolean not null default true,
+  sort_order integer not null default 0,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique(section, slot_key)
+);
+alter table public.site_media enable row level security;
+drop policy if exists "Public can view active site media" on public.site_media;
+create policy "Public can view active site media" on public.site_media for select to public using (active = true);
+create index if not exists site_media_section_order_idx on public.site_media(section, active, sort_order);
