@@ -165,6 +165,22 @@ export default function AdminPage(){
     }catch(e){setMessage(e instanceof Error?e.message:`Hero ${kind} upload failed.`);}finally{setUploading(false);}
   }
 
+  async function replaceHeroMedia(index:number,file:File,kind:'image'|'video'){
+    setUploading(true);setMessage('');
+    try{
+      const url=kind==='video'
+        ? await uploadDirectMedia(file)
+        : (await api('/api/admin/upload',{method:'POST',body:(()=>{const f=new FormData();f.append('file',file);return f;})()})).url;
+      setSettings(s=>{
+        const key=kind==='image'?'hero_image_urls':'hero_video_urls';
+        const next=[...(s[key]||[])];
+        next[index]=url;
+        return {...s,[key]:next};
+      });
+      setMessage(`Hero ${kind} ${index+1} replaced. Click Save website settings to publish the change.`);
+    }catch(e){setMessage(e instanceof Error?e.message:`Hero ${kind} replacement failed.`);}finally{setUploading(false);}
+  }
+
   async function saveSettings(){
     setLoading(true);
     try{const d=await api('/api/admin/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(settings)});setSettings(d.settings);setMessage('Website settings saved.');}catch(e){setMessage(e instanceof Error?e.message:'Could not save settings.');}finally{setLoading(false);}
@@ -304,10 +320,10 @@ export default function AdminPage(){
       {tab==='settings'&&<div className="admin-card"><h2>Website settings</h2><p>Brand, contact, social, marketplace and checkout messaging.</p>
       <div className="admin-card admin-hero-media-card"><div className="admin-row"><div><h2>Wear your mood — hero media</h2><p>Upload up to 4 clean model images and up to 2 short videos. These power the full-screen homepage mood carousel. The carousel keeps the model’s face and full T-shirt visible.</p></div></div>
         <div className="gallery-header"><div><b>Hero images</b><span>{settings.hero_image_urls.length}/4</span></div><label className="admin-btn upload-label"><Images/> Upload hero images<input type="file" multiple accept="image/jpeg,image/png,image/webp" hidden onChange={e=>{const f=Array.from(e.target.files||[]);if(f.length)uploadHeroMedia(f,'image');e.currentTarget.value=''}}/></label></div>
-        <div className="gallery-grid hero-media-grid">{settings.hero_image_urls.map((u,i)=><div className="gallery-item" key={u+i}><img src={u} alt="Hero media"/><span>MOOD {i+1}</span><button onClick={()=>setSettings(s=>({...s,hero_image_urls:s.hero_image_urls.filter((_,n)=>n!==i)}))}><X size={14}/></button></div>)}</div>
+        <div className="gallery-grid hero-media-grid">{settings.hero_image_urls.map((u,i)=><div className="gallery-item hero-media-item" key={u+i}><img src={u} alt={`Hero mood ${i+1}`}/><span>MOOD {i+1}</span><div className="hero-media-actions"><label className="media-replace-btn" title="Replace this hero image"><Pencil size={12}/> Replace<input type="file" accept="image/jpeg,image/png,image/webp" hidden disabled={uploading} onChange={e=>{const f=e.target.files?.[0];if(f)replaceHeroMedia(i,f,'image');e.currentTarget.value=''}}/></label><button type="button" title="Remove this hero image" disabled={uploading} onClick={()=>setSettings(s=>({...s,hero_image_urls:s.hero_image_urls.filter((_,n)=>n!==i)}))}><X size={14}/></button></div></div>)}</div>
         <div className="gallery-header video-gallery-header"><div><b>Hero videos</b><span>{settings.hero_video_urls.length}/2</span></div><label className="admin-btn upload-label"><Upload/> Upload hero videos<input type="file" multiple accept="video/mp4,video/webm,video/quicktime" hidden onChange={e=>{const f=Array.from(e.target.files||[]);if(f.length)uploadHeroMedia(f,'video');e.currentTarget.value=''}}/></label></div>
-        <div className="gallery-grid video-gallery-grid">{settings.hero_video_urls.map((u,i)=><div className="gallery-item video-gallery-item" key={u+i}><video src={u} muted playsInline controls preload="metadata"/><span>FILM {i+1}</span><button onClick={()=>setSettings(s=>({...s,hero_video_urls:s.hero_video_urls.filter((_,n)=>n!==i)}))}><X size={14}/></button></div>)}</div>
-        <small className="media-help">Images: portrait editorial photos with the whole face and T-shirt visible. Videos: short MP4/WebM clips, up to 2. Remove a media item here, then save settings.</small>
+        <div className="gallery-grid video-gallery-grid">{settings.hero_video_urls.map((u,i)=><div className="gallery-item video-gallery-item hero-media-item" key={u+i}><video src={u} muted playsInline controls preload="metadata"/><span>FILM {i+1}</span><div className="hero-media-actions"><label className="media-replace-btn" title="Replace this hero video"><Pencil size={12}/> Replace<input type="file" accept="video/mp4,video/webm,video/quicktime" hidden disabled={uploading} onChange={e=>{const f=e.target.files?.[0];if(f)replaceHeroMedia(i,f,'video');e.currentTarget.value=''}}/></label><button type="button" title="Remove this hero video" disabled={uploading} onClick={()=>setSettings(s=>({...s,hero_video_urls:s.hero_video_urls.filter((_,n)=>n!==i)}))}><X size={14}/></button></div></div>)}</div>
+        <small className="media-help">Images: portrait editorial photos with the whole face and T-shirt visible. Videos: short MP4/WebM clips, up to 2. Replace or remove any media item here, then save settings to publish the change.</small>
       </div>
       <div className="admin-form-grid">
         {field('Brand name',settings.brand_name,v=>setSettings({...settings,brand_name:v}))}{field('Shipping message',settings.shipping_message,v=>setSettings({...settings,shipping_message:v}))}
