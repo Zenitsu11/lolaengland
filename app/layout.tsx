@@ -6,6 +6,7 @@ import './lola-editorial.css';
 import './admin-enhancements.css';
 import './store-enhancements.css';
 import './final-polish.css';
+import './menu-pages.css';
 import './hero-media-fix.css';
 import './video-polish.css';
 import './clickable-store.css';
