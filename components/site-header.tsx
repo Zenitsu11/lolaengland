@@ -4,7 +4,7 @@ import { Heart, Search, ShoppingBag, X, Menu } from 'lucide-react';
 import { useCart } from '@/components/cart-provider';
 import { useEffect, useState } from 'react';
 
-export function SiteHeader(){
+export function SiteHeader({logoUrl='/Lola england.jpg'}:{logoUrl?:string}){
   const [open,setOpen]=useState(false);
   const { items } = useCart();
   const [wishlistCount,setWishlistCount]=useState(0);
@@ -23,7 +23,7 @@ export function SiteHeader(){
       <div className="nav container">
         <button className="menu" onClick={()=>setOpen(true)} aria-label="Open menu"><Menu/></button>
         <Link className="brand" href="/" aria-label="LOLA ENGLAND home" onClick={()=>setOpen(false)}>
-          <span className="brand-frame"><img className="brand-logo" src="/Lola england.jpg" alt="LOLA ENGLAND"/></span>
+          <span className="brand-frame"><img className="brand-logo" src={logoUrl} alt="LOLA ENGLAND"/></span>
         </Link>
         <nav className="desktop-nav">
           {links.map(([label,href])=><a key={label} href={href}>{label}</a>)}
@@ -43,7 +43,7 @@ export function SiteHeader(){
     {open&&<div className="mobile-menu">
       <button className="close" onClick={()=>setOpen(false)} aria-label="Close"><X/></button>
       <Link href="/" className="mobile-brand-link" onClick={()=>setOpen(false)} aria-label="LOLA ENGLAND home">
-        <span className="brand-frame mobile-brand-frame"><img className="mobile-logo" src="/Lola england.jpg" alt="LOLA ENGLAND"/></span>
+        <span className="brand-frame mobile-brand-frame"><img className="mobile-logo" src={logoUrl} alt="LOLA ENGLAND"/></span>
       </Link>
       {links.map(([label,href])=><a key={label} href={href} onClick={()=>setOpen(false)}>{label}</a>)}
       <Link href="/collection/all" onClick={()=>setOpen(false)}>SHOP ALL T-SHIRTS</Link>
