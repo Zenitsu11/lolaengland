@@ -11,11 +11,11 @@ export function SiteHeader(){
   useEffect(()=>{const sync=()=>{try{setWishlistCount(JSON.parse(localStorage.getItem('lola-wishlist')||'[]').length)}catch{setWishlistCount(0)}};sync();window.addEventListener('lola-wishlist-change',sync);return()=>window.removeEventListener('lola-wishlist-change',sync)},[]);
   const cartCount = items.reduce((sum,item)=>sum + item.quantity, 0);
   const links=[
-    ['NEW IN','#shop'],
-    ['T-SHIRTS','#shop'],
-    ['LOOKBOOK','#models'],
-    ['OUR STORY','#about'],
-    ['FAQ','#faq'],
+    ['NEW IN','/new-in'],
+    ['T-SHIRTS','/t-shirts'],
+    ['LOOKBOOK','/lookbook'],
+    ['OUR STORY','/our-story'],
+    ['FAQ','/faq'],
   ];
   return <>
     <div className="announcement">FREE SHIPPING ON ORDERS OVER ₹799 <span>•</span> NEW DROP LIVE <span>•</span> LOLA ENGLAND</div>
@@ -37,7 +37,7 @@ export function SiteHeader(){
     </header>
     <div className="category-strip">
       <div className="container category-strip-inner">
-        <Link href="/collection/all">ALL TEES</Link><Link href="/collection/oversized">OVERSIZED</Link><Link href="/collection/graphics">GRAPHIC</Link><Link href="/collection/everyday">EVERYDAY</Link><a href="#contact">JOIN LOLA</a>
+        <Link href="/collection/all">ALL TEES</Link><Link href="/collection/oversized">OVERSIZED</Link><Link href="/collection/graphics">GRAPHIC</Link><Link href="/collection/everyday">EVERYDAY</Link><Link href="/join-lola">JOIN LOLA</Link>
       </div>
     </div>
     {open&&<div className="mobile-menu">
