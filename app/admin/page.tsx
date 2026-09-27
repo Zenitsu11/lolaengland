@@ -16,6 +16,7 @@ type Category={id:string;name:string;slug:string;description:string;active:boole
 type Inventory={product_id:string;stock_qty:number;reserved_qty:number;low_stock_threshold:number;track_inventory:boolean;products?:Product};
 type Coupon={id:string;code:string;description:string;discount_type:'percent'|'fixed';discount_value:number;minimum_order_value:number;maximum_discount:number|null;usage_limit:number|null;used_count:number;starts_at:string|null;expires_at:string|null;active:boolean};
 type Settings={brand_name:string;shipping_message:string;instagram_url:string;whatsapp_url:string;contact_email:string;amazon_seller_url:string;flipkart_seller_url:string;shipping_fee:number;free_shipping_threshold:number;platform_fee:number;gst_rate:number;hero_image_urls:string[];hero_video_urls:string[]};
+type SiteMedia={id:string;section:string;slot_key:string;title:string;url:string;alt_text:string;href:string;active:boolean;sort_order:number};
 
 const emptyProduct:Product={id:'new',name:'',slug:'',price:599,mrp:899,rating:4.5,reviews:0,description:'',image_url:'',image_urls:[],video_urls:[],categories:[],amazon_url:'',flipkart_url:'',featured:true,active:true,sort_order:0};
 const HERO_DEFAULT_IMAGES=['/products/lola-brown-front.webp?v=8','/products/lola-mint-front.webp?v=6','/products/lola-navy-front.webp?v=6','/products/lola-olive-front.webp?v=6'];
@@ -25,7 +26,7 @@ const normalizeHeroImages=(urls:unknown[])=>Array.from({length:4},(_,i)=>typeof 
 const nav=[
   ['overview','Overview',BarChart3],['products','Products',Package],['categories','Categories',Layers3],
   ['inventory','Inventory',Boxes],['orders','Orders',ShoppingCart],['returns','Returns & refunds',RotateCcw],['customers','Customers',Users],
-  ['coupons','Coupons',TicketPercent],['payments','Payments',WalletCards],['settings','Website settings',Settings]
+  ['coupons','Coupons',TicketPercent],['payments','Payments',WalletCards],['site-media','Site media',Images],['settings','Website settings',Settings]
 ] as const;
 
 export default function AdminPage(){
@@ -39,11 +40,13 @@ export default function AdminPage(){
   const [returns,setReturns]=useState<any[]>([]);
   const [customers,setCustomers]=useState<any[]>([]);
   const [coupons,setCoupons]=useState<Coupon[]>([]);
+  const [siteMedia,setSiteMedia]=useState<SiteMedia[]>([]);
   const [settings,setSettings]=useState<Settings>(defaultSettings);
   const [editingProduct,setEditingProduct]=useState<Product|null>(null);
   const [editingHeroMedia,setEditingHeroMedia]=useState<{kind:'image'|'video';index:number}|null>(null);
   const [editingCategory,setEditingCategory]=useState<Category|null>(null);
   const [editingCoupon,setEditingCoupon]=useState<Coupon|null>(null);
+  const [editingSiteMedia,setEditingSiteMedia]=useState<SiteMedia|null>(null);
   const [search,setSearch]=useState('');
   const [uploading,setUploading]=useState(false);
   const [exporting,setExporting]=useState(false);
@@ -59,10 +62,10 @@ export default function AdminPage(){
     try{
       const [p,c,i,o,r,cu,co,s]=await Promise.all([
         api('/api/admin/products'),api('/api/admin/categories'),api('/api/admin/inventory'),
-        api('/api/admin/orders'),api('/api/admin/returns'),api('/api/admin/customers'),api('/api/admin/coupons'),api('/api/admin/settings')
+        api('/api/admin/orders'),api('/api/admin/returns'),api('/api/admin/customers'),api('/api/admin/coupons'),api('/api/admin/settings'),api('/api/admin/site-media')
       ]);
       setProducts((p.products||[]).map((x:Product)=>({...x,image_urls:Array.isArray(x.image_urls)?x.image_urls:(x.image_url?[x.image_url]:[]),video_urls:Array.isArray(x.video_urls)?x.video_urls:[],categories:Array.isArray(x.categories)?x.categories:[] })));
-      setCategories(c.categories||[]);setInventory(i.inventory||[]);setOrders(o.orders||[]);setReturns(r.returns||[]);setCustomers(cu.customers||[]);setCoupons(co.coupons||[]);setSettings({...defaultSettings,...s.settings,hero_image_urls:normalizeHeroImages(Array.isArray(s.settings?.hero_image_urls)?s.settings.hero_image_urls:[]),hero_video_urls:Array.isArray(s.settings?.hero_video_urls)?s.settings.hero_video_urls:[]});
+      setCategories(c.categories||[]);setInventory(i.inventory||[]);setOrders(o.orders||[]);setReturns(r.returns||[]);setCustomers(cu.customers||[]);setCoupons(co.coupons||[]);setSiteMedia((sm.media||[]).map((x:SiteMedia)=>({...x,sort_order:Number(x.sort_order||0)})));setSettings({...defaultSettings,...s.settings,hero_image_urls:normalizeHeroImages(Array.isArray(s.settings?.hero_image_urls)?s.settings.hero_image_urls:[]),hero_video_urls:Array.isArray(s.settings?.hero_video_urls)?s.settings.hero_video_urls:[]});
     }catch(e){setMessage(e instanceof Error?e.message:'Could not load admin data.');}
   }
   useEffect(()=>{refresh()},[]);
@@ -182,6 +185,32 @@ export default function AdminPage(){
       });
       setMessage(`Hero ${kind} ${index+1} replaced. Click Save website settings to publish the change.`);
     }catch(e){setMessage(e instanceof Error?e.message:`Hero ${kind} replacement failed.`);}finally{setUploading(false);}
+  }
+
+  async function saveSiteMedia(){
+    if(!editingSiteMedia?.section.trim()||!editingSiteMedia.slot_key.trim()||!editingSiteMedia.url.trim()) return setMessage('Section, slot key and image are required.');
+    setLoading(true);setMessage('');
+    try{
+      const isNew=editingSiteMedia.id==='new';
+      const d=await api('/api/admin/site-media',{method:isNew?'POST':'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(editingSiteMedia)});
+      const saved=d.media as SiteMedia;
+      setSiteMedia(list=>isNew?[...list,saved]:list.map(x=>x.id===saved.id?saved:x));
+      setEditingSiteMedia(null);
+      setMessage(isNew?'Site image added.':'Site image updated.');
+    }catch(e){setMessage(e instanceof Error?e.message:'Could not save site image.');}finally{setLoading(false);}
+  }
+  async function replaceSiteMedia(file:File){
+    if(!editingSiteMedia)return;
+    setUploading(true);setMessage('');
+    try{
+      const url=await uploadDirectMedia(file);
+      setEditingSiteMedia(x=>x?{...x,url}:x);
+      setMessage('Image replaced in the editor. Click Save to publish it.');
+    }catch(e){setMessage(e instanceof Error?e.message:'Site image replacement failed.');}finally{setUploading(false);}
+  }
+  async function deleteSiteMedia(id:string){
+    if(!confirm('Remove this site image from the website?'))return;
+    try{await api('/api/admin/site-media',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});setSiteMedia(list=>list.filter(x=>x.id!==id));setMessage('Site image removed.');}catch(e){setMessage(e instanceof Error?e.message:'Could not remove site image.');}
   }
 
   async function saveSettings(){
@@ -319,6 +348,15 @@ export default function AdminPage(){
         {field('Platform fee ₹',settings.platform_fee,v=>setSettings({...settings,platform_fee:Number(v)}),'number')}
         {field('GST rate %',settings.gst_rate,v=>setSettings({...settings,gst_rate:Number(v)}),'number')}
       </div><button className="admin-btn" onClick={saveSettings} disabled={loading}><Save/> Save payment settings</button><div className="payment-note"><b>UPI:</b> customers get the exact QR amount. The owner verifies payment and records the bank UTR in Orders. No customer UTR field is used.</div></div>}
+
+      {tab==='site-media'&&<div className="admin-card"><div className="admin-row"><div><h2>Site media library</h2><p>Control every non-product photo used across homepage sections and menu landing pages. Products and hero media keep their own editors.</p></div><button className="admin-btn" onClick={()=>setEditingSiteMedia({id:'new',section:'lookbook',slot_key:'',title:'',url:'',alt_text:'',href:'/collection/all',active:true,sort_order:siteMedia.filter(x=>x.section==='lookbook').length+1})}><Plus/> Add site image</button></div>
+        <div className="site-media-groups">{Array.from(new Set(siteMedia.map(x=>x.section))).map(section=><div className="site-media-group" key={section}><div className="admin-row"><div><h3>{section.replaceAll('-',' ').toUpperCase()}</h3><p>{siteMedia.filter(x=>x.section===section).length} image{siteMedia.filter(x=>x.section===section).length===1?'':'s'} connected to this section.</p></div><button className="admin-btn ghost" onClick={()=>setEditingSiteMedia({id:'new',section,slot_key:String(siteMedia.filter(x=>x.section===section).length+1),title:'',url:'',alt_text:'',href:'/collection/all',active:true,sort_order:siteMedia.filter(x=>x.section===section).length+1})}><Plus/> Add here</button></div>
+          {siteMedia.filter(x=>x.section===section).map(item=><div className="site-media-row" key={item.id}><img src={item.url} alt={item.alt_text||item.title}/><div><b>{item.title||'Untitled image'}</b><small>Slot {item.slot_key} · {item.active?'Live':'Hidden'} · Order {item.sort_order}</small><small>{item.href||'No link'}</small></div><div className="product-actions"><button onClick={()=>setEditingSiteMedia({...item})}><Pencil size={15}/></button><button onClick={()=>deleteSiteMedia(item.id)}><Trash2 size={15}/></button></div></div>)}
+        </div>)}</div>
+        {editingSiteMedia&&<div className="admin-card"><div className="admin-row"><div><h2>{editingSiteMedia.id==='new'?'Add site image':'Edit site image'}</h2><p>Replace, reorder, rename or change where this image links. Save to publish immediately.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={()=>setEditingSiteMedia(null)}><X/> Cancel</button><button className="admin-btn" disabled={loading||uploading} onClick={saveSiteMedia}><Save/> Save</button></div></div>
+          <div className="site-media-editor"><div className="site-media-editor-preview">{editingSiteMedia.url?<img src={editingSiteMedia.url} alt={editingSiteMedia.alt_text||'Editing site image'}/>:<div className="admin-thumb placeholder">IMAGE</div>}</div><label className="admin-btn upload-label"><Pencil/> Replace image<input type="file" accept="image/jpeg,image/png,image/webp" hidden disabled={uploading} onChange={e=>{const f=e.target.files?.[0];if(f)replaceSiteMedia(f);e.currentTarget.value=''}}/></label></div>
+          <div className="admin-form-grid">{field('Section',editingSiteMedia.section,v=>setEditingSiteMedia({...editingSiteMedia,section:v}))}{field('Slot key',editingSiteMedia.slot_key,v=>setEditingSiteMedia({...editingSiteMedia,slot_key:v}))}{field('Title / label',editingSiteMedia.title,v=>setEditingSiteMedia({...editingSiteMedia,title:v}))}{field('Sort order',editingSiteMedia.sort_order,v=>setEditingSiteMedia({...editingSiteMedia,sort_order:Number(v)}),'number')}{field('Link / href',editingSiteMedia.href,v=>setEditingSiteMedia({...editingSiteMedia,href:v}))}{field('Alt text',editingSiteMedia.alt_text,v=>setEditingSiteMedia({...editingSiteMedia,alt_text:v}))}<label>Visibility<select value={editingSiteMedia.active?'live':'hidden'} onChange={e=>setEditingSiteMedia({...editingSiteMedia,active:e.target.value==='live'})}><option value="live">Live</option><option value="hidden">Hidden</option></select></label></div>
+        </div>}
 
       {tab==='settings'&&<div className="admin-card"><h2>Website settings</h2><p>Brand, contact, social, marketplace and checkout messaging.</p>
       <div className="admin-card admin-hero-media-card"><div className="admin-row"><div><h2>Wear your mood — hero media</h2><p>Upload up to 4 clean model images and up to 2 short videos. These power the full-screen homepage mood carousel. The carousel keeps the model’s face and full T-shirt visible.</p></div></div>
