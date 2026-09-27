@@ -28,9 +28,10 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
     if (isDesktop) {
       // Desktop shows the complete editorial media grid, so every product video
       // should be allowed to autoplay muted independently.
-      Object.values(videoRefs.current).forEach(video => {
+      Object.entries(videoRefs.current).forEach(([key, video]) => {
         if (!video) return;
-        video.muted = !(videoSound[Number(Object.keys(videoRefs.current).find(key => videoRefs.current[Number(key)] === video) ?? -1)] ?? false);
+        const index = Number(key);
+        video.muted = !(videoSound[index] ?? false);
         void video.play().catch(() => {});
       });
       return;
