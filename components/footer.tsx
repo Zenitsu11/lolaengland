@@ -27,7 +27,7 @@ export function Footer(){
       </div>
       <div className="footer-group"><h4>SHOP</h4><Link href="/collection/all">All T-shirts</Link><Link href="/collection/oversized">Oversized</Link><Link href="/collection/graphics">Graphic</Link><Link href="/collection/everyday">Everyday</Link></div>
       <div className="footer-group"><h4>ABOUT</h4><a href="/#about">Our Story</a><a href="/#models">Lookbook</a><a href="/#faq">FAQ</a><a href="/#contact">Contact</a></div>
-      <div className="footer-group"><h4>HELP</h4><a href="/shipping-returns">Delivery & Returns</a><a href="/refund-policy">Refund Policy</a><a href="/terms">Terms & Conditions</a><a href="/privacy">Privacy Policy</a></div>
+      <div className="footer-group"><h4>HELP</h4><a href="/shipping-returns">Delivery & Returns</a><a href="/returns">Start a Return</a><a href="/refund-policy">Refund Policy</a><a href="/terms">Terms & Conditions</a><a href="/privacy">Privacy Policy</a></div>
     </div>
 
     <div className="container footer-bottom">
