@@ -76,7 +76,6 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
-        <span className="pill">TRENDING</span>
         <div
           className="product-image-wrap"
           onClick={(event: MouseEvent<HTMLDivElement>) => {
