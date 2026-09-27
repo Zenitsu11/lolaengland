@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState, type TouchEvent } from 'react';
-import { Repeat2 } from 'lucide-react';
 import { SafeImage } from '@/components/safe-image';
 
 type ProductGalleryProps = {
@@ -18,9 +17,8 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
 
   const rawImages = providedImages?.length ? providedImages : [front, back].filter(Boolean) as string[];
-  const labels = ['FRONT','BACK','SIDE','DETAIL 4','DETAIL 5','DETAIL 6','DETAIL 7','DETAIL 8','DETAIL 9','DETAIL 10','DETAIL 11','DETAIL 12'];
-  const images = rawImages.map((src,index)=>({src,label:labels[index] ?? `VIEW ${index + 1}`,type:'image' as const})).filter((item): item is { src: string; label: string; type:'image' } => Boolean(item.src));
-  const videos = (providedVideos ?? []).slice(0,2).filter(Boolean).map((src,index)=>({src,label:`VIDEO ${index + 1}`,type:'video' as const}));
+  const images = rawImages.map(src=>({src,type:'image' as const})).filter((item): item is { src: string; type:'image' } => Boolean(item.src));
+  const videos = (providedVideos ?? []).slice(0,2).filter(Boolean).map(src=>({src,type:'video' as const}));
   const media = [...images, ...videos];
 
   useEffect(() => {
@@ -81,7 +79,7 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
     >
       <div className="product-detail-slides">
         {media.map((item, index) => (
-          <div className={'product-detail-slide' + (active === index ? ' is-active' : '') + (item.type === 'video' ? ' is-video' : '')} key={item.label}>
+          <div className={'product-detail-slide' + (active === index ? ' is-active' : '') + (item.type === 'video' ? ' is-video' : '')} key={item.src}>
             {item.type === 'video' ? (
               <video
                 ref={element => { videoRefs.current[index] = element; }}
@@ -91,16 +89,15 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
                 loop
                 playsInline
                 preload="auto"
-                aria-label={name + ' ' + item.label.toLowerCase()}
+                aria-label={name + ' product video'}
               />
-            ) : <SafeImage src={item.src} fallbackSrc={item.src} alt={name + ' ' + item.label.toLowerCase() + ' view'} width={900} height={1100} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />}
-            {item.type === 'image' ? <span className="product-detail-view-label"><Repeat2 size={14}/>{item.label}</span> : null}
+            ) : <SafeImage src={item.src} fallbackSrc={item.src} alt={name + ' product view'} width={900} height={1100} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />}
           </div>
         ))}
       </div>
       {media.length > 1 ? (
         <div className="product-detail-dots" aria-hidden="true">
-          {media.map((item, index) => <span key={item.label} className={active === index ? 'is-active' : ''}/>)}
+          {media.map((item, index) => <span key={item.src} className={active === index ? 'is-active' : ''}/>)}
         </div>
       ) : null}
     </div>
