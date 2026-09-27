@@ -221,3 +221,43 @@ alter table public.products add column if not exists video_urls text[] not null 
 
 alter table public.store_settings add column if not exists hero_image_urls text[] not null default '{}';
 alter table public.store_settings add column if not exists hero_video_urls text[] not null default '{}';
+
+
+-- Returns and refunds workflow.
+alter table public.orders add column if not exists return_status text not null default 'none';
+alter table public.orders add column if not exists refund_status text not null default 'not_requested';
+alter table public.orders add column if not exists refund_amount numeric(12,2) not null default 0;
+alter table public.orders add column if not exists refund_reference text;
+alter table public.orders add column if not exists refund_method text;
+alter table public.orders add column if not exists refunded_at timestamptz;
+alter table public.orders add column if not exists return_requested_at timestamptz;
+
+create table if not exists public.return_requests (
+  id uuid primary key default gen_random_uuid(),
+  order_id uuid not null references public.orders(id) on delete cascade,
+  customer_id uuid references public.customers(id) on delete set null,
+  customer_name text not null default '',
+  customer_phone text not null default '',
+  customer_email text not null default '',
+  reason text not null,
+  details text not null default '',
+  status text not null default 'requested',
+  admin_note text not null default '',
+  refund_amount numeric(12,2) not null default 0,
+  refund_status text not null default 'not_requested',
+  refund_method text,
+  refund_reference text,
+  requested_at timestamptz not null default now(),
+  resolved_at timestamptz,
+  refunded_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.return_requests enable row level security;
+drop policy if exists "No public return request access" on public.return_requests;
+create policy "No public return request access" on public.return_requests for all using (false) with check (false);
+create index if not exists return_requests_order_idx on public.return_requests(order_id);
+create index if not exists return_requests_status_idx on public.return_requests(status, requested_at desc);
+create index if not exists return_requests_phone_idx on public.return_requests(customer_phone);
+drop trigger if exists return_requests_updated_at on public.return_requests;
+create trigger return_requests_updated_at before update on public.return_requests for each row execute function public.set_updated_at();
