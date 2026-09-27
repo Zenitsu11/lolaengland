@@ -16,6 +16,7 @@ import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 import { CartProvider } from '@/components/cart-provider';
 import { StoreExperience } from '@/components/store-experience';
+import { getSiteMedia } from '@/lib/catalog';
 
 export const metadata: Metadata = {
   title: 'LOLA ENGLAND — Women’s T-Shirts',
@@ -23,12 +24,13 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://lolaengland.vercel.app'),
 };
 
-export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
+  const logoUrl=(await getSiteMedia('brand-logo'))[0]?.url || '/Lola england.jpg';
   return (
     <html lang="en">
       <body>
         <CartProvider>
-          <SiteHeader />
+          <SiteHeader logoUrl={logoUrl} />
           <main>{children}</main>
           <Footer />
         </CartProvider>
