@@ -24,3 +24,6 @@ Do not commit real secrets to GitHub.
 3. Add product image upload
 4. Connect official Amazon and Flipkart seller URLs
 5. Add analytics and order/traffic insights
+
+
+- Admin-controlled site media library for editorial/storefront imagery
