@@ -1,16 +1,23 @@
 /* LOLA ENGLAND video media polish */
+.product-detail-gallery{position:relative;width:100%;overflow:hidden;border-radius:inherit}
+.product-detail-slides{position:relative;width:100%;overflow:hidden}
+.product-detail-slide{display:none;position:relative;width:100%;overflow:hidden}
+.product-detail-slide.is-active{display:block}
 .product-detail-slide.is-video{
   aspect-ratio:9 / 16!important;
+  min-height:0!important;
   background:transparent!important;
 }
 .product-detail-slide.is-video .product-detail-video{
   display:block!important;
   width:100%!important;
   height:100%!important;
+  min-height:0!important;
   object-fit:cover!important;
   object-position:center center!important;
   background:transparent!important;
   border-radius:inherit;
+  cursor:pointer;
 }
 .product-detail-video::-webkit-media-controls,
 .product-detail-video::-webkit-media-controls-enclosure,
@@ -25,4 +32,11 @@
   object-fit:contain!important;
   object-position:center center!important;
   background:transparent!important;
+}
+@media(min-width:801px){
+  .product-detail-gallery{min-height:0!important}
+  .product-detail-slide.is-video{width:100%!important}
+}
+@media(max-width:800px){
+  .product-detail-slide.is-video{width:100%!important}
 }
