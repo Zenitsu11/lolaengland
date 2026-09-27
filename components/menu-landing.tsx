@@ -3,6 +3,7 @@ import { ArrowRight, Heart, Sparkles, Star } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
 import { SafeImage } from '@/components/safe-image';
 import { NewsletterForm } from '@/components/store-experience';
+import { getSiteMedia } from '@/lib/catalog';
 
 const looks = [
   { image:'/products/lola-mint-front.webp?v=6', tag:'01 · SOFT MINT', title:'Pretty, playful, effortless.', copy:'Soft colour, relaxed energy and a tee that does the talking.', slug:'soft-pink' },
@@ -42,21 +43,29 @@ export function TshirtsPage({products}:{products:Parameters<typeof ProductCard>[
   </Shell>;
 }
 
-export function LookbookPage(){
+export async function LookbookPage(){
+  const media=await getSiteMedia('lookbook');
+  const cards=(media.length?media:looks.map((x,i)=>({id:String(i),url:x.image,title:x.tag,alt_text:'LOLA ENGLAND '+x.tag,href:'/collection/'+x.slug,sort_order:i+1} as any))).map((m:any,index:number)=>{
+    const fallback=looks[index%looks.length];
+    return {id:m.id||String(index),image:m.url||fallback.image,tag:m.title||fallback.tag,title:fallback.title,copy:fallback.copy,href:m.href||('/collection/'+fallback.slug),alt:m.alt_text||('LOLA ENGLAND '+fallback.tag)};
+  });
   return <Shell eyebrow="THE LOLA LOOKBOOK" title={<>She wears<br/><em>the mood.</em></>} lead="Different days. Different energy. One easy wardrobe of women’s T-shirts made to move with you.">
     <section className="menu-landing-section"><div className="container">
-      <div className="menu-lookbook-grid">{looks.map((look,index)=><Link className="menu-look-card" href={'/collection/'+look.slug} key={look.tag}>
-        <div className="menu-look-media"><SafeImage src={look.image} fallbackSrc={look.image} alt={'LOLA ENGLAND '+look.tag.toLowerCase()} width={900} height={1100}/><span>{String(index+1).padStart(2,'0')}</span></div>
+      <div className="menu-lookbook-grid">{cards.map((look:any,index:number)=><Link className="menu-look-card" href={look.href} key={look.id||index}>
+        <div className="menu-look-media"><SafeImage src={look.image} fallbackSrc={look.image} alt={look.alt} width={900} height={1100}/><span>{String(index+1).padStart(2,'0')}</span></div>
         <div className="menu-look-copy"><p>{look.tag}</p><h2>{look.title}</h2><span>{look.copy}</span><b>SHOP THIS MOOD <ArrowRight size={15}/></b></div>
       </Link>)}</div>
     </div></section>
   </Shell>;
 }
 
-export function OurStoryPage(){
+export async function OurStoryPage(){
+  const media=await getSiteMedia('our-story');
+  const image=media[0]?.url||'/products/lola-brown-front.webp?v=8';
+  const alt=media[0]?.alt_text||'LOLA ENGLAND women’s T-shirt';
   return <Shell eyebrow="OUR STORY" title={<>Wear your<br/><em>mood.</em></>} lead="LOLA ENGLAND is a women’s T-shirt label built around easy confidence, expressive graphics and everyday comfort.">
     <section className="menu-story-feature"><div className="container menu-story-grid">
-      <div className="menu-story-image"><SafeImage src="/products/lola-brown-front.webp?v=8" fallbackSrc="/products/lola-brown-front.webp?v=8" alt="LOLA ENGLAND women’s T-shirt" width={1000} height={1200}/></div>
+      <div className="menu-story-image"><SafeImage src={image} fallbackSrc={image} alt={alt} width={1000} height={1200}/></div>
       <div className="menu-story-copy"><p className="editorial-eyebrow">MORE THAN A TEE</p><h2>Good outfits.<br/><em>Brighter days.</em></h2><p>LOLA is about clothes that fit into real life — coffee runs, late nights, slow Sundays, spontaneous plans and every version of you in between.</p><p>We keep the silhouettes relaxed, the graphics expressive and the styling easy. The goal is simple: put on a tee and feel like yourself.</p><Link className="btn btn-dark" href="/collection/all">SHOP THE COLLECTION <ArrowRight size={18}/></Link></div>
     </div></section>
     <section className="menu-values"><div className="container menu-values-grid">
@@ -82,8 +91,11 @@ export function FaqPage(){
   </Shell>;
 }
 
-export function JoinLolaPage(){
+export async function JoinLolaPage(){
+  const media=await getSiteMedia('join-lola');
+  const image=media[0]?.url||'/products/lola-brown-back.webp?v=8';
+  const alt=media[0]?.alt_text||'LOLA ENGLAND women’s T-shirt';
   return <Shell eyebrow="JOIN LOLA" title={<>First look.<br/><em>First picks.</em></>} lead="New drops, limited edits and easy everyday style — straight to your inbox.">
-    <section className="menu-newsletter"><div className="container"><div className="menu-newsletter-card"><SafeImage src="/products/lola-brown-back.webp?v=8" fallbackSrc="/products/lola-brown-back.webp?v=8" alt="LOLA ENGLAND women’s T-shirt" width={900} height={1100}/><div><p className="editorial-eyebrow">THE LOLA LIST</p><h2>Be first<br/><em>in the mood.</em></h2><p>Sign up for new drops, limited edits and little LOLA updates.</p><NewsletterForm compact/></div></div></div></section>
+    <section className="menu-newsletter"><div className="container"><div className="menu-newsletter-card"><SafeImage src={image} fallbackSrc={image} alt={alt} width={900} height={1100}/><div><p className="editorial-eyebrow">THE LOLA LIST</p><h2>Be first<br/><em>in the mood.</em></h2><p>Sign up for new drops, limited edits and little LOLA updates.</p><NewsletterForm compact/></div></div></div></section>
   </Shell>;
 }
