@@ -42,7 +42,7 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
       video.muted = true;
       void video.play().catch(() => {});
     });
-  }, [active, media.length, videoSound]);
+  }, [active, media.length]);
 
   const toggleVideoSound = (index: number) => {
     const video = videoRefs.current[index];
