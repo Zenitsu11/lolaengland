@@ -7,7 +7,7 @@ import { jsPDF } from 'jspdf';
 import {
   BarChart3, Package, Layers3, Boxes, ShoppingCart, Users, TicketPercent,
   WalletCards, Settings, ExternalLink, LogOut, Plus, Pencil, Trash2, Save,
-  X, Images, Upload, Search, CheckCircle2, Ban
+  X, Images, Upload, Search, CheckCircle2, Ban, RotateCcw
 } from 'lucide-react';
 import { products as demoProducts } from '@/data/products';
 
@@ -22,7 +22,7 @@ const defaultSettings:Settings={brand_name:'LOLA ENGLAND',shipping_message:'FREE
 
 const nav=[
   ['overview','Overview',BarChart3],['products','Products',Package],['categories','Categories',Layers3],
-  ['inventory','Inventory',Boxes],['orders','Orders',ShoppingCart],['customers','Customers',Users],
+  ['inventory','Inventory',Boxes],['orders','Orders',ShoppingCart],['returns','Returns & refunds',RotateCcw],['customers','Customers',Users],
   ['coupons','Coupons',TicketPercent],['payments','Payments',WalletCards],['settings','Website settings',Settings]
 ] as const;
 
@@ -34,6 +34,7 @@ export default function AdminPage(){
   const [categories,setCategories]=useState<Category[]>([]);
   const [inventory,setInventory]=useState<Inventory[]>([]);
   const [orders,setOrders]=useState<any[]>([]);
+  const [returns,setReturns]=useState<any[]>([]);
   const [customers,setCustomers]=useState<any[]>([]);
   const [coupons,setCoupons]=useState<Coupon[]>([]);
   const [settings,setSettings]=useState<Settings>(defaultSettings);
@@ -53,12 +54,12 @@ export default function AdminPage(){
 
   async function refresh(){
     try{
-      const [p,c,i,o,cu,co,s]=await Promise.all([
+      const [p,c,i,o,r,cu,co,s]=await Promise.all([
         api('/api/admin/products'),api('/api/admin/categories'),api('/api/admin/inventory'),
-        api('/api/admin/orders'),api('/api/admin/customers'),api('/api/admin/coupons'),api('/api/admin/settings')
+        api('/api/admin/orders'),api('/api/admin/returns'),api('/api/admin/customers'),api('/api/admin/coupons'),api('/api/admin/settings')
       ]);
       setProducts((p.products||[]).map((x:Product)=>({...x,image_urls:Array.isArray(x.image_urls)?x.image_urls:(x.image_url?[x.image_url]:[]),video_urls:Array.isArray(x.video_urls)?x.video_urls:[],categories:Array.isArray(x.categories)?x.categories:[] })));
-      setCategories(c.categories||[]);setInventory(i.inventory||[]);setOrders(o.orders||[]);setCustomers(cu.customers||[]);setCoupons(co.coupons||[]);setSettings({...defaultSettings,...s.settings});
+      setCategories(c.categories||[]);setInventory(i.inventory||[]);setOrders(o.orders||[]);setReturns(r.returns||[]);setCustomers(cu.customers||[]);setCoupons(co.coupons||[]);setSettings({...defaultSettings,...s.settings});
     }catch(e){setMessage(e instanceof Error?e.message:'Could not load admin data.');}
   }
   useEffect(()=>{refresh()},[]);
@@ -137,6 +138,17 @@ export default function AdminPage(){
     try{await api('/api/admin/orders',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status,utr})});setMessage(status==='paid'?'Payment verified.':'Order updated.');await refresh();}catch(e){setMessage(e instanceof Error?e.message:'Could not update order.');}
   }
 
+  async function updateReturn(item:any){
+    try{
+      await api('/api/admin/returns',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+        id:item.id,status:item.status,refund_status:item.refund_status,refund_amount:Number(item.refund_amount||0),
+        refund_method:item.refund_method||'',refund_reference:item.refund_reference||'',admin_note:item.admin_note||''
+      })});
+      setMessage(item.refund_status==='refunded'?'Refund recorded successfully.':'Return request updated.');
+      await refresh();
+    }catch(e){setMessage(e instanceof Error?e.message:'Could not update return request.');}
+  }
+
   async function uploadHeroMedia(files:File[], kind:'image'|'video'){
     const current=kind==='image'?settings.hero_image_urls:settings.hero_video_urls;
     const max=kind==='image'?4:2;
@@ -158,7 +170,7 @@ export default function AdminPage(){
     try{const d=await api('/api/admin/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(settings)});setSettings(d.settings);setMessage('Website settings saved.');}catch(e){setMessage(e instanceof Error?e.message:'Could not save settings.');}finally{setLoading(false);}
   }
   async function logout(){await fetch('/api/admin/logout',{method:'POST'});window.location.href='/admin/login';}
-  async function exportData(type:'xlsx'|'pdf',dataset:'customers'|'orders'|'products'|'inventory'|'newsletter'|'all'){
+  async function exportData(type:'xlsx'|'pdf',dataset:'customers'|'orders'|'products'|'inventory'|'newsletter'|'returns'|'all'){
     setExporting(true); setMessage('');
     try{
       const d=await api('/api/admin/export');
@@ -167,12 +179,12 @@ export default function AdminPage(){
       if(type==='xlsx'){
         const wb=XLSX.utils.book_new();
         const add=(name:string,data:any[])=>{const ws=XLSX.utils.json_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,name.slice(0,31));};
-        if(dataset==='all'){add('Customers',d.customers);add('Orders',d.orders);add('Products',d.products);add('Inventory',d.inventory);add('Newsletter',d.newsletter);}
+        if(dataset==='all'){add('Customers',d.customers);add('Orders',d.orders);add('Returns',d.returns);add('Products',d.products);add('Inventory',d.inventory);add('Newsletter',d.newsletter);}
         else add(dataset.charAt(0).toUpperCase()+dataset.slice(1),rows||[]);
         XLSX.writeFile(wb,'LOLA-ENGLAND-'+dataset+'-'+stamp+'.xlsx');
       }else{
         const doc=new jsPDF({orientation:'landscape',unit:'pt',format:'a4'});
-        const sections:any[] = dataset==='all' ? [['Customers',d.customers],['Orders',d.orders],['Products',d.products],['Inventory',d.inventory],['Newsletter',d.newsletter]] : [[dataset.charAt(0).toUpperCase()+dataset.slice(1),rows||[]]];
+        const sections:any[] = dataset==='all' ? [['Customers',d.customers],['Orders',d.orders],['Returns',d.returns],['Products',d.products],['Inventory',d.inventory],['Newsletter',d.newsletter]] : [[dataset.charAt(0).toUpperCase()+dataset.slice(1),rows||[]]];
         sections.forEach((section,idx)=>{
           if(idx)doc.addPage();
           doc.setFontSize(16);doc.text('LOLA ENGLAND — '+section[0],40,40);
@@ -256,6 +268,23 @@ export default function AdminPage(){
       {tab==='orders'&&<div className="admin-card"><div className="admin-row"><div><h2>Orders</h2><p>Review customer details, payment status, charges and UTR. Customer never has to type the UTR.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={refresh}>Refresh</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('xlsx','orders')}>Excel</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('pdf','orders')}>PDF</button></div></div>
       {orders.map(o=><div className="order-admin-row" key={o.id}><div><b>{o.customer_name} · ₹{Number(o.total_amount||o.amount||0).toLocaleString('en-IN')}</b><small>{String(o.status).toUpperCase()} · {new Date(o.created_at).toLocaleString('en-IN')} · {o.customer_phone}</small><small>{o.customer_email||'No email'} · {o.shipping_address}</small><small>Subtotal ₹{Number(o.subtotal||0).toLocaleString('en-IN')} · Shipping ₹{Number(o.shipping_fee||0).toLocaleString('en-IN')} · Platform ₹{Number(o.platform_fee||0).toLocaleString('en-IN')} · Discount ₹{Number(o.discount_amount||0).toLocaleString('en-IN')} · GST ₹{Number(o.gst_amount||0).toLocaleString('en-IN')}</small>{o.upi_transaction_id&&<small>UTR: <b>{o.upi_transaction_id}</b></small>}</div><div className="admin-actions">{o.status!=='paid'&&o.status!=='cancelled'&&<button className="admin-btn" onClick={()=>{const utr=prompt('Enter bank UTR / transaction reference');if(utr!==null)updateOrder(o.id,'paid',utr)}}><CheckCircle2/> Mark paid</button>}{o.status!=='cancelled'&&<button className="admin-btn ghost" onClick={()=>updateOrder(o.id,'cancelled')}><Ban/> Cancel</button>}</div></div>)}
       {!orders.length&&<p>No orders yet.</p>}</div>}
+
+      {tab==='returns'&&<div className="admin-card"><div className="admin-row"><div><h2>Returns & refunds</h2><p>Review customer return requests, approve or reject them, and record the final refund so every outcome stays tied to the order.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={refresh}>Refresh</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('xlsx','returns')}>Excel</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('pdf','returns')}>PDF</button></div></div>
+      {returns.map((r:any)=><div className="return-admin-row" key={r.id}>
+        <div className="return-admin-main">
+          <div className="admin-row"><div><b>Order {String(r.order_id).slice(0,8).toUpperCase()} · {r.customer_name}</b><small>{r.customer_phone} · {r.customer_email||'No email'} · Requested {new Date(r.requested_at).toLocaleString('en-IN')}</small><small>Reason: <b>{r.reason}</b></small><small>{r.details||'No additional details.'}</small>{r.orders?.items?.length?<small>{r.orders.items.map((x:any)=>`${x.name} · ${x.size||''} · Qty ${x.quantity||1}`).join(' | ')}</small>:null}</div><strong>₹{Number(r.orders?.total_amount||0).toLocaleString('en-IN')}</strong></div>
+          <div className="admin-form-grid return-admin-fields">
+            <label>Return status<select value={r.status} onChange={e=>setReturns(a=>a.map(x=>x.id===r.id?{...x,status:e.target.value}:x))}>{['requested','approved','pickup_scheduled','received','refund_pending','refunded','rejected','cancelled'].map(x=><option key={x} value={x}>{x.replaceAll('_',' ')}</option>)}</select></label>
+            <label>Refund status<select value={r.refund_status||'not_requested'} onChange={e=>setReturns(a=>a.map(x=>x.id===r.id?{...x,refund_status:e.target.value}:x))}>{['not_requested','pending','approved','refunded','rejected'].map(x=><option key={x} value={x}>{x.replaceAll('_',' ')}</option>)}</select></label>
+            <label>Refund amount ₹<input type="number" min="0" value={r.refund_amount??''} onChange={e=>setReturns(a=>a.map(x=>x.id===r.id?{...x,refund_amount:Number(e.target.value)}:x))}/></label>
+            <label>Refund method<select value={r.refund_method||''} onChange={e=>setReturns(a=>a.map(x=>x.id===r.id?{...x,refund_method:e.target.value}:x))}><option value="">Select</option><option value="UPI">UPI</option><option value="Original payment">Original payment</option><option value="Bank transfer">Bank transfer</option><option value="Other">Other</option></select></label>
+            <label>Refund reference<input value={r.refund_reference||''} onChange={e=>setReturns(a=>a.map(x=>x.id===r.id?{...x,refund_reference:e.target.value}:x))}/></label>
+            <label className="wide">Admin note<textarea value={r.admin_note||''} onChange={e=>setReturns(a=>a.map(x=>x.id===r.id?{...x,admin_note:e.target.value}:x))}/></label>
+          </div>
+          <div className="admin-actions"><button className="admin-btn" onClick={()=>updateReturn(r)}><Save/> Save return / refund</button></div>
+        </div>
+      </div>)}
+      {!returns.length&&<p>No return requests yet.</p>}</div>}
 
       {tab==='customers'&&<div className="admin-card"><div className="admin-row"><div><h2>Customers</h2><p>Every checkout creates or updates a persistent customer record. No customer login is required.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={refresh}>Refresh</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('xlsx','customers')}>Excel</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('pdf','customers')}>PDF</button></div></div>
       {customers.map((c:any)=><div className="customer-row" key={c.id||c.key}><div><b>{c.name||'Customer'}</b><small>{c.phone} · {c.email||'No email'}</small><small>{c.shipping_address||c.address||'No address saved'}</small></div><div><b>{c.total_orders??c.orders??0} orders</b><small>₹{Number(c.total_spent??c.spent??0).toLocaleString('en-IN')} total</small></div></div>)}</div>}
