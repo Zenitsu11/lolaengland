@@ -684,3 +684,23 @@ img{max-width:100%}
     margin-bottom:10px!important;
   }
 }
+
+
+/* Preserve the proven desktop product-image framing; fill the desktop film panel. */
+@media(min-width:701px){
+  .mood-hero-image>img{
+    object-fit:contain!important;
+    object-position:center center!important;
+  }
+  .mood-hero-video{
+    object-fit:cover!important;
+    object-position:center center!important;
+  }
+}
+@media(max-width:700px){
+  .mood-hero-image>img,
+  .mood-hero-video{
+    object-fit:contain!important;
+    object-position:center center!important;
+  }
+}
