@@ -526,6 +526,20 @@ img{max-width:100%}
 .editorial-home,.editorial-home .container,.editorial-section,.editorial-campaign,.editorial-join,.editorial-look,.campaign-card,.model-rail-card,.product-card{min-width:0;max-width:100%}
 /* Hero media management controls */
 .hero-media-item{position:relative}
+.hero-edit-btn{min-width:58px!important}
+.hero-media-editor{margin:18px 0 22px;padding:18px;border:1px solid #e5dcde;border-radius:22px;background:#fff}
+.hero-media-editor h3{margin:0 0 5px;font-size:18px}
+.hero-media-editor p{margin:0;color:#777;font-size:13px}
+.hero-media-editor-preview{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
+.hero-media-editor-preview img,.hero-media-editor-preview video{width:min(280px,100%);height:340px;object-fit:contain;border-radius:16px;background:#f5f1f1;border:1px solid #eee}
+.hero-media-editor-preview video{height:240px}
+@media(max-width:560px){
+  .hero-media-editor{padding:14px;border-radius:18px}
+  .hero-media-editor-preview{align-items:stretch}
+  .hero-media-editor-preview img,.hero-media-editor-preview video{width:100%;height:300px}
+  .hero-media-editor-preview .admin-btn{width:100%;justify-content:center}
+}
+
 .hero-media-actions{position:absolute;right:8px;bottom:8px;display:flex;align-items:center;gap:6px;z-index:3}
 .hero-media-actions>button,
 .media-replace-btn{
