@@ -60,7 +60,7 @@ export default function AdminPage(){
 
   async function refresh(){
     try{
-      const [p,c,i,o,r,cu,co,s]=await Promise.all([
+      const [p,c,i,o,r,cu,co,s,sm]=await Promise.all([
         api('/api/admin/products'),api('/api/admin/categories'),api('/api/admin/inventory'),
         api('/api/admin/orders'),api('/api/admin/returns'),api('/api/admin/customers'),api('/api/admin/coupons'),api('/api/admin/settings'),api('/api/admin/site-media')
       ]);
