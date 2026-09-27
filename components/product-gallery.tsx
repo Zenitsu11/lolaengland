@@ -15,6 +15,7 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
   const [active, setActive] = useState(0);
   const startX = useRef<number | null>(null);
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
+  const [videoSound, setVideoSound] = useState<Record<number, boolean>>({});
 
   const rawImages = providedImages?.length ? providedImages : [front, back].filter(Boolean) as string[];
   const images = rawImages.map(src=>({src,type:'image' as const})).filter((item): item is { src: string; type:'image' } => Boolean(item.src));
@@ -34,21 +35,33 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
     const video = videoRefs.current[active];
     if (!video) return;
 
-    // Keep sound enabled when the browser allows audible autoplay.
-    // If autoplay with sound is blocked, fall back to muted autoplay so the film still starts.
-    video.muted = false;
+    // Start muted so desktop and mobile browsers can autoplay reliably.
+    // Browsers generally block autoplay with sound until the shopper interacts.
+    video.muted = !(videoSound[active] ?? false);
     void video.play().catch(() => {
       video.muted = true;
       void video.play().catch(() => {});
     });
-  }, [active, media.length]);
+  }, [active, media.length, videoSound]);
+
+  const toggleVideoSound = (index: number) => {
+    const video = videoRefs.current[index];
+    if (!video) return;
+    const nextMuted = !video.muted;
+    video.muted = nextMuted;
+    setVideoSound(current => ({ ...current, [index]: !nextMuted }));
+    void video.play().catch(() => {});
+  };
 
   const handleGalleryPointerDown = () => {
     const activeItem = media[active];
     if (activeItem?.type !== 'video') return;
     const video = videoRefs.current[active];
     if (!video) return;
-    video.muted = false;
+    // A real pointer gesture can unlock audio after autoplay was blocked.
+    if (videoSound[active]) {
+      video.muted = false;
+    }
     void video.play().catch(() => {});
   };
 
@@ -86,10 +99,23 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
                 className="product-detail-video"
                 src={item.src}
                 autoPlay
+                muted
                 loop
                 playsInline
                 preload="auto"
                 aria-label={name + ' product video'}
+                onLoadedData={() => {
+                  if (index !== active) return;
+                  const current = videoRefs.current[index];
+                  if (!current) return;
+                  current.muted = !(videoSound[index] ?? false);
+                  void current.play().catch(() => {});
+                }}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  toggleVideoSound(index);
+                }}
               />
             ) : <SafeImage src={item.src} fallbackSrc={item.src} alt={name + ' product view'} width={900} height={1100} loading={index === 0 ? 'eager' : 'lazy'} decoding="async" />}
           </div>
