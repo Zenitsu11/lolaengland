@@ -35,18 +35,18 @@ export default async function Home() {
 
   const looks = (lookbookMedia.length ? lookbookMedia : fallbackLooks.map((x,i)=>({...x,id:String(i),section:'lookbook',slot_key:String(i+1),title:x.tag,url:x.image,alt_text:'LOLA ENGLAND '+x.tag,href:'/collection/'+x.slug,active:true,sort_order:i+1} as SiteMedia))).map((m,index)=>{
     const fallback=fallbackLooks[index%fallbackLooks.length];
-    return { ...fallback, image:m.url, tag:m.title||fallback.tag, slug:m.href.replace('/collection/','')||fallback.slug, alt:m.alt_text||('LOLA ENGLAND '+fallback.tag) };
+    return { ...fallback, id:m.id, href:m.href, image:m.url, tag:m.title||fallback.tag, slug:m.href.replace('/collection/','')||fallback.slug, alt:m.alt_text||('LOLA ENGLAND '+fallback.tag) };
   });
 
   const campaign = (campaignMedia.length ? campaignMedia : fallbackCampaign.map((x,i)=>({...x,id:String(i),section:'campaign',slot_key:String(i+1),title:x.label,url:x.image,alt_text:x.title,active:true,sort_order:i+1} as SiteMedia))).map((m,index)=>{
     const fallback=fallbackCampaign[index%fallbackCampaign.length];
-    return { ...fallback, image:m.url, label:m.title||fallback.label, href:m.href||fallback.href, alt:m.alt_text||fallback.title };
+    return { ...fallback, id:m.id, image:m.url, label:m.title||fallback.label, href:m.href||fallback.href, alt:m.alt_text||fallback.title };
   });
 
   const rail = (railMedia.length ? railMedia : fallbackRail.map((x,i)=>({...x,id:String(i),section:'rail',slot_key:String(i+1),title:x.label+' · '+x.title,url:x.image,alt_text:x.title,href:'/collection/'+x.slug,active:true,sort_order:i+1} as SiteMedia))).map((m,index)=>{
     const fallback=fallbackRail[index%fallbackRail.length];
     const parts=(m.title||'').split(' · ');
-    return { ...fallback, image:m.url, label:parts[0]||fallback.label, title:parts.slice(1).join(' · ')||fallback.title, slug:m.href.replace('/collection/','')||fallback.slug, alt:m.alt_text||fallback.title };
+    return { ...fallback, id:m.id, image:m.url, label:parts[0]||fallback.label, title:parts.slice(1).join(' · ')||fallback.title, slug:m.href.replace('/collection/','')||fallback.slug, alt:m.alt_text||fallback.title };
   });
 
   const joinImage=joinMedia[0]?.url||'/products/lola-brown-back.webp?v=8';
