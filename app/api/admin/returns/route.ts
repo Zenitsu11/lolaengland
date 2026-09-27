@@ -18,13 +18,16 @@ export async function PUT(request:Request){
   const body=await request.json(); const id=String(body.id||'');
   if(!id)return NextResponse.json({error:'Return request ID is required.'},{status:400});
   const db=getSupabaseAdmin(); if(!db)return NextResponse.json({error:'Supabase is not configured'},{status:503});
-  const {data:current,error:readError}=await db.from('return_requests').select('id,order_id,status,refund_status').eq('id',id).single();
+  const {data:current,error:readError}=await db.from('return_requests').select('id,order_id,status,refund_status,orders(total_amount)').eq('id',id).single();
   if(readError||!current)return NextResponse.json({error:'Return request not found.'},{status:404});
   const status=RETURN_STATUSES.includes(body.status)?body.status:null;
   const refundStatus=REFUND_STATUSES.includes(body.refund_status)?body.refund_status:null;
   if(!status||!refundStatus)return NextResponse.json({error:'Invalid return or refund status.'},{status:400});
   const patch:any={status,refund_status:refundStatus,admin_note:String(body.admin_note||'').trim().slice(0,2000)};
   if(body.refund_amount!==undefined)patch.refund_amount=Math.max(0,Number(body.refund_amount)||0);
+  if(refundStatus==='refunded' && Number(patch.refund_amount||0)<=0)return NextResponse.json({error:'Enter a refund amount before marking the refund as completed.'},{status:400});
+  const orderTotal=Number((current as any).orders?.total_amount||0);
+  if(Number(patch.refund_amount||0)>orderTotal)return NextResponse.json({error:'Refund amount cannot exceed the order total.'},{status:400});
   if(body.refund_method!==undefined)patch.refund_method=String(body.refund_method||'').trim().slice(0,60);
   if(body.refund_reference!==undefined)patch.refund_reference=String(body.refund_reference||'').trim().slice(0,120);
   if(['rejected','cancelled','refunded'].includes(status))patch.resolved_at=new Date().toISOString();
