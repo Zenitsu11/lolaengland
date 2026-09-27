@@ -23,10 +23,27 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
   const media = [...images, ...videos];
 
   useEffect(() => {
-    Object.values(videoRefs.current).forEach(video => {
+    const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 801px)').matches;
+
+    if (isDesktop) {
+      // Desktop shows the complete editorial media grid, so every product video
+      // should be allowed to autoplay muted independently.
+      Object.values(videoRefs.current).forEach(video => {
+        if (!video) return;
+        video.muted = !(videoSound[Number(Object.keys(videoRefs.current).find(key => videoRefs.current[Number(key)] === video) ?? -1)] ?? false);
+        void video.play().catch(() => {});
+      });
+      return;
+    }
+
+    // Mobile/tablet uses a single active slide. Pause every other video.
+    Object.entries(videoRefs.current).forEach(([key, video]) => {
       if (!video) return;
-      video.pause();
-      video.currentTime = 0;
+      const index = Number(key);
+      if (index !== active) {
+        video.pause();
+        video.currentTime = 0;
+      }
     });
 
     const activeItem = media[active];
@@ -35,8 +52,6 @@ export function ProductGallery({ name, front, back, images: providedImages, vide
     const video = videoRefs.current[active];
     if (!video) return;
 
-    // Start muted so desktop and mobile browsers can autoplay reliably.
-    // Browsers generally block autoplay with sound until the shopper interacts.
     video.muted = !(videoSound[active] ?? false);
     void video.play().catch(() => {
       video.muted = true;
