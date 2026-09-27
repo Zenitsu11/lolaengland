@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
-import { ArrowRight, Heart, Sparkles, Star } from 'lucide-react';
+import { Heart, Sparkles, Star } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
 import { SafeImage } from '@/components/safe-image';
 import { getPublicProducts, getSiteMedia, getStoreSettings, type SiteMedia } from '@/lib/catalog';
@@ -25,9 +25,6 @@ const fallbackCampaign = [
   { image:'/products/lola-mint-front.webp?v=6', label:'01 · SOFT MINT', title:'Pretty, but never predictable.', copy:'Soft colour, relaxed energy and a tee you will actually want to wear again tomorrow.', href:'/collection/soft-pink' },
   { image:'/products/lola-olive-front.webp?v=6', label:'02 · GRAPHIC MOOD', title:'Style that feels like you.', copy:'Easy fits, expressive graphics and confidence without trying too hard.', href:'/collection/graphic-girl' },
 ];
-
-function mediaUrl(media:SiteMedia|undefined,fallback:string){return media?.url||fallback;}
-function mediaHref(media:SiteMedia|undefined,fallback:string){return media?.href||fallback;}
 
 export const metadata: Metadata = { title: 'LOLA ENGLAND — Women’s T-Shirts', description: 'Shop expressive women’s T-shirts, oversized fits and everyday styles from LOLA ENGLAND.' };
 
