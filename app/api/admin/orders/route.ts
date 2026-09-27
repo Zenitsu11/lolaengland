@@ -13,7 +13,7 @@ export async function PUT(request:Request){
  if(!(await isAdminRequest()))return NextResponse.json({error:'Unauthorized'},{status:401});
  const body=await request.json();if(!body.id)return NextResponse.json({error:'Order ID required.'},{status:400});
  const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Supabase is not configured'},{status:503});
- const {data:current,error:readError}=await db.from('orders').select('id,status,items,coupon_code,paid_at,customer_id,total_amount').eq('id',body.id).single();
+ const {data:current,error:readError}=await db.from('orders').select('id,status,items,coupon_code,paid_at,customer_id,total_amount,return_status,refund_status,refund_amount,refund_reference,refund_method,refunded_at,return_requested_at').eq('id',body.id).single();
  if(readError||!current)return NextResponse.json({error:'Order not found.'},{status:404});
  const status=['payment_submitted','paid','cancelled','awaiting_payment'].includes(body.status)?body.status:null;
  if(!status)return NextResponse.json({error:'Invalid order status.'},{status:400});
