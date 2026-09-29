@@ -1,47 +1,28 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
+import { decryptSecret } from '@/lib/payment-crypto';
+import { calculateCheckout } from '@/lib/checkout-calculator';
 export const runtime='nodejs';
 
 export async function POST(request:Request){
  try{
-  const body=await request.json(); const items=Array.isArray(body.items)?body.items:[]; const customer=body.customer||{};
+  const body=await request.json();
+  const method=body.method==='card'?'card':body.method==='cod'?'cod':'upi';
+  const items=Array.isArray(body.items)?body.items:[]; const customer=body.customer||{};
   if(!items.length||!customer.name||!customer.phone||!customer.address)return NextResponse.json({error:'Please complete your cart and delivery details.'},{status:400});
-  const upiId=process.env.LOLA_UPI_ID||''; const upiName=process.env.LOLA_UPI_NAME||'LOLA ENGLAND';
-  if(!upiId)return NextResponse.json({error:'UPI payment is not configured yet. Add LOLA_UPI_ID in Vercel.'},{status:503});
-  const db=getSupabaseAdmin(); if(!db)return NextResponse.json({error:'Order backend is not configured.'},{status:503});
-  const couponCode=String(body.couponCode||'').trim().toUpperCase();
-  const [{data:products,error:productError},{data:settings,error:settingsError}]=await Promise.all([
-   db.from('products').select('id,name,price,image_url').in('id',items.map((i:any)=>String(i.id)).filter(Boolean)).eq('active',true),
-   db.from('store_settings').select('shipping_fee,free_shipping_threshold,platform_fee,gst_rate').eq('id',true).single()
+  const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Order backend is not configured.'},{status:503});
+  const [{data:settings,error:settingsError},{data:upiAccounts,error:upiError},{data:razorpayAccounts,error:razorpayError}]=await Promise.all([
+    db.from('store_settings').select('*').eq('id',true).single(),
+    db.from('payment_accounts').select('id,name,provider,key_id,secret_key_encrypted,upi_id,active').eq('active',true).order('sort_order').order('created_at'),
+    db.from('payment_accounts').select('id,name,provider,key_id,secret_key_encrypted,upi_id,active').eq('active',true).eq('provider','razorpay').order('sort_order').order('created_at')
   ]);
-  let coupon:any=null; let couponError:any=null;
-  if(couponCode){ const result=await db.from('coupons').select('*').eq('code',couponCode).eq('active',true).maybeSingle(); coupon=result.data; couponError=result.error; }
-  if(productError||!products?.length)return NextResponse.json({error:'One or more products are no longer available.'},{status:400});
-  if(settingsError||!settings)return NextResponse.json({error:'Checkout charges are not configured.'},{status:503});
-  const safeItems=items.map((i:any)=>{const product=products.find((p:any)=>String(p.id)===String(i.id));const size=String(i.size||'').toUpperCase();return product&&['XS','S','M','L','XL','XXL','3XL'].includes(size)?{id:String(product.id),name:String(product.name).slice(0,200),price:Number(product.price),quantity:Math.max(1,Math.min(20,Number(i.quantity)||1)),size}:null;}).filter(Boolean);
-  if(safeItems.length!==items.length)return NextResponse.json({error:'Please choose a valid size for every product in your bag.'},{status:400});
-  const subtotal=Math.round(safeItems.reduce((sum:number,i:any)=>sum+i.price*i.quantity,0)*100)/100;
-  let discountAmount=0;
-  if(couponCode){
-   if(couponError||!coupon)return NextResponse.json({error:'Invalid or inactive coupon code.'},{status:400});
-   const now=Date.now();
-   if(coupon.starts_at&&new Date(coupon.starts_at).getTime()>now)return NextResponse.json({error:'This coupon is not active yet.'},{status:400});
-   if(coupon.expires_at&&new Date(coupon.expires_at).getTime()<now)return NextResponse.json({error:'This coupon has expired.'},{status:400});
-   if(coupon.usage_limit!=null&&Number(coupon.used_count)>=Number(coupon.usage_limit))return NextResponse.json({error:'This coupon has reached its usage limit.'},{status:400});
-   if(subtotal<Number(coupon.minimum_order_value||0))return NextResponse.json({error:'This coupon requires a higher order value.'},{status:400});
-   discountAmount=coupon.discount_type==='fixed'?Number(coupon.discount_value):subtotal*Number(coupon.discount_value)/100;
-   if(coupon.maximum_discount!=null)discountAmount=Math.min(discountAmount,Number(coupon.maximum_discount));
-   discountAmount=Math.min(discountAmount,subtotal);
-   discountAmount=Math.round(discountAmount*100)/100;
-  }
-  const discountedSubtotal=Math.max(0,Math.round((subtotal-discountAmount)*100)/100);
-  const shippingFee=discountedSubtotal>=Number(settings.free_shipping_threshold)?0:Number(settings.shipping_fee);
-  const platformFee=Number(settings.platform_fee);
-  const gstRate=Number(settings.gst_rate);
-  const taxable=Math.round((discountedSubtotal+shippingFee+platformFee)*100)/100;
-  const gstAmount=Math.round(taxable*gstRate)/100;
-  const totalAmount=Math.round((taxable+gstAmount)*100)/100;
-  if(!Number.isFinite(totalAmount)||totalAmount<=0)return NextResponse.json({error:'Invalid order amount.'},{status:400});
+  if(settingsError||!settings)return NextResponse.json({error:'Checkout settings are not configured.'},{status:503});
+  if(method==='upi'&&!settings.upi_enabled)return NextResponse.json({error:'UPI payments are currently disabled.'},{status:400});
+  if(method==='card'&&!settings.card_enabled)return NextResponse.json({error:'Card payments are currently disabled.'},{status:400});
+  if(method==='cod'&&!settings.cod_enabled)return NextResponse.json({error:'Cash on Delivery is currently unavailable.'},{status:400});
+  if(upiError||razorpayError)return NextResponse.json({error:'Payment accounts could not be loaded.'},{status:503});
+  const couponCode=String(body.couponCode||'').trim().toUpperCase();
+  const calc=await calculateCheckout(db,items,couponCode,method==='cod'?Number(settings.cod_fee||0):0);
   const phone=String(customer.phone).trim().slice(0,30);
   const email=String(customer.email||'').trim().slice(0,160).toLowerCase();
   let customerRecord:any=null;
@@ -53,16 +34,40 @@ export async function POST(request:Request){
     const {data}=await db.from('customers').insert({name:String(customer.name).slice(0,120),phone,email,shipping_address:String(customer.address).slice(0,1000)}).select('*').single();
     customerRecord=data;
   }
+  const paymentAccount=method==='upi'
+    ? (upiAccounts||[]).find((a:any)=>a.upi_id)
+    : method==='card' ? (razorpayAccounts||[]).find((a:any)=>a.key_id&&a.secret_key_encrypted) : null;
+  if((method==='upi'||method==='card')&&!paymentAccount)return NextResponse.json({error:method==='upi'?'No active UPI receiver is configured.':'No active Razorpay account is configured for card payments.'},{status:503});
   const {data:saved,error}=await db.from('orders').insert({
-   amount:totalAmount,total_amount:totalAmount,subtotal,shipping_fee:shippingFee,platform_fee:platformFee,gst_rate:gstRate,gst_amount:gstAmount,coupon_code:couponCode||null,discount_amount:discountAmount,
-   currency:'INR',status:'awaiting_payment',payment_method:'upi_qr',
-   customer_id:customerRecord?.id||null,customer_name:String(customer.name).slice(0,120),customer_phone:phone,customer_email:email,
-   shipping_address:String(customer.address).slice(0,1000),items:safeItems
+    amount:calc.totalAmount,total_amount:calc.totalAmount,subtotal:calc.subtotal,shipping_fee:calc.shippingFee,platform_fee:calc.platformFee,gst_rate:calc.gstRate,gst_amount:calc.gstAmount,coupon_code:couponCode||null,discount_amount:calc.discountAmount,
+    currency:'INR',status:method==='cod'?'cod_pending':'awaiting_payment',payment_method:method==='upi'?'upi_qr':method,
+    payment_account_id:paymentAccount?.id||null,customer_id:customerRecord?.id||null,customer_name:String(customer.name).slice(0,120),customer_phone:phone,customer_email:email,
+    shipping_address:String(customer.address).slice(0,1000),items:calc.safeItems
   }).select('id').single();
   if(error)return NextResponse.json({error:error.message},{status:500});
-  if(customerRecord?.id){ await db.from('customers').update({total_orders:Number(customerRecord.total_orders||0)+1,last_order_at:new Date().toISOString()}).eq('id',customerRecord.id); }
-  const transactionNote='LOLA-'+String(saved.id).slice(0,8).toUpperCase();
-  const upiUri=`upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}&am=${totalAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-  return NextResponse.json({orderRecordId:saved.id,subtotal,discountAmount,couponCode,shippingFee,platformFee,gstRate,gstAmount,totalAmount,upiId,upiName,transactionNote,upiUri});
- }catch{return NextResponse.json({error:'Unable to create your order. Please try again.'},{status:500});}
+  if(customerRecord?.id) await db.from('customers').update({total_orders:Number(customerRecord.total_orders||0)+1,last_order_at:new Date().toISOString()}).eq('id',customerRecord.id);
+  if(method==='cod'){
+    return NextResponse.json({orderRecordId:saved.id,method, ...calc});
+  }
+  if(method==='upi'){
+    const upiName=settings.brand_name||paymentAccount.name||'LOLA ENGLAND';
+    const transactionNote='LOLA-'+String(saved.id).slice(0,8).toUpperCase();
+    const upiUri=`upi://pay?pa=${encodeURIComponent(paymentAccount.upi_id)}&pn=${encodeURIComponent(upiName)}&am=${calc.totalAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+    return NextResponse.json({orderRecordId:saved.id,method,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount,upiId:paymentAccount.upi_id,upiName,transactionNote,upiUri});
+  }
+  let secret='';
+  try{secret=decryptSecret(String(paymentAccount.secret_key_encrypted));}catch{return NextResponse.json({error:'Razorpay secret is not configured correctly.'},{status:503});}
+  const razorpayRes=await fetch('https://api.razorpay.com/v1/orders',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Basic '+Buffer.from(String(paymentAccount.key_id)+':'+secret).toString('base64')},
+    body:JSON.stringify({amount:Math.round(calc.totalAmount*100),currency:'INR',receipt:String(saved.id),notes:{lola_order_id:String(saved.id)}})
+  });
+  const razorpay=await razorpayRes.json().catch(()=>null);
+  if(!razorpayRes.ok||!razorpay?.id){
+    await db.from('orders').delete().eq('id',saved.id);
+    return NextResponse.json({error:razorpay?.error?.description||'Could not create the card payment order.'},{status:502});
+  }
+  await db.from('orders').update({payment_gateway_order_id:razorpay.id,razorpay_order_id:razorpay.id}).eq('id',saved.id);
+  return NextResponse.json({orderRecordId:saved.id,method:'card',razorpayOrderId:razorpay.id,keyId:paymentAccount.key_id,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount});
+ }catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Unable to create your order. Please try again.'},{status:500});}
 }
