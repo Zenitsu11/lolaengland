@@ -37,7 +37,9 @@ export async function POST(request:Request){
   const paymentAccount=method==='upi'
     ? (upiAccounts||[]).find((a:any)=>a.upi_id)
     : method==='card' ? (razorpayAccounts||[]).find((a:any)=>a.key_id&&a.secret_key_encrypted) : null;
-  if((method==='upi'||method==='card')&&!paymentAccount)return NextResponse.json({error:method==='upi'?'No active UPI receiver is configured.':'No active Razorpay account is configured for card payments.'},{status:503});
+  const envUpi=process.env.LOLA_UPI_ID||'';
+  if(method==='upi'&&!paymentAccount&&!envUpi)return NextResponse.json({error:'No active UPI receiver is configured.'},{status:503});
+  if(method==='card'&&!paymentAccount)return NextResponse.json({error:'No active Razorpay account is configured for card payments.'},{status:503});
   const {data:saved,error}=await db.from('orders').insert({
     amount:calc.totalAmount,total_amount:calc.totalAmount,subtotal:calc.subtotal,shipping_fee:calc.shippingFee,platform_fee:calc.platformFee,gst_rate:calc.gstRate,gst_amount:calc.gstAmount,coupon_code:couponCode||null,discount_amount:calc.discountAmount,
     currency:'INR',status:method==='cod'?'cod_pending':'awaiting_payment',payment_method:method==='upi'?'upi_qr':method,
@@ -50,10 +52,11 @@ export async function POST(request:Request){
     return NextResponse.json({orderRecordId:saved.id,method, ...calc});
   }
   if(method==='upi'){
-    const upiName=settings.brand_name||paymentAccount.name||'LOLA ENGLAND';
+    const upiId=paymentAccount?.upi_id||envUpi;
+    const upiName=settings.brand_name||paymentAccount?.name||'LOLA ENGLAND';
     const transactionNote='LOLA-'+String(saved.id).slice(0,8).toUpperCase();
-    const upiUri=`upi://pay?pa=${encodeURIComponent(paymentAccount.upi_id)}&pn=${encodeURIComponent(upiName)}&am=${calc.totalAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-    return NextResponse.json({orderRecordId:saved.id,method,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount,upiId:paymentAccount.upi_id,upiName,transactionNote,upiUri});
+    const upiUri=`upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}&am=${calc.totalAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+    return NextResponse.json({orderRecordId:saved.id,method,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount,upiId,upiName,transactionNote,upiUri});
   }
   let secret='';
   try{secret=decryptSecret(String(paymentAccount.secret_key_encrypted));}catch{return NextResponse.json({error:'Razorpay secret is not configured correctly.'},{status:503});}
