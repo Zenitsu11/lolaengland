@@ -12,9 +12,10 @@ export async function GET(){
   if(accountsError) return NextResponse.json({error:accountsError.message},{status:500});
   const razorpay=accounts?.find((a:any)=>a.provider==='razorpay'&&a.active&&a.key_id&&a.secret_key_encrypted);
   const upi=accounts?.find((a:any)=>a.upi_id&&a.active);
+  const envUpi=process.env.LOLA_UPI_ID||'';
   return NextResponse.json({
-    upiEnabled:Boolean(settings?.upi_enabled&&upi?.upi_id),
-    upiId:upi?.upi_id||'',
+    upiEnabled:Boolean(settings?.upi_enabled&&(upi?.upi_id||envUpi)),
+    upiId:upi?.upi_id||envUpi,
     upiName:settings?.brand_name||'LOLA ENGLAND',
     cardEnabled:Boolean(settings?.card_enabled&&razorpay?.id),
     codEnabled:Boolean(settings?.cod_enabled),
