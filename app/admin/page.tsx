@@ -15,12 +15,13 @@ type Product={id:string|number;name:string;slug?:string;price:number;mrp:number;
 type Category={id:string;name:string;slug:string;description:string;active:boolean;sort_order:number};
 type Inventory={product_id:string;stock_qty:number;reserved_qty:number;low_stock_threshold:number;track_inventory:boolean;products?:Product};
 type Coupon={id:string;code:string;description:string;discount_type:'percent'|'fixed';discount_value:number;minimum_order_value:number;maximum_discount:number|null;usage_limit:number|null;used_count:number;starts_at:string|null;expires_at:string|null;active:boolean};
-type Settings={brand_name:string;shipping_message:string;instagram_url:string;whatsapp_url:string;contact_email:string;amazon_seller_url:string;flipkart_seller_url:string;shipping_fee:number;free_shipping_threshold:number;platform_fee:number;gst_rate:number;hero_image_urls:string[];hero_video_urls:string[]};
+type Settings={brand_name:string;shipping_message:string;instagram_url:string;whatsapp_url:string;contact_email:string;amazon_seller_url:string;flipkart_seller_url:string;shipping_fee:number;free_shipping_threshold:number;platform_fee:number;gst_rate:number;upi_enabled:boolean;card_enabled:boolean;cod_enabled:boolean;cod_fee:number;hero_image_urls:string[];hero_video_urls:string[]};
+type PaymentAccount={id:string;name:string;provider:'upi'|'razorpay';key_id?:string|null;upi_id:string;active:boolean;sort_order:number;created_at?:string};
 type SiteMedia={id:string;section:string;slot_key:string;title:string;url:string;alt_text:string;href:string;active:boolean;sort_order:number};
 
 const emptyProduct:Product={id:'new',name:'',slug:'',price:599,mrp:899,rating:4.5,reviews:0,description:'',image_url:'',image_urls:[],video_urls:[],categories:[],amazon_url:'',flipkart_url:'',featured:true,active:true,sort_order:0};
 const HERO_DEFAULT_IMAGES=['/products/lola-brown-front.webp?v=8','/products/lola-mint-front.webp?v=6','/products/lola-navy-front.webp?v=6','/products/lola-olive-front.webp?v=6'];
-const defaultSettings:Settings={brand_name:'LOLA ENGLAND',shipping_message:'FREE SHIPPING ON ORDERS OVER ₹799',instagram_url:'',whatsapp_url:'',contact_email:'',amazon_seller_url:'',flipkart_seller_url:'',shipping_fee:40,free_shipping_threshold:799,platform_fee:10,gst_rate:5,hero_image_urls:HERO_DEFAULT_IMAGES,hero_video_urls:[]};
+const defaultSettings:Settings={brand_name:'LOLA ENGLAND',shipping_message:'FREE SHIPPING ON ORDERS OVER ₹799',instagram_url:'',whatsapp_url:'',contact_email:'',amazon_seller_url:'',flipkart_seller_url:'',shipping_fee:40,free_shipping_threshold:799,platform_fee:10,gst_rate:5,upi_enabled:true,card_enabled:false,cod_enabled:false,cod_fee:0,hero_image_urls:HERO_DEFAULT_IMAGES,hero_video_urls:[]};
 const normalizeHeroImages=(urls:unknown[])=>Array.from({length:4},(_,i)=>typeof urls?.[i]==='string'&&String(urls[i]).trim()?String(urls[i]):HERO_DEFAULT_IMAGES[i]);
 
 const nav=[
@@ -41,6 +42,8 @@ export default function AdminPage(){
   const [customers,setCustomers]=useState<any[]>([]);
   const [coupons,setCoupons]=useState<Coupon[]>([]);
   const [siteMedia,setSiteMedia]=useState<SiteMedia[]>([]);
+  const [paymentAccounts,setPaymentAccounts]=useState<PaymentAccount[]>([]);
+  const [editingPaymentAccount,setEditingPaymentAccount]=useState<PaymentAccount|null>(null);
   const [settings,setSettings]=useState<Settings>(defaultSettings);
   const [editingProduct,setEditingProduct]=useState<Product|null>(null);
   const [editingHeroMedia,setEditingHeroMedia]=useState<{kind:'image'|'video';index:number}|null>(null);
@@ -62,10 +65,10 @@ export default function AdminPage(){
     try{
       const [p,c,i,o,r,cu,co,s,sm]=await Promise.all([
         api('/api/admin/products'),api('/api/admin/categories'),api('/api/admin/inventory'),
-        api('/api/admin/orders'),api('/api/admin/returns'),api('/api/admin/customers'),api('/api/admin/coupons'),api('/api/admin/settings'),api('/api/admin/site-media')
+        api('/api/admin/orders'),api('/api/admin/returns'),api('/api/admin/customers'),api('/api/admin/coupons'),api('/api/admin/settings'),api('/api/admin/site-media'),api('/api/admin/payments')
       ]);
       setProducts((p.products||[]).map((x:Product)=>({...x,image_urls:Array.isArray(x.image_urls)?x.image_urls:(x.image_url?[x.image_url]:[]),video_urls:Array.isArray(x.video_urls)?x.video_urls:[],categories:Array.isArray(x.categories)?x.categories:[] })));
-      setCategories(c.categories||[]);setInventory(i.inventory||[]);setOrders(o.orders||[]);setReturns(r.returns||[]);setCustomers(cu.customers||[]);setCoupons(co.coupons||[]);setSiteMedia((sm.media||[]).map((x:SiteMedia)=>({...x,sort_order:Number(x.sort_order||0)})));setSettings({...defaultSettings,...s.settings,hero_image_urls:normalizeHeroImages(Array.isArray(s.settings?.hero_image_urls)?s.settings.hero_image_urls:[]),hero_video_urls:Array.isArray(s.settings?.hero_video_urls)?s.settings.hero_video_urls:[]});
+      setCategories(c.categories||[]);setInventory(i.inventory||[]);setOrders(o.orders||[]);setReturns(r.returns||[]);setCustomers(cu.customers||[]);setCoupons(co.coupons||[]);setPaymentAccounts((pmt.accounts||[]).map((x:PaymentAccount)=>({...x,provider:x.provider==='upi'?'upi':'razorpay',sort_order:Number(x.sort_order||0)})));setSiteMedia((sm.media||[]).map((x:SiteMedia)=>({...x,sort_order:Number(x.sort_order||0)})));setSettings({...defaultSettings,...s.settings,hero_image_urls:normalizeHeroImages(Array.isArray(s.settings?.hero_image_urls)?s.settings.hero_image_urls:[]),hero_video_urls:Array.isArray(s.settings?.hero_video_urls)?s.settings.hero_video_urls:[]});
     }catch(e){setMessage(e instanceof Error?e.message:'Could not load admin data.');}
   }
   useEffect(()=>{refresh()},[]);
@@ -213,6 +216,24 @@ export default function AdminPage(){
     try{await api('/api/admin/site-media',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});setSiteMedia(list=>list.filter(x=>x.id!==id));setMessage('Site image removed.');}catch(e){setMessage(e instanceof Error?e.message:'Could not remove site image.');}
   }
 
+  async function savePaymentAccount(){
+    if(!editingPaymentAccount?.name.trim())return setMessage('Payment account name is required.');
+    if(editingPaymentAccount.provider==='upi'&&!editingPaymentAccount.upi_id.trim())return setMessage('UPI ID is required.');
+    if(editingPaymentAccount.provider==='razorpay'&&!editingPaymentAccount.key_id?.trim())return setMessage('Razorpay Key ID is required.');
+    setLoading(true);setMessage('');
+    try{
+      const isNew=editingPaymentAccount.id==='new';
+      const payload:any={...editingPaymentAccount};
+      if((payload as any).secret_key){} else delete payload.secret_key;
+      await api('/api/admin/payments',{method:isNew?'POST':'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+      setEditingPaymentAccount(null);setMessage('Payment account saved.');await refresh();
+    }catch(e){setMessage(e instanceof Error?e.message:'Could not save payment account.');}finally{setLoading(false);}
+  }
+  async function deletePaymentAccount(id:string){
+    if(!confirm('Remove this payment account?'))return;
+    try{await api('/api/admin/payments',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});setMessage('Payment account removed.');await refresh();}catch(e){setMessage(e instanceof Error?e.message:'Could not remove payment account.');}
+  }
+
   async function saveSettings(){
     setLoading(true);
     try{const d=await api('/api/admin/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(settings)});setSettings(d.settings);setMessage('Website settings saved.');}catch(e){setMessage(e instanceof Error?e.message:'Could not save settings.');}finally{setLoading(false);}
@@ -342,12 +363,43 @@ export default function AdminPage(){
       {editingCoupon&&<div className="admin-form-grid">{field('Coupon code',editingCoupon.code,v=>setEditingCoupon({...editingCoupon,code:v.toUpperCase()}))}{field('Description',editingCoupon.description,v=>setEditingCoupon({...editingCoupon,description:v}))}<label>Discount type<select value={editingCoupon.discount_type} onChange={e=>setEditingCoupon({...editingCoupon,discount_type:e.target.value as 'percent'|'fixed'})}><option value="percent">Percentage</option><option value="fixed">Fixed ₹</option></select></label>{field('Discount value',editingCoupon.discount_value,v=>setEditingCoupon({...editingCoupon,discount_value:Number(v)}),'number')}{field('Minimum order ₹',editingCoupon.minimum_order_value,v=>setEditingCoupon({...editingCoupon,minimum_order_value:Number(v)}),'number')}{field('Maximum discount ₹',editingCoupon.maximum_discount??'',v=>setEditingCoupon({...editingCoupon,maximum_discount:v===''?null:Number(v)}),'number')}{field('Usage limit',editingCoupon.usage_limit??'',v=>setEditingCoupon({...editingCoupon,usage_limit:v===''?null:Number(v)}),'number')}<label>Active<select value={editingCoupon.active?'yes':'no'} onChange={e=>setEditingCoupon({...editingCoupon,active:e.target.value==='yes'})}><option value="yes">Active</option><option value="no">Disabled</option></select></label></div>}
       {editingCoupon&&<button className="admin-btn" onClick={saveCoupon} disabled={loading}><Save/> Save coupon</button>}</div>}
 
-      {tab==='payments'&&<div className="admin-card"><h2>Payment & checkout</h2><p>Everything that changes the amount paid by customers is editable here.</p><div className="admin-form-grid">
-        {field('Shipping fee ₹',settings.shipping_fee,v=>setSettings({...settings,shipping_fee:Number(v)}),'number')}
-        {field('Free shipping threshold ₹',settings.free_shipping_threshold,v=>setSettings({...settings,free_shipping_threshold:Number(v)}),'number')}
-        {field('Platform fee ₹',settings.platform_fee,v=>setSettings({...settings,platform_fee:Number(v)}),'number')}
-        {field('GST rate %',settings.gst_rate,v=>setSettings({...settings,gst_rate:Number(v)}),'number')}
-      </div><button className="admin-btn" onClick={saveSettings} disabled={loading}><Save/> Save payment settings</button><div className="payment-note"><b>UPI:</b> customers get the exact QR amount. The owner verifies payment and records the bank UTR in Orders. No customer UTR field is used.</div></div>}
+      {tab==='payments'&&<div className="admin-card">
+        <div className="admin-row"><div><h2>Payment & checkout</h2><p>Control which payment methods customers see. COD is off until you explicitly enable it.</p></div></div>
+        <div className="admin-form-grid">
+          <label>UPI payments<select value={settings.upi_enabled?'on':'off'} onChange={e=>setSettings({...settings,upi_enabled:e.target.value==='on'})}><option value="on">Enabled</option><option value="off">Disabled</option></select></label>
+          <label>Credit / debit cards<select value={settings.card_enabled?'on':'off'} onChange={e=>setSettings({...settings,card_enabled:e.target.value==='on'})}><option value="off">Disabled</option><option value="on">Enabled</option></select></label>
+          <label>Cash on Delivery (COD)<select value={settings.cod_enabled?'on':'off'} onChange={e=>setSettings({...settings,cod_enabled:e.target.value==='on'})}><option value="off">Disabled</option><option value="on">Enabled</option></select></label>
+          {field('COD fee ₹',settings.cod_fee,v=>setSettings({...settings,cod_fee:Number(v)}),'number')}
+          {field('Shipping fee ₹',settings.shipping_fee,v=>setSettings({...settings,shipping_fee:Number(v)}),'number')}
+          {field('Free shipping threshold ₹',settings.free_shipping_threshold,v=>setSettings({...settings,free_shipping_threshold:Number(v)}),'number')}
+          {field('Platform fee ₹',settings.platform_fee,v=>setSettings({...settings,platform_fee:Number(v)}),'number')}
+          {field('GST rate %',settings.gst_rate,v=>setSettings({...settings,gst_rate:Number(v)}),'number')}
+        </div>
+        <button className="admin-btn" onClick={saveSettings} disabled={loading}><Save/> Save payment settings</button>
+
+        <div className="admin-row" style={{marginTop:24}}><div><h3>Payment receiver / gateway accounts</h3><p>Add or edit the UPI receiver used for QR payments, or connect Razorpay for card checkout.</p></div><button className="admin-btn" onClick={()=>setEditingPaymentAccount({id:'new',name:'',provider:'upi',upi_id:'',key_id:'',active:false,sort_order:paymentAccounts.length})}><Plus/> Add payment account</button></div>
+        <div className="admin-list">
+          {paymentAccounts.length===0&&<div className="empty-state">No payment receiver is configured yet.</div>}
+          {paymentAccounts.map(a=><div className="admin-list-row" key={a.id}>
+            <div><b>{a.name}</b><span>{a.provider==='upi'?'UPI receiver':'Razorpay gateway'}{a.upi_id?' · '+a.upi_id:''}</span></div>
+            <div className="admin-actions"><span className={a.active?'status-pill success':'status-pill'}>{a.active?'Active':'Inactive'}</span><button className="admin-btn ghost" onClick={()=>setEditingPaymentAccount({...a} )}><Pencil/> Edit</button><button className="admin-btn ghost" onClick={()=>deletePaymentAccount(a.id)}><Trash2/></button></div>
+          </div>)}
+        </div>
+
+        {editingPaymentAccount&&<div className="admin-card" style={{marginTop:18}}>
+          <div className="admin-row"><div><h3>{editingPaymentAccount.id==='new'?'Add payment account':'Edit payment account'}</h3><p>Secrets are encrypted server-side and are never sent back to the browser.</p></div><button className="admin-btn ghost" onClick={()=>setEditingPaymentAccount(null)}><X/> Cancel</button></div>
+          <div className="admin-form-grid">
+            {field('Account name',editingPaymentAccount.name,v=>setEditingPaymentAccount({...editingPaymentAccount,name:v}))}
+            <label>Account type<select value={editingPaymentAccount.provider} onChange={e=>setEditingPaymentAccount({...editingPaymentAccount,provider:e.target.value as 'upi'|'razorpay'})}><option value="upi">UPI receiver</option><option value="razorpay">Razorpay (UPI + Cards)</option></select></label>
+            {field('UPI ID',editingPaymentAccount.upi_id,v=>setEditingPaymentAccount({...editingPaymentAccount,upi_id:v}))}
+            {editingPaymentAccount.provider==='razorpay'&&<>{field('Razorpay Key ID',editingPaymentAccount.key_id||'',v=>setEditingPaymentAccount({...editingPaymentAccount,key_id:v}))}{field(editingPaymentAccount.id==='new'?'Razorpay Secret Key':'New Razorpay Secret Key','',v=>setEditingPaymentAccount({...editingPaymentAccount,...({secret_key:v} as any)}))}</>}
+            <label>Active<select value={editingPaymentAccount.active?'yes':'no'} onChange={e=>setEditingPaymentAccount({...editingPaymentAccount,active:e.target.value==='yes'})}><option value="no">Inactive</option><option value="yes">Active</option></select></label>
+            {field('Sort order',editingPaymentAccount.sort_order,v=>setEditingPaymentAccount({...editingPaymentAccount,sort_order:Number(v)}),'number')}
+          </div>
+          <button className="admin-btn" onClick={savePaymentAccount} disabled={loading}><Save/> Save payment account</button>
+        </div>}
+        <div className="payment-note"><b>Security:</b> Card numbers, CVV and OTP are handled by Razorpay Checkout. Lola England stores only gateway/order references and payment status. Never store raw card details in Supabase.</div>
+      </div>
 
       {tab==='site-media'&&<div className="admin-card"><div className="admin-row"><div><h2>Site media library</h2><p>Control every non-product photo used across homepage sections and menu landing pages. Products and hero media keep their own editors.</p></div><button className="admin-btn" onClick={()=>setEditingSiteMedia({id:'new',section:'lookbook',slot_key:'',title:'',url:'',alt_text:'',href:'/collection/all',active:true,sort_order:siteMedia.filter(x=>x.section==='lookbook').length+1})}><Plus/> Add site image</button></div>
         <div className="site-media-groups">{Array.from(new Set(siteMedia.map(x=>x.section))).map(section=><div className="site-media-group" key={section}><div className="admin-row"><div><h3>{section.replaceAll('-',' ').toUpperCase()}</h3><p>{siteMedia.filter(x=>x.section===section).length} image{siteMedia.filter(x=>x.section===section).length===1?'':'s'} connected to this section.</p></div><button className="admin-btn ghost" onClick={()=>setEditingSiteMedia({id:'new',section,slot_key:String(siteMedia.filter(x=>x.section===section).length+1),title:'',url:'',alt_text:'',href:'/collection/all',active:true,sort_order:siteMedia.filter(x=>x.section===section).length+1})}><Plus/> Add here</button></div>
