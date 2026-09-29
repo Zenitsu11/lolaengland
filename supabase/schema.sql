@@ -282,3 +282,20 @@ alter table public.site_media enable row level security;
 drop policy if exists "Public can view active site media" on public.site_media;
 create policy "Public can view active site media" on public.site_media for select to public using (active = true);
 create index if not exists site_media_section_order_idx on public.site_media(section, active, sort_order);
+
+
+-- Checkout payment controls.
+alter table public.store_settings
+  add column if not exists upi_enabled boolean not null default true,
+  add column if not exists card_enabled boolean not null default false,
+  add column if not exists cod_enabled boolean not null default false,
+  add column if not exists cod_fee numeric(12,2) not null default 0;
+
+alter table public.payment_accounts
+  alter column key_id drop not null,
+  alter column secret_key_encrypted drop not null;
+
+alter table public.orders
+  add column if not exists payment_gateway_order_id text,
+  add column if not exists payment_gateway_payment_id text,
+  add column if not exists payment_gateway_signature text;
