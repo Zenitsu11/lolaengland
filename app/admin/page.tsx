@@ -363,43 +363,44 @@ export default function AdminPage(){
       {editingCoupon&&<div className="admin-form-grid">{field('Coupon code',editingCoupon.code,v=>setEditingCoupon({...editingCoupon,code:v.toUpperCase()}))}{field('Description',editingCoupon.description,v=>setEditingCoupon({...editingCoupon,description:v}))}<label>Discount type<select value={editingCoupon.discount_type} onChange={e=>setEditingCoupon({...editingCoupon,discount_type:e.target.value as 'percent'|'fixed'})}><option value="percent">Percentage</option><option value="fixed">Fixed ₹</option></select></label>{field('Discount value',editingCoupon.discount_value,v=>setEditingCoupon({...editingCoupon,discount_value:Number(v)}),'number')}{field('Minimum order ₹',editingCoupon.minimum_order_value,v=>setEditingCoupon({...editingCoupon,minimum_order_value:Number(v)}),'number')}{field('Maximum discount ₹',editingCoupon.maximum_discount??'',v=>setEditingCoupon({...editingCoupon,maximum_discount:v===''?null:Number(v)}),'number')}{field('Usage limit',editingCoupon.usage_limit??'',v=>setEditingCoupon({...editingCoupon,usage_limit:v===''?null:Number(v)}),'number')}<label>Active<select value={editingCoupon.active?'yes':'no'} onChange={e=>setEditingCoupon({...editingCoupon,active:e.target.value==='yes'})}><option value="yes">Active</option><option value="no">Disabled</option></select></label></div>}
       {editingCoupon&&<button className="admin-btn" onClick={saveCoupon} disabled={loading}><Save/> Save coupon</button>}</div>}
 
-      {tab==='payments'&&<div className="admin-card">
-        <div className="admin-row"><div><h2>Payment & checkout</h2><p>Control which payment methods customers see. COD is off until you explicitly enable it.</p></div></div>
-        <div className="admin-form-grid">
-          <label>UPI payments<select value={settings.upi_enabled?'on':'off'} onChange={e=>setSettings({...settings,upi_enabled:e.target.value==='on'})}><option value="on">Enabled</option><option value="off">Disabled</option></select></label>
-          <label>Credit / debit cards<select value={settings.card_enabled?'on':'off'} onChange={e=>setSettings({...settings,card_enabled:e.target.value==='on'})}><option value="off">Disabled</option><option value="on">Enabled</option></select></label>
-          <label>Cash on Delivery (COD)<select value={settings.cod_enabled?'on':'off'} onChange={e=>setSettings({...settings,cod_enabled:e.target.value==='on'})}><option value="off">Disabled</option><option value="on">Enabled</option></select></label>
-          {field('COD fee ₹',settings.cod_fee,v=>setSettings({...settings,cod_fee:Number(v)}),'number')}
-          {field('Shipping fee ₹',settings.shipping_fee,v=>setSettings({...settings,shipping_fee:Number(v)}),'number')}
-          {field('Free shipping threshold ₹',settings.free_shipping_threshold,v=>setSettings({...settings,free_shipping_threshold:Number(v)}),'number')}
-          {field('Platform fee ₹',settings.platform_fee,v=>setSettings({...settings,platform_fee:Number(v)}),'number')}
-          {field('GST rate %',settings.gst_rate,v=>setSettings({...settings,gst_rate:Number(v)}),'number')}
-        </div>
-        <button className="admin-btn" onClick={saveSettings} disabled={loading}><Save/> Save payment settings</button>
-
-        <div className="admin-row" style={{marginTop:24}}><div><h3>Payment receiver / gateway accounts</h3><p>Add or edit the UPI receiver used for QR payments, or connect Razorpay for card checkout.</p></div><button className="admin-btn" onClick={()=>setEditingPaymentAccount({id:'new',name:'',provider:'upi',upi_id:'',key_id:'',active:false,sort_order:paymentAccounts.length})}><Plus/> Add payment account</button></div>
-        <div className="admin-list">
-          {paymentAccounts.length===0&&<div className="empty-state">No payment receiver is configured yet.</div>}
-          {paymentAccounts.map(a=><div className="admin-list-row" key={a.id}>
-            <div><b>{a.name}</b><span>{a.provider==='upi'?'UPI receiver':'Razorpay gateway'}{a.upi_id?' · '+a.upi_id:''}</span></div>
-            <div className="admin-actions"><span className={a.active?'status-pill success':'status-pill'}>{a.active?'Active':'Inactive'}</span><button className="admin-btn ghost" onClick={()=>setEditingPaymentAccount({...a} )}><Pencil/> Edit</button><button className="admin-btn ghost" onClick={()=>deletePaymentAccount(a.id)}><Trash2/></button></div>
-          </div>)}
-        </div>
-
-        {editingPaymentAccount&&<div className="admin-card" style={{marginTop:18}}>
-          <div className="admin-row"><div><h3>{editingPaymentAccount.id==='new'?'Add payment account':'Edit payment account'}</h3><p>Secrets are encrypted server-side and are never sent back to the browser.</p></div><button className="admin-btn ghost" onClick={()=>setEditingPaymentAccount(null)}><X/> Cancel</button></div>
+      {tab==='payments'&&(
+        <div className="admin-card">
+          <h2>Payment & checkout</h2>
+          <p>Enable or disable payment methods and manage the receiver/gateway account used by checkout.</p>
           <div className="admin-form-grid">
-            {field('Account name',editingPaymentAccount.name,v=>setEditingPaymentAccount({...editingPaymentAccount,name:v}))}
-            <label>Account type<select value={editingPaymentAccount.provider} onChange={e=>setEditingPaymentAccount({...editingPaymentAccount,provider:e.target.value as 'upi'|'razorpay'})}><option value="upi">UPI receiver</option><option value="razorpay">Razorpay (UPI + Cards)</option></select></label>
-            {field('UPI ID',editingPaymentAccount.upi_id,v=>setEditingPaymentAccount({...editingPaymentAccount,upi_id:v}))}
-            {editingPaymentAccount.provider==='razorpay'&&<>{field('Razorpay Key ID',editingPaymentAccount.key_id||'',v=>setEditingPaymentAccount({...editingPaymentAccount,key_id:v}))}{field(editingPaymentAccount.id==='new'?'Razorpay Secret Key':'New Razorpay Secret Key','',v=>setEditingPaymentAccount({...editingPaymentAccount,...({secret_key:v} as any)}))}</>}
-            <label>Active<select value={editingPaymentAccount.active?'yes':'no'} onChange={e=>setEditingPaymentAccount({...editingPaymentAccount,active:e.target.value==='yes'})}><option value="no">Inactive</option><option value="yes">Active</option></select></label>
-            {field('Sort order',editingPaymentAccount.sort_order,v=>setEditingPaymentAccount({...editingPaymentAccount,sort_order:Number(v)}),'number')}
+            <label>UPI payments<select value={settings.upi_enabled?'on':'off'} onChange={e=>setSettings({...settings,upi_enabled:e.target.value==='on'})}><option value="on">Enabled</option><option value="off">Disabled</option></select></label>
+            <label>Credit / debit cards<select value={settings.card_enabled?'on':'off'} onChange={e=>setSettings({...settings,card_enabled:e.target.value==='on'})}><option value="off">Disabled</option><option value="on">Enabled</option></select></label>
+            <label>Cash on Delivery<select value={settings.cod_enabled?'on':'off'} onChange={e=>setSettings({...settings,cod_enabled:e.target.value==='on'})}><option value="off">Disabled</option><option value="on">Enabled</option></select></label>
+            {field('COD fee ₹',settings.cod_fee,v=>setSettings({...settings,cod_fee:Number(v)}),'number')}
+            {field('Shipping fee ₹',settings.shipping_fee,v=>setSettings({...settings,shipping_fee:Number(v)}),'number')}
+            {field('Free shipping threshold ₹',settings.free_shipping_threshold,v=>setSettings({...settings,free_shipping_threshold:Number(v)}),'number')}
+            {field('Platform fee ₹',settings.platform_fee,v=>setSettings({...settings,platform_fee:Number(v)}),'number')}
+            {field('GST rate %',settings.gst_rate,v=>setSettings({...settings,gst_rate:Number(v)}),'number')}
           </div>
-          <button className="admin-btn" onClick={savePaymentAccount} disabled={loading}><Save/> Save payment account</button>
-        </div>}
-        <div className="payment-note"><b>Security:</b> Card numbers, CVV and OTP are handled by Razorpay Checkout. Lola England stores only gateway/order references and payment status. Never store raw card details in Supabase.</div>
-      </div>
+          <button className="admin-btn" onClick={saveSettings} disabled={loading}><Save/> Save payment settings</button>
+          <hr/>
+          <div className="admin-row"><div><h3>Payment receiver / gateway</h3><p>UPI IDs can be replaced or removed here. Razorpay credentials are encrypted on the server.</p></div><button className="admin-btn" onClick={()=>setEditingPaymentAccount({id:'new',name:'',provider:'upi',upi_id:'',key_id:'',active:false,sort_order:paymentAccounts.length})}><Plus/> Add</button></div>
+          {paymentAccounts.map(a=>(
+            <div className="product-row" key={a.id}>
+              <span><b>{a.name}</b><small>{a.provider==='upi'?'UPI receiver':'Razorpay gateway'} · {a.upi_id||'No UPI ID'} · {a.active?'Active':'Inactive'}</small></span>
+              <div className="product-actions"><button onClick={()=>setEditingPaymentAccount({...a})}><Pencil size={15}/></button><button onClick={()=>deletePaymentAccount(a.id)}><Trash2 size={15}/></button></div>
+            </div>
+          ))}
+          {editingPaymentAccount&&(
+            <div className="admin-form-grid">
+              {field('Account name',editingPaymentAccount.name,v=>setEditingPaymentAccount({...editingPaymentAccount,name:v}))}
+              <label>Account type<select value={editingPaymentAccount.provider} onChange={e=>setEditingPaymentAccount({...editingPaymentAccount,provider:e.target.value as 'upi'|'razorpay'})}><option value="upi">UPI receiver</option><option value="razorpay">Razorpay</option></select></label>
+              {field('UPI ID',editingPaymentAccount.upi_id,v=>setEditingPaymentAccount({...editingPaymentAccount,upi_id:v}))}
+              {editingPaymentAccount.provider==='razorpay'&&field('Razorpay Key ID',editingPaymentAccount.key_id||'',v=>setEditingPaymentAccount({...editingPaymentAccount,key_id:v}))}
+              {editingPaymentAccount.provider==='razorpay'&&field(editingPaymentAccount.id==='new'?'Razorpay Secret Key':'New Razorpay Secret Key','',v=>setEditingPaymentAccount({...editingPaymentAccount,...({secret_key:v} as any)}))}
+              <label>Active<select value={editingPaymentAccount.active?'yes':'no'} onChange={e=>setEditingPaymentAccount({...editingPaymentAccount,active:e.target.value==='yes'})}><option value="no">Inactive</option><option value="yes">Active</option></select></label>
+              {field('Sort order',editingPaymentAccount.sort_order,v=>setEditingPaymentAccount({...editingPaymentAccount,sort_order:Number(v)}),'number')}
+              <div className="admin-actions"><button className="admin-btn" onClick={savePaymentAccount} disabled={loading}><Save/> Save account</button><button className="admin-btn ghost" onClick={()=>setEditingPaymentAccount(null)}><X/> Cancel</button></div>
+            </div>
+          )}
+          <div className="payment-note"><b>Security:</b> Card number, CVV and OTP are handled by Razorpay Checkout. Raw card details are never stored in Supabase.</div>
+        </div>
+      )}
 
       {tab==='site-media'&&<div className="admin-card">
         <div className="admin-row"><div><h2>Site media library</h2><p>Control non-product photos used across homepage sections and menu landing pages.</p></div><button className="admin-btn" onClick={()=>setEditingSiteMedia({id:'new',section:'lookbook',slot_key:'',title:'',url:'',alt_text:'',href:'/collection/all',active:true,sort_order:siteMedia.filter(x=>x.section==='lookbook').length+1})}><Plus/> Add site image</button></div>
