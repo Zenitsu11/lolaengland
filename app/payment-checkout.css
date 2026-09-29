@@ -65,3 +65,31 @@
 .payment-app-logo.phonepe span{display:flex;width:22px;height:22px;align-items:center;justify-content:center;border-radius:50%;background:#673ab7;color:#fff;font-size:12px}
 .payment-app-logo.paytm span{color:#0066b3;font-size:9px;font-weight:900}
 .payment-app-logo.bhim span{color:#0a4f9e;font-size:7px;font-weight:900}
+
+
+/* Final mobile payment polish */
+.checkout-charge-mini{display:grid;gap:0;margin:18px 0 0;padding:16px 18px;border:1px solid var(--line);border-radius:18px;background:#fff}
+.checkout-charge-mini h3{margin:0 0 10px;font-size:16px}
+.checkout-charge-mini>span,.checkout-charge-mini>strong{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:10px 0;border-bottom:1px solid rgba(17,17,17,.08);font-size:13px}
+.checkout-charge-mini>span b,.checkout-charge-mini>strong b{margin-left:auto;white-space:nowrap}
+.checkout-charge-mini>strong{border-bottom:0;padding-top:13px;font-size:17px}
+.upi-payment-box{padding:18px}
+.upi-payment-layout{grid-template-columns:minmax(0,1fr) 168px;gap:24px;align-items:center}
+.upi-qr-reveal{width:168px;height:auto;border:0;background:transparent;padding:0;overflow:visible;text-align:center}
+.upi-qr-image-button{display:block;width:168px;height:168px;padding:9px;border:1px solid var(--line);border-radius:18px;background:#fff;cursor:pointer}
+.upi-qr-reveal .upi-qr{width:100%;height:100%;object-fit:contain;margin:0;padding:0;border:0;border-radius:9px;filter:none;opacity:1}
+.upi-qr-reveal>span{position:static;display:block;transform:none;margin-top:8px;padding:0;background:none;box-shadow:none;font-size:10px;color:#777;font-weight:700}
+.upi-qr-reveal.revealed .upi-qr{filter:none;opacity:1}
+@media(max-width:640px){
+ .upi-payment-layout{grid-template-columns:minmax(0,1fr) 142px;gap:16px}
+ .upi-qr-reveal,.upi-qr-image-button{width:142px}
+ .upi-qr-image-button{height:142px}
+ .checkout-charge-mini{padding:14px 15px}
+ .checkout-charge-mini>span,.checkout-charge-mini>strong{font-size:12px}
+ .checkout-charge-mini>strong{font-size:16px}
+}
+@media(max-width:390px){
+ .upi-payment-layout{grid-template-columns:minmax(0,1fr) 118px;gap:12px}
+ .upi-qr-reveal,.upi-qr-image-button{width:118px}
+ .upi-qr-image-button{height:118px}
+}
