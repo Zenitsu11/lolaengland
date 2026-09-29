@@ -28,6 +28,10 @@ export async function PUT(request: Request) {
     free_shipping_threshold: num(body.free_shipping_threshold,799),
     platform_fee: num(body.platform_fee,10),
     gst_rate: Math.min(100,num(body.gst_rate,5)),
+    upi_enabled: body.upi_enabled !== false,
+    card_enabled: Boolean(body.card_enabled),
+    cod_enabled: Boolean(body.cod_enabled),
+    cod_fee: num(body.cod_fee,0),
     hero_image_urls: Array.isArray(body.hero_image_urls) ? body.hero_image_urls.filter((x:any)=>typeof x==='string' && x.trim()).slice(0,4) : [],
     hero_video_urls: Array.isArray(body.hero_video_urls) ? body.hero_video_urls.filter((x:any)=>typeof x==='string' && x.trim()).slice(0,2) : [],
   };
