@@ -5,7 +5,7 @@ import { isAdminRequest } from '@/lib/admin-auth';
 export async function GET(){
  if(!(await isAdminRequest()))return NextResponse.json({error:'Unauthorized'},{status:401});
  const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Supabase is not configured'},{status:503});
- const {data,error}=await db.from('orders').select('id,status,amount,total_amount,subtotal,shipping_fee,platform_fee,gst_rate,gst_amount,coupon_code,discount_amount,customer_name,customer_phone,customer_email,shipping_address,items,upi_transaction_id,created_at,paid_at').order('created_at',{ascending:false}).limit(100);
+ const {data,error}=await db.from('orders').select('id,status,amount,total_amount,subtotal,shipping_fee,platform_fee,gst_rate,gst_amount,coupon_code,discount_amount,customer_name,customer_phone,customer_email,shipping_address,items,upi_transaction_id,payment_method,payment_gateway_order_id,payment_gateway_payment_id,created_at,paid_at').order('created_at',{ascending:false}).limit(100);
  if(error)return NextResponse.json({error:error.message},{status:500}); return NextResponse.json({orders:data||[]});
 }
 
@@ -15,7 +15,7 @@ export async function PUT(request:Request){
  const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Supabase is not configured'},{status:503});
  const {data:current,error:readError}=await db.from('orders').select('id,status,items,coupon_code,paid_at,customer_id,total_amount,return_status,refund_status,refund_amount,refund_reference,refund_method,refunded_at,return_requested_at').eq('id',body.id).single();
  if(readError||!current)return NextResponse.json({error:'Order not found.'},{status:404});
- const status=['payment_submitted','paid','cancelled','awaiting_payment'].includes(body.status)?body.status:null;
+ const status=['payment_submitted','paid','cancelled','awaiting_payment','cod_pending','confirmed'].includes(body.status)?body.status:null;
  if(!status)return NextResponse.json({error:'Invalid order status.'},{status:400});
  const patch:any={status};
  if(body.utr!==undefined)patch.upi_transaction_id=String(body.utr||'').trim().slice(0,100);
