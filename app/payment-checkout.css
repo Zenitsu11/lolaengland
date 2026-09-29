@@ -60,3 +60,8 @@
  .upi-payment-layout{grid-template-columns:1fr 96px}
  .upi-qr-reveal{width:96px;height:96px}
 }
+
+.payment-app-logo.gpay span{background:linear-gradient(135deg,#4285f4 0 25%,#34a853 25% 50%,#fbbc04 50% 75%,#ea4335 75%);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:19px;font-weight:900}
+.payment-app-logo.phonepe span{display:flex;width:22px;height:22px;align-items:center;justify-content:center;border-radius:50%;background:#673ab7;color:#fff;font-size:12px}
+.payment-app-logo.paytm span{color:#0066b3;font-size:9px;font-weight:900}
+.payment-app-logo.bhim span{color:#0a4f9e;font-size:7px;font-weight:900}
