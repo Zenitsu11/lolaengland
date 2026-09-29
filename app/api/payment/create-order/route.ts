@@ -59,10 +59,10 @@ export async function POST(request:Request){
     return NextResponse.json({orderRecordId:saved.id,method,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount,upiId,upiName,transactionNote,upiUri});
   }
   let secret='';
-  try{secret=decryptSecret(String(paymentAccount.secret_key_encrypted));}catch{return NextResponse.json({error:'Razorpay secret is not configured correctly.'},{status:503});}
+  try{secret=decryptSecret(String(paymentAccount!.secret_key_encrypted));}catch{return NextResponse.json({error:'Razorpay secret is not configured correctly.'},{status:503});}
   const razorpayRes=await fetch('https://api.razorpay.com/v1/orders',{
     method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Basic '+Buffer.from(String(paymentAccount.key_id)+':'+secret).toString('base64')},
+    headers:{'Content-Type':'application/json','Authorization':'Basic '+Buffer.from(String(paymentAccount!.key_id)+':'+secret).toString('base64')},
     body:JSON.stringify({amount:Math.round(calc.totalAmount*100),currency:'INR',receipt:String(saved.id),notes:{lola_order_id:String(saved.id)}})
   });
   const razorpay=await razorpayRes.json().catch(()=>null);
@@ -71,6 +71,6 @@ export async function POST(request:Request){
     return NextResponse.json({error:razorpay?.error?.description||'Could not create the card payment order.'},{status:502});
   }
   await db.from('orders').update({payment_gateway_order_id:razorpay.id,razorpay_order_id:razorpay.id}).eq('id',saved.id);
-  return NextResponse.json({orderRecordId:saved.id,method:'card',razorpayOrderId:razorpay.id,keyId:paymentAccount.key_id,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount});
+  return NextResponse.json({orderRecordId:saved.id,method:'card',razorpayOrderId:razorpay.id,keyId:paymentAccount!.key_id,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount});
  }catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Unable to create your order. Please try again.'},{status:500});}
 }
