@@ -3,6 +3,7 @@ import { ArrowLeft, Star, Ruler } from 'lucide-react';
 import { getPublicProducts, getPublicProductVariants } from '@/lib/catalog';
 import { ProductGallery } from '@/components/product-gallery';
 import { ProductPurchase } from '@/components/product-purchase';
+import { ProductReviews } from '@/components/product-reviews';
 
 export default async function ProductPage({params}:{params:Promise<{id:string}>}) {
   const {id}=await params;
@@ -28,5 +29,6 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
       </tbody></table></div>
       <small>Tip: T-shirt cuts can vary by fit. The product's actual garment measurements should be treated as the final reference when available.</small>
     </section>
+    <ProductReviews productId={String(product.id)}/>
   </div></main>;
 }
