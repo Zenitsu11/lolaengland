@@ -26,7 +26,8 @@ export async function POST(request:Request){
   const imageUrls=Array.isArray(body.image_urls) ? body.image_urls.map((value:unknown)=>String(value).trim()).filter(Boolean).slice(0,12) : [];
   const videoUrls=Array.isArray(body.video_urls) ? body.video_urls.map((value:unknown)=>String(value).trim()).filter(Boolean).slice(0,2) : [];
   const categories=Array.isArray(body.categories) ? body.categories.map((value:unknown)=>String(value).trim().toLowerCase()).filter(Boolean).slice(0,10) : [];
-  const payload={name,slug,price,mrp,rating,reviews,description:String(body.description ?? ''),image_url:imageUrls[0] || String(body.image_url ?? ''),image_urls:imageUrls,video_urls:videoUrls,amazon_url:String(body.amazon_url ?? ''),flipkart_url:String(body.flipkart_url ?? ''),featured:Boolean(body.featured ?? true),active:Boolean(body.active ?? true),sort_order,categories};
+  const occasions=Array.isArray(body.occasions) ? body.occasions.map((value:unknown)=>String(value).trim()).filter(Boolean).slice(0,10) : [];
+  const payload={name,slug,price,mrp,rating,reviews,description:String(body.description ?? ''),image_url:imageUrls[0] || String(body.image_url ?? ''),image_urls:imageUrls,video_urls:videoUrls,amazon_url:String(body.amazon_url ?? ''),flipkart_url:String(body.flipkart_url ?? ''),featured:Boolean(body.featured ?? true),active:Boolean(body.active ?? true),sort_order,categories,fabric:String(body.fabric ?? '').trim(),occasions};
   const {data,error}=await db.from('products').insert(payload).select('*').single();
   if(error) return NextResponse.json({error:error.message},{status:400});
   revalidatePath('/');
