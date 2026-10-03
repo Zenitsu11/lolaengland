@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowLeft, Star, Ruler } from 'lucide-react';
-import { getPublicProducts } from '@/lib/catalog';
+import { getPublicProducts, getPublicProductVariants } from '@/lib/catalog';
 import { ProductGallery } from '@/components/product-gallery';
 import { ProductPurchase } from '@/components/product-purchase';
 
@@ -9,6 +9,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
   const products=await getPublicProducts();
   const product=products.find(p=>String(p.id)===id) ?? products[0];
   if(!product) return <main className="inner-page"><div className="container"><h1>Product not found</h1></div></main>;
+  const variants=await getPublicProductVariants(String(product.id));
   return <main className="inner-page product-detail-page"><div className="container">
     <Link className="back-link" href="/collection/all"><ArrowLeft/> Back to shop</Link>
     <div className="product-detail"><ProductGallery name={product.name} front={product.image_url} back={product.secondary_image_url} images={product.image_urls} videos={product.video_urls}/>
@@ -16,7 +17,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
         <div className="detail-rating"><Star/><Star/><Star/><Star/><Star/> <span>{product.rating} · {Number(product.reviews||0).toLocaleString('en-IN')} ratings</span></div>
         <div className="detail-price">₹{product.price.toLocaleString('en-IN')} <del>₹{product.mrp.toLocaleString('en-IN')}</del></div>
         <p className="detail-description">{product.description || 'A relaxed women’s T-shirt made for easy everyday styling. Pair it with denim, cargos or your favourite layers.'}</p>
-        <ProductPurchase product={{id:product.id,name:product.name,price:product.price,image_url:product.image_url,image_urls:product.image_urls,amazon:product.amazon,flipkart:product.flipkart}}/>
+        <ProductPurchase product={{id:product.id,name:product.name,price:product.price,image_url:product.image_url,image_urls:product.image_urls,amazon:product.amazon,flipkart:product.flipkart,variants}}/>
       </div>
     </div>
     <section id="lola-size-guide" className="size-guide">
