@@ -47,23 +47,25 @@ export async function POST(request:Request){
     shipping_address:String(customer.address).slice(0,1000),items:calc.safeItems
   }).select('id').single();
   if(error)return NextResponse.json({error:error.message},{status:500});
+  const invoiceNumber=`LE-${new Date().getFullYear()}-${String(saved.id).replace(/-/g,'').slice(0,10).toUpperCase()}`;
+  await db.from('orders').update({invoice_number:invoiceNumber}).eq('id',saved.id);
   if(customerRecord?.id) await db.from('customers').update({total_orders:Number(customerRecord.total_orders||0)+1,last_order_at:new Date().toISOString()}).eq('id',customerRecord.id);
   if(method==='cod'){
-    return NextResponse.json({orderRecordId:saved.id,method, ...calc});
+    return NextResponse.json({orderRecordId:saved.id,invoiceNumber,method, ...calc});
   }
   if(method==='upi'){
     const upiId=paymentAccount?.upi_id||envUpi;
     const upiName=settings.brand_name||paymentAccount?.name||'LOLA ENGLAND';
     const transactionNote='LOLA-'+String(saved.id).slice(0,8).toUpperCase();
     const upiUri=`upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}&am=${calc.totalAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
-    return NextResponse.json({orderRecordId:saved.id,method,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount,upiId,upiName,transactionNote,upiUri});
+    return NextResponse.json({orderRecordId:saved.id,invoiceNumber,method,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount,upiId,upiName,transactionNote,upiUri});
   }
   let secret='';
   try{secret=decryptSecret(String(paymentAccount!.secret_key_encrypted));}catch{return NextResponse.json({error:'Razorpay secret is not configured correctly.'},{status:503});}
   const razorpayRes=await fetch('https://api.razorpay.com/v1/orders',{
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Basic '+Buffer.from(String(paymentAccount!.key_id)+':'+secret).toString('base64')},
-    body:JSON.stringify({amount:Math.round(calc.totalAmount*100),currency:'INR',receipt:String(saved.id),notes:{lola_order_id:String(saved.id)}})
+    body:JSON.stringify({amount:Math.round(calc.totalAmount*100),currency:'INR',receipt:String(saved.id),notes:{lola_order_id:String(saved.id),invoice_number:invoiceNumber}})
   });
   const razorpay=await razorpayRes.json().catch(()=>null);
   if(!razorpayRes.ok||!razorpay?.id){
@@ -71,6 +73,6 @@ export async function POST(request:Request){
     return NextResponse.json({error:razorpay?.error?.description||'Could not create the card payment order.'},{status:502});
   }
   await db.from('orders').update({payment_gateway_order_id:razorpay.id,razorpay_order_id:razorpay.id}).eq('id',saved.id);
-  return NextResponse.json({orderRecordId:saved.id,method:'card',razorpayOrderId:razorpay.id,keyId:paymentAccount!.key_id,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount});
+  return NextResponse.json({orderRecordId:saved.id,invoiceNumber,method:'card',razorpayOrderId:razorpay.id,keyId:paymentAccount!.key_id,subtotal:calc.subtotal,discountAmount:calc.discountAmount,couponCode,shippingFee:calc.shippingFee,platformFee:calc.platformFee,gstRate:calc.gstRate,gstAmount:calc.gstAmount,totalAmount:calc.totalAmount});
  }catch(e){return NextResponse.json({error:e instanceof Error?e.message:'Unable to create your order. Please try again.'},{status:500});}
 }
