@@ -19,6 +19,8 @@ export type Product = {
   image_urls?: string[];
   video_urls?: string[];
   categories?: string[];
+  fabric?: string;
+  occasions?: string[];
   amazon?: string;
   flipkart?: string;
 };
@@ -50,64 +52,23 @@ export function ProductCard({ product, visualIndex = 0 }: { product: Product; vi
     } catch {}
   };
 
-  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
-    touchStartX.current = event.touches[0]?.clientX ?? null;
-  };
-
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => { touchStartX.current = event.touches[0]?.clientX ?? null; };
   const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
     if (touchStartX.current === null || !hasBack) return;
     const endX = event.changedTouches[0]?.clientX ?? touchStartX.current;
     const delta = endX - touchStartX.current;
     touchStartX.current = null;
     if (Math.abs(delta) < 35) return;
-    event.preventDefault();
-    didSwipe.current = true;
-    setShowBack(delta < 0);
+    event.preventDefault(); didSwipe.current = true; setShowBack(delta < 0);
   };
 
   return <article className="product-card">
     <button type="button" className={"product-wishlist" + (wishlisted ? " is-active" : "")} onClick={toggleWishlist} aria-label={wishlisted ? "Remove from wishlist" : "Save to wishlist"} aria-pressed={wishlisted}><Heart/></button>
     <Link className="product-card-main" href={'/product/' + encodeURIComponent(String(product.id))}>
-      <div
-        className="product-art"
-        style={{ background: product.tone }}
-        onMouseEnter={() => hasBack && setShowBack(true)}
-        onMouseLeave={() => hasBack && setShowBack(false)}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <div
-          className="product-image-wrap"
-          onClick={(event: MouseEvent<HTMLDivElement>) => {
-            if (didSwipe.current) {
-              event.preventDefault();
-              event.stopPropagation();
-              didSwipe.current = false;
-            }
-          }}
-        >
-          <SafeImage
-            className={'product-image product-image-primary' + (showBack ? ' is-hidden' : '')}
-            src={product.image_url || fallback}
-            fallbackSrc={fallback}
-            alt={product.name + ' — LOLA ENGLAND women’s T-shirt front view'}
-            width={800}
-            height={900}
-            loading="eager"
-            decoding="async"
-          />
-          {hasBack ? (
-            <SafeImage
-              className={'product-image product-image-secondary' + (showBack ? ' is-visible' : '')}
-              src={product.secondary_image_url!}
-              fallbackSrc={product.secondary_image_url!}
-              alt={product.name + ' — LOLA ENGLAND women’s T-shirt back view'}
-              width={800}
-              height={900}
-              loading="eager"
-              decoding="async"
-            />
-          ) : null}
+      <div className="product-art" style={{ background: product.tone }} onMouseEnter={() => hasBack && setShowBack(true)} onMouseLeave={() => hasBack && setShowBack(false)} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        <div className="product-image-wrap" onClick={(event: MouseEvent<HTMLDivElement>) => { if (didSwipe.current) { event.preventDefault(); event.stopPropagation(); didSwipe.current = false; } }}>
+          <SafeImage className={'product-image product-image-primary' + (showBack ? ' is-hidden' : '')} src={product.image_url || fallback} fallbackSrc={fallback} alt={product.name + ' — LOLA ENGLAND women’s T-shirt front view'} width={800} height={900} loading="eager" decoding="async" />
+          {hasBack ? <SafeImage className={'product-image product-image-secondary' + (showBack ? ' is-visible' : '')} src={product.secondary_image_url!} fallbackSrc={product.secondary_image_url!} alt={product.name + ' — LOLA ENGLAND women’s T-shirt back view'} width={800} height={900} loading="eager" decoding="async" /> : null}
         </div>
       </div>
       <div className="product-info">
