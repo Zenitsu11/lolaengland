@@ -6,40 +6,8 @@ import { Mail, ArrowRight, ShieldCheck } from 'lucide-react';
 import { getSupabaseClient } from '@/lib/supabase-client';
 
 export default function AccountLoginPage(){
-  const router=useRouter();
-  const [email,setEmail]=useState('');
-  const [code,setCode]=useState('');
-  const [sent,setSent]=useState(false);
-  const [busy,setBusy]=useState(false);
-  const [message,setMessage]=useState('');
-  async function send(e:FormEvent){
-    e.preventDefault(); setBusy(true); setMessage('');
-    try{
-      const supabase=getSupabaseClient();
-      const {error}=await supabase.auth.signInWithOtp({email:email.trim().toLowerCase(),options:{shouldCreateUser:true,emailRedirectTo:window.location.origin+'/account'}});
-      if(error) throw error;
-      setSent(true); setMessage('We sent a 6-digit login code to your email.');
-    }catch(err){setMessage(err instanceof Error?err.message:'Could not send the login code.');}
-    finally{setBusy(false)}
-  }
-  async function verify(e:FormEvent){
-    e.preventDefault(); setBusy(true); setMessage('');
-    try{
-      const supabase=getSupabaseClient();
-      const {error}=await supabase.auth.verifyOtp({email:email.trim().toLowerCase(),token:code.trim(),type:'email'});
-      if(error) throw error;
-      router.replace('/account');
-      router.refresh();
-    }catch(err){setMessage(err instanceof Error?err.message:'That code is invalid or expired.');}
-    finally{setBusy(false)}
-  }
-  return <main className="account-auth-page"><div className="account-auth-card">
-    <div className="account-auth-mark"><ShieldCheck size={22}/></div>
-    <p className="account-eyebrow">LOLA ENGLAND</p>
-    <h1>Welcome back.</h1>
-    <p className="account-auth-copy">Sign in to view your orders, addresses, returns and wishlist.</p>
-    {!sent ? <form onSubmit={send} className="account-auth-form"><label>Email address<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email"/></label><button disabled={busy}>{busy?'Sending…':<>Continue with email <ArrowRight size={17}/></>}</button></form> : <form onSubmit={verify} className="account-auth-form"><label>6-digit code<input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,''))} placeholder="123456" required autoComplete="one-time-code"/></label><button disabled={busy}>{busy?'Verifying…':<>Verify & continue <ArrowRight size={17}/></>}</button><button type="button" className="account-secondary" onClick={()=>{setSent(false);setCode('');setMessage('')}}>Use another email</button></form>}
-    {message&&<p className="account-auth-message">{message}</p>}
-    <p className="account-auth-note"><Mail size={14}/> Password-free sign in. Your email stays protected.</p>
-  </div></main>
+ const router=useRouter();const [email,setEmail]=useState('');const [code,setCode]=useState('');const [sent,setSent]=useState(false);const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');
+ async function send(e:FormEvent){e.preventDefault();setBusy(true);setMessage('');try{const {error}=await getSupabaseClient().auth.signInWithOtp({email:email.trim().toLowerCase(),options:{shouldCreateUser:true,emailRedirectTo:window.location.origin+'/account'}});if(error)throw error;setSent(true);setMessage('We sent a 6-digit login code to your email.');}catch(err){setMessage(err instanceof Error?err.message:'Could not send the login code.')}finally{setBusy(false)}}
+ async function verify(e:FormEvent){e.preventDefault();setBusy(true);setMessage('');try{const {error}=await getSupabaseClient().auth.verifyOtp({email:email.trim().toLowerCase(),token:code.trim(),type:'email'});if(error)throw error;router.replace('/account');router.refresh()}catch(err){setMessage(err instanceof Error?err.message:'That code is invalid or expired.')}finally{setBusy(false)}}
+ return <main className="account-auth-page"><style>{`.account-auth-page{min-height:78vh;background:#fbf8f7;display:grid;place-items:center;padding:40px 20px}.account-auth-card{width:min(460px,100%);box-sizing:border-box;background:#fff;border:1px solid #e8dedf;border-radius:28px;padding:34px;box-shadow:0 20px 60px rgba(50,30,30,.06)}.account-auth-mark{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;background:#f4e7e2;margin-bottom:20px}.account-eyebrow{font-size:10px;font-weight:800;letter-spacing:.18em;color:#74696c}.account-auth-card h1{font:600 48px/.95 Georgia,serif;margin:0}.account-auth-copy{color:#74696c;line-height:1.6;font-size:13px;margin:14px 0 26px}.account-auth-form{display:grid;gap:13px}.account-auth-form label{display:grid;gap:7px;font-size:11px;font-weight:800}.account-auth-form input{width:100%;box-sizing:border-box;border:1px solid #ddd2d4;border-radius:12px;padding:14px;font:inherit;font-size:14px;outline:0}.account-auth-form>button:first-of-type{border:0;background:#111;color:#fff;border-radius:12px;padding:14px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer}.account-auth-form button:disabled{opacity:.6;cursor:wait}.account-secondary{border:1px solid #ddd0d1;background:#fff;border-radius:999px;padding:11px 15px;font-weight:700;cursor:pointer}.account-auth-message{font-size:12px;color:#665c5e;background:#f8f2f1;border-radius:10px;padding:11px;margin:14px 0 0}.account-auth-note{display:flex;align-items:center;gap:7px;color:#8a7d80;font-size:10px;margin:20px 0 0}@media(max-width:480px){.account-auth-page{padding:25px 14px}.account-auth-card{padding:26px 20px}.account-auth-card h1{font-size:42px}}`}</style><div className="account-auth-card"><div className="account-auth-mark"><ShieldCheck size={22}/></div><p className="account-eyebrow">LOLA ENGLAND</p><h1>Welcome back.</h1><p className="account-auth-copy">Sign in to view your orders, addresses, returns and wishlist.</p>{!sent?<form onSubmit={send} className="account-auth-form"><label>Email address<input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" required autoComplete="email"/></label><button disabled={busy}>{busy?'Sending…':<>Continue with email <ArrowRight size={17}/></>}</button></form>:<form onSubmit={verify} className="account-auth-form"><label>6-digit code<input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,''))} placeholder="123456" required autoComplete="one-time-code"/></label><button disabled={busy}>{busy?'Verifying…':<>Verify & continue <ArrowRight size={17}/></>}</button><button type="button" className="account-secondary" onClick={()=>{setSent(false);setCode('');setMessage('')}}>Use another email</button></form>}{message&&<p className="account-auth-message">{message}</p>}<p className="account-auth-note"><Mail size={14}/> Password-free sign in. Your email stays protected.</p></div></main>
 }
