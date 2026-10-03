@@ -1,0 +1,15 @@
+alter table public.customers add column if not exists auth_user_id uuid unique;
+create index if not exists customers_auth_user_idx on public.customers(auth_user_id);
+create table if not exists public.customer_addresses (id uuid primary key default gen_random_uuid(),auth_user_id uuid not null references auth.users(id) on delete cascade,label text not null default 'Home',name text not null default '',phone text not null default '',line1 text not null default '',line2 text not null default '',city text not null default '',state text not null default '',pincode text not null default '',is_default boolean not null default false,created_at timestamptz not null default now(),updated_at timestamptz not null default now());
+create index if not exists customer_addresses_user_idx on public.customer_addresses(auth_user_id);
+alter table public.customer_addresses enable row level security;
+drop policy if exists "Users manage own addresses" on public.customer_addresses;
+create policy "Users manage own addresses" on public.customer_addresses for all using (auth.uid()=auth_user_id) with check (auth.uid()=auth_user_id);
+create table if not exists public.customer_wishlist (id uuid primary key default gen_random_uuid(),auth_user_id uuid not null references auth.users(id) on delete cascade,product_id uuid not null references public.products(id) on delete cascade,created_at timestamptz not null default now(),unique(auth_user_id,product_id));
+create index if not exists customer_wishlist_user_idx on public.customer_wishlist(auth_user_id);
+alter table public.customer_wishlist enable row level security;
+drop policy if exists "Users manage own wishlist" on public.customer_wishlist;
+create policy "Users manage own wishlist" on public.customer_wishlist for all using (auth.uid()=auth_user_id) with check (auth.uid()=auth_user_id);
+create or replace function public.set_default_customer_address() returns trigger language plpgsql set search_path=public as $$ begin if new.is_default then update public.customer_addresses set is_default=false where auth_user_id=new.auth_user_id and id<>new.id; end if; return new; end; $$;
+drop trigger if exists customer_addresses_default on public.customer_addresses;
+create trigger customer_addresses_default before insert or update on public.customer_addresses for each row execute function public.set_default_customer_address();
