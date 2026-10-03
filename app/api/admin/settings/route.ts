@@ -18,6 +18,11 @@ export async function PUT(request: Request) {
   const num=(v:any,d:number)=>Number.isFinite(Number(v))?Math.max(0,Number(v)):d;
   const payload = {
     brand_name: String(body.brand_name ?? 'LOLA ENGLAND').trim().slice(0, 100),
+    legal_name: String(body.legal_name ?? body.brand_name ?? 'LOLA ENGLAND').trim().slice(0, 160),
+    gstin: String(body.gstin ?? '').trim().toUpperCase().slice(0, 15),
+    business_address: String(body.business_address ?? '').trim().slice(0, 1000),
+    business_state: String(body.business_state ?? 'Rajasthan').trim().slice(0, 80),
+    business_state_code: String(body.business_state_code ?? '08').trim().slice(0, 2),
     shipping_message: String(body.shipping_message ?? '').trim().slice(0, 200),
     instagram_url: String(body.instagram_url ?? '').trim().slice(0, 500),
     whatsapp_url: String(body.whatsapp_url ?? '').trim().slice(0, 500),
