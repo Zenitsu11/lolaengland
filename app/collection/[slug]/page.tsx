@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { ProductCard } from '@/components/product-card';
-import { getPublicProducts } from '@/lib/catalog';
+import { CollectionFilters } from '@/components/collection-filters';
+import { getPublicProductVariantsForProducts, getPublicProducts } from '@/lib/catalog';
 
 const collections: Record<string,{title:string;eyebrow:string;copy:string}> = {
   'soft-pink': { title:'Soft Pink Edit', eyebrow:'01 · SOFT PINK', copy:'Pretty, playful and easy. A curated edit for soft colour days and relaxed styling.' },
@@ -18,6 +18,7 @@ export default async function CollectionPage({params}:{params:Promise<{slug:stri
   const {slug}=await params;
   const collection=collections[slug] ?? collections.all;
   const products=(await getPublicProducts()).filter(product => slug==='all' || product.categories?.includes(slug));
+  const variants=await getPublicProductVariantsForProducts(products.map(product=>String(product.id)));
   return <main className="inner-page">
     <div className="container">
       <Link className="back-link" href="/"><ArrowLeft/> Back to LOLA</Link>
@@ -27,7 +28,7 @@ export default async function CollectionPage({params}:{params:Promise<{slug:stri
         <p>{collection.copy}</p>
       </header>
       <div className="collection-toolbar"><span>{products.length} styles</span><Link href="/#shop">Back to trending <ArrowRight/></Link></div>
-      <div className="product-grid">{products.map((product,index)=><ProductCard key={product.id} product={product} visualIndex={index}/>)}</div>
+      <CollectionFilters products={products} variants={variants}/>
     </div>
   </main>;
 }
