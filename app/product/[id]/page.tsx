@@ -4,6 +4,7 @@ import { getPublicProducts, getPublicProductVariants } from '@/lib/catalog';
 import { ProductGallery } from '@/components/product-gallery';
 import { ProductPurchase } from '@/components/product-purchase';
 import { ProductReviews } from '@/components/product-reviews';
+import './reviews.css';
 
 export default async function ProductPage({params}:{params:Promise<{id:string}>}) {
   const {id}=await params;
