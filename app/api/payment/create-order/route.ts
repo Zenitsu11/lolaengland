@@ -9,6 +9,7 @@ export async function POST(request:Request){
   const body=await request.json();
   const method=body.method==='card'?'card':body.method==='cod'?'cod':'upi';
   const items=Array.isArray(body.items)?body.items:[]; const customer=body.customer||{};
+  const idempotencyKey=String(body.idempotencyKey||'').trim().slice(0,120);
   if(!items.length||!customer.name||!customer.phone||!customer.address)return NextResponse.json({error:'Please complete your cart and delivery details.'},{status:400});
   const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Order backend is not configured.'},{status:503});
   const [{data:settings,error:settingsError},{data:upiAccounts,error:upiError},{data:razorpayAccounts,error:razorpayError}]=await Promise.all([
@@ -21,8 +22,34 @@ export async function POST(request:Request){
   if(method==='card'&&!settings.card_enabled)return NextResponse.json({error:'Card payments are currently disabled.'},{status:400});
   if(method==='cod'&&!settings.cod_enabled)return NextResponse.json({error:'Cash on Delivery is currently unavailable.'},{status:400});
   if(upiError||razorpayError)return NextResponse.json({error:'Payment accounts could not be loaded.'},{status:503});
+
+  const paymentAccount=method==='upi'
+    ? (upiAccounts||[]).find((a:any)=>a.upi_id)
+    : method==='card' ? (razorpayAccounts||[]).find((a:any)=>a.key_id&&a.secret_key_encrypted) : null;
+  const envUpi=process.env.LOLA_UPI_ID||'';
+  if(method==='upi'&&!paymentAccount&&!envUpi)return NextResponse.json({error:'No active UPI receiver is configured.'},{status:503});
+  if(method==='card'&&!paymentAccount)return NextResponse.json({error:'No active Razorpay account is configured for card payments.'},{status:503});
+
   const couponCode=String(body.couponCode||'').trim().toUpperCase();
   const calc=await calculateCheckout(db,items,couponCode,method==='cod'?Number(settings.cod_fee||0):0);
+
+  // Reusing the same idempotency key returns the original order instead of creating a duplicate.
+  if(idempotencyKey){
+    const {data:existing}=await db.from('orders').select('*').eq('idempotency_key',idempotencyKey).maybeSingle();
+    if(existing){
+      const existingUpiAccount=(upiAccounts||[]).find((a:any)=>a.id===existing.payment_account_id);
+      if(method==='cod')return NextResponse.json({orderRecordId:existing.id,invoiceNumber:existing.invoice_number||'',method:'cod',...calc});
+      if(method==='upi'){
+        const upiId=existingUpiAccount?.upi_id||envUpi;
+        const upiName=settings.brand_name||existingUpiAccount?.name||'LOLA ENGLAND';
+        const transactionNote='LOLA-'+String(existing.id).slice(0,8).toUpperCase();
+        const upiUri=`upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(upiName)}&am=${Number(existing.total_amount||existing.amount||calc.totalAmount).toFixed(2)}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+        return NextResponse.json({orderRecordId:existing.id,invoiceNumber:existing.invoice_number||'',method:'upi',subtotal:Number(existing.subtotal||calc.subtotal),discountAmount:Number(existing.discount_amount||0),couponCode:existing.coupon_code||'',shippingFee:Number(existing.shipping_fee||0),platformFee:Number(existing.platform_fee||0),gstRate:Number(existing.gst_rate||0),gstAmount:Number(existing.gst_amount||0),totalAmount:Number(existing.total_amount||existing.amount||calc.totalAmount),upiId,upiName,transactionNote,upiUri});
+      }
+      return NextResponse.json({orderRecordId:existing.id,invoiceNumber:existing.invoice_number||'',method:'card',razorpayOrderId:existing.payment_gateway_order_id||existing.razorpay_order_id,keyId:paymentAccount!.key_id,subtotal:Number(existing.subtotal||calc.subtotal),discountAmount:Number(existing.discount_amount||0),couponCode:existing.coupon_code||'',shippingFee:Number(existing.shipping_fee||0),platformFee:Number(existing.platform_fee||0),gstRate:Number(existing.gst_rate||0),gstAmount:Number(existing.gst_amount||0),totalAmount:Number(existing.total_amount||existing.amount||calc.totalAmount)});
+    }
+  }
+
   const phone=String(customer.phone).trim().slice(0,30);
   const email=String(customer.email||'').trim().slice(0,160).toLowerCase();
   let customerRecord:any=null;
@@ -34,25 +61,25 @@ export async function POST(request:Request){
     const {data}=await db.from('customers').insert({name:String(customer.name).slice(0,120),phone,email,shipping_address:String(customer.address).slice(0,1000)}).select('*').single();
     customerRecord=data;
   }
-  const paymentAccount=method==='upi'
-    ? (upiAccounts||[]).find((a:any)=>a.upi_id)
-    : method==='card' ? (razorpayAccounts||[]).find((a:any)=>a.key_id&&a.secret_key_encrypted) : null;
-  const envUpi=process.env.LOLA_UPI_ID||'';
-  if(method==='upi'&&!paymentAccount&&!envUpi)return NextResponse.json({error:'No active UPI receiver is configured.'},{status:503});
-  if(method==='card'&&!paymentAccount)return NextResponse.json({error:'No active Razorpay account is configured for card payments.'},{status:503});
+
   const {data:saved,error}=await db.from('orders').insert({
     amount:calc.totalAmount,total_amount:calc.totalAmount,subtotal:calc.subtotal,shipping_fee:calc.shippingFee,platform_fee:calc.platformFee,gst_rate:calc.gstRate,gst_amount:calc.gstAmount,coupon_code:couponCode||null,discount_amount:calc.discountAmount,
     currency:'INR',status:method==='cod'?'cod_pending':'awaiting_payment',payment_method:method==='upi'?'upi_qr':method,
     payment_account_id:paymentAccount?.id||null,customer_id:customerRecord?.id||null,customer_name:String(customer.name).slice(0,120),customer_phone:phone,customer_email:email,
-    shipping_address:String(customer.address).slice(0,1000),items:calc.safeItems
+    shipping_address:String(customer.address).slice(0,1000),items:calc.safeItems,idempotency_key:idempotencyKey||null
   }).select('id').single();
-  if(error)return NextResponse.json({error:error.message},{status:500});
+  if(error){
+    // Two near-simultaneous requests can race the unique index; return the winner.
+    if(error.code==='23505'&&idempotencyKey){
+      const {data:raceWinner}=await db.from('orders').select('*').eq('idempotency_key',idempotencyKey).maybeSingle();
+      if(raceWinner)return NextResponse.json({orderRecordId:raceWinner.id,invoiceNumber:raceWinner.invoice_number||'',method:raceWinner.payment_method==='upi_qr'?'upi':raceWinner.payment_method,razorpayOrderId:raceWinner.payment_gateway_order_id||raceWinner.razorpay_order_id,keyId:paymentAccount?.key_id,subtotal:Number(raceWinner.subtotal||calc.subtotal),discountAmount:Number(raceWinner.discount_amount||0),couponCode:raceWinner.coupon_code||'',shippingFee:Number(raceWinner.shipping_fee||0),platformFee:Number(raceWinner.platform_fee||0),gstRate:Number(raceWinner.gst_rate||0),gstAmount:Number(raceWinner.gst_amount||0),totalAmount:Number(raceWinner.total_amount||raceWinner.amount||calc.totalAmount)});
+    }
+    return NextResponse.json({error:error.message},{status:500});
+  }
   const invoiceNumber=`LE-${new Date().getFullYear()}-${String(saved.id).replace(/-/g,'').slice(0,10).toUpperCase()}`;
   await db.from('orders').update({invoice_number:invoiceNumber}).eq('id',saved.id);
   if(customerRecord?.id) await db.from('customers').update({total_orders:Number(customerRecord.total_orders||0)+1,last_order_at:new Date().toISOString()}).eq('id',customerRecord.id);
-  if(method==='cod'){
-    return NextResponse.json({orderRecordId:saved.id,invoiceNumber,method, ...calc});
-  }
+  if(method==='cod')return NextResponse.json({orderRecordId:saved.id,invoiceNumber,method,...calc});
   if(method==='upi'){
     const upiId=paymentAccount?.upi_id||envUpi;
     const upiName=settings.brand_name||paymentAccount?.name||'LOLA ENGLAND';
@@ -63,8 +90,7 @@ export async function POST(request:Request){
   let secret='';
   try{secret=decryptSecret(String(paymentAccount!.secret_key_encrypted));}catch{return NextResponse.json({error:'Razorpay secret is not configured correctly.'},{status:503});}
   const razorpayRes=await fetch('https://api.razorpay.com/v1/orders',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Basic '+Buffer.from(String(paymentAccount!.key_id)+':'+secret).toString('base64')},
+    method:'POST',headers:{'Content-Type':'application/json','Authorization':'Basic '+Buffer.from(String(paymentAccount!.key_id)+':'+secret).toString('base64')},
     body:JSON.stringify({amount:Math.round(calc.totalAmount*100),currency:'INR',receipt:String(saved.id),notes:{lola_order_id:String(saved.id),invoice_number:invoiceNumber}})
   });
   const razorpay=await razorpayRes.json().catch(()=>null);
