@@ -9,8 +9,7 @@ import { RelatedProducts, RecentlyViewed } from '@/components/product-recommenda
 import './reviews.css';
 
 const SITE_URL='https://lolaengland.vercel.app';
-
-type ProductForSeo={id:string|number;name:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[];active?:boolean};
+type ProductForSeo={id:string|number;name:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[]};
 
 export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
   const {id}=await params;
@@ -38,7 +37,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
   const productUrl=`${SITE_URL}/product/${encodeURIComponent(String(product.id))}`;
   const productImage=product.image_url||product.image_urls?.[0]||`${SITE_URL}/Lola%20england.jpg`;
   const reviewCount=Number(product.reviews||0);
-  const productSchema:any={'@context':'https://schema.org','@type':'Product',name:product.name,description:product.description||`Women’s T-shirt from LOLA ENGLAND.`,image:[productImage,...(product.image_urls||[]).filter(Boolean)].slice(0,8),url:productUrl,brand:{'@type':'Brand',name:'LOLA ENGLAND'},offers:{'@type':'Offer',url:productUrl,priceCurrency:'INR',price:Number(product.price).toFixed(2),availability:product.active===false?'https://schema.org/OutOfStock':'https://schema.org/InStock',itemCondition:'https://schema.org/NewCondition'}};
+  const productSchema:any={'@context':'https://schema.org','@type':'Product',name:product.name,description:product.description||`Women’s T-shirt from LOLA ENGLAND.`,image:[productImage,...(product.image_urls||[]).filter(Boolean)].slice(0,8),url:productUrl,brand:{'@type':'Brand',name:'LOLA ENGLAND'},offers:{'@type':'Offer',url:productUrl,priceCurrency:'INR',price:Number(product.price).toFixed(2),availability:'https://schema.org/InStock',itemCondition:'https://schema.org/NewCondition'}};
   if(reviewCount>0) productSchema.aggregateRating={'@type':'AggregateRating',ratingValue:Number(product.rating||0).toFixed(1),reviewCount,bestRating:'5',worstRating:'1'};
 
   return <main className="inner-page product-detail-page"><div className="container">
