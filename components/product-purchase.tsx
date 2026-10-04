@@ -3,6 +3,7 @@ import {useMemo,useState} from 'react';
 import Link from 'next/link';
 import {ArrowUpRight,Check,ShoppingBag,Ruler} from 'lucide-react';
 import {useCart} from '@/components/cart-provider';
+import {trackAddToCart} from '@/lib/analytics';
 import type {ProductVariant} from '@/lib/catalog';
 
 const sizes=[
@@ -18,7 +19,13 @@ export function ProductPurchase({product}:{product:ProductProps}){
  const sizeOptions=useMemo(()=>variantMode?sizes.filter(s=>variants.some(v=>v.size===s.label&&(!color||v.color===color)&&v.active)):sizes,[variants,variantMode,color]);
  const selectedVariant=variantMode?variants.find(v=>v.size===size&&v.color===color&&v.active):null;
  const available=selectedVariant?(!selectedVariant.track_inventory||selectedVariant.stock_qty-selectedVariant.reserved_qty>0):true;
- function addBag(){if(!size||!available||(variantMode&&!color))return;const lineId=`${product.id}-${size}-${color||'default'}`;add({id:product.id,name:product.name,price:product.price,image:product.image_url||product.image_urls?.[0]||'',size,color:color||undefined,variantId:selectedVariant?.id,lineId});setAdded(true);setTimeout(()=>setAdded(false),1800);}
+ function addBag(){
+   if(!size||!available||(variantMode&&!color))return;
+   const lineId=`${product.id}-${size}-${color||'default'}`;
+   add({id:product.id,name:product.name,price:product.price,image:product.image_url||product.image_urls?.[0]||'',size,color:color||undefined,variantId:selectedVariant?.id,lineId});
+   trackAddToCart({item_id:product.id,item_name:product.name,price:product.price,quantity:1,item_variant:color?`${color} / ${size}`:size});
+   setAdded(true);setTimeout(()=>setAdded(false),1800);
+ }
  return <div className="purchase-box">
    {variantMode&&<div className="color-picker"><div className="size-picker-head"><strong>Select your color</strong><small>{color||'Choose a colour'}</small></div><div className="color-grid" role="radiogroup" aria-label="T-shirt color">{colors.map(v=><button key={v.color} type="button" className={'color-chip'+(color===v.color?' selected':'')} onClick={()=>{setColor(v.color);setSize('')}} aria-pressed={color===v.color}><span className="color-swatch" style={{backgroundColor:v.color_hex||'#ddd'}}/><span>{v.color}</span></button>)}</div></div>}
    <div className="size-picker">
