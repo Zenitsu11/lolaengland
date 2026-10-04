@@ -74,8 +74,8 @@ create table if not exists public.payment_accounts (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   provider text not null default 'razorpay',
-  key_id text not null,
-  secret_key_encrypted text not null,
+  key_id text,
+  secret_key_encrypted text,
   upi_id text not null default '',
   active boolean not null default false,
   sort_order integer not null default 0,
@@ -103,7 +103,6 @@ create table if not exists public.orders (
 
 alter table public.payment_accounts enable row level security;
 alter table public.orders enable row level security;
-
 
 -- Direct UPI QR payment additions.
 alter table public.orders add column if not exists upi_transaction_id text;
@@ -201,7 +200,6 @@ create policy "No public customer access" on public.customers for select using (
 drop trigger if exists customers_updated_at on public.customers;
 create trigger customers_updated_at before update on public.customers for each row execute function public.set_updated_at();
 
-
 -- Newsletter subscribers for the storefront community signup.
 create table if not exists public.newsletter_subscribers (
   id uuid primary key default gen_random_uuid(),
@@ -218,10 +216,8 @@ create index if not exists newsletter_subscribers_subscribed_at_idx on public.ne
 -- Product video media (up to 2 URLs are enforced by the admin API).
 alter table public.products add column if not exists video_urls text[] not null default '{}';
 
-
 alter table public.store_settings add column if not exists hero_image_urls text[] not null default '{}';
 alter table public.store_settings add column if not exists hero_video_urls text[] not null default '{}';
-
 
 -- Returns and refunds workflow.
 alter table public.orders add column if not exists return_status text not null default 'none';
@@ -262,7 +258,6 @@ create index if not exists return_requests_phone_idx on public.return_requests(c
 drop trigger if exists return_requests_updated_at on public.return_requests;
 create trigger return_requests_updated_at before update on public.return_requests for each row execute function public.set_updated_at();
 
-
 -- Admin-controlled storefront/editorial media library.
 create table if not exists public.site_media (
   id uuid primary key default gen_random_uuid(),
@@ -283,7 +278,6 @@ drop policy if exists "Public can view active site media" on public.site_media;
 create policy "Public can view active site media" on public.site_media for select to public using (active = true);
 create index if not exists site_media_section_order_idx on public.site_media(section, active, sort_order);
 
-
 -- Checkout payment controls.
 alter table public.store_settings
   add column if not exists upi_enabled boolean not null default true,
@@ -299,3 +293,8 @@ alter table public.orders
   add column if not exists payment_gateway_order_id text,
   add column if not exists payment_gateway_payment_id text,
   add column if not exists payment_gateway_signature text;
+
+-- Checkout reliability: idempotency prevents duplicate orders from double taps/retries.
+alter table public.orders add column if not exists idempotency_key text;
+create unique index if not exists orders_idempotency_key_unique_idx on public.orders(idempotency_key) where idempotency_key is not null;
+create index if not exists orders_created_at_idx on public.orders(created_at desc);
