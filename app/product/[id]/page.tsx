@@ -6,6 +6,7 @@ import { ProductGallery } from '@/components/product-gallery';
 import { ProductPurchase } from '@/components/product-purchase';
 import { ProductReviews } from '@/components/product-reviews';
 import { RelatedProducts, RecentlyViewed } from '@/components/product-recommendations';
+import { MetaProductView } from '@/components/meta-product-view';
 import './reviews.css';
 
 const SITE_URL='https://lolaengland.vercel.app';
@@ -41,6 +42,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
   if(reviewCount>0) productSchema.aggregateRating={'@type':'AggregateRating',ratingValue:Number(product.rating||0).toFixed(1),reviewCount,bestRating:'5',worstRating:'1'};
 
   return <main className="inner-page product-detail-page"><div className="container">
+    <MetaProductView id={product.id} name={product.name} price={product.price} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(productSchema)}} />
     <Link className="back-link" href="/collection/all"><ArrowLeft/> Back to shop</Link>
     <div className="product-detail"><ProductGallery name={product.name} front={product.image_url} back={product.secondary_image_url} images={product.image_urls} videos={product.video_urls}/>
