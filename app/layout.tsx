@@ -22,7 +22,7 @@ import { CartProvider } from '@/components/cart-provider';
 import { getSiteMedia } from '@/lib/catalog';
 
 const GA_MEASUREMENT_ID = 'G-2R4KNXCNNM';
-const META_PIXEL_ID = '2753313303532561';
+const META_PIXEL_ID = '2735313303532561';
 const SITE_URL = 'https://lolaengland.vercel.app';
 
 export const metadata: Metadata = {
