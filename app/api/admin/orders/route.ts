@@ -17,11 +17,13 @@ export async function PUT(request:Request){
  if(readError||!current)return NextResponse.json({error:'Order not found.'},{status:404});
  const status=['payment_submitted','paid','cancelled','awaiting_payment','cod_pending','confirmed'].includes(body.status)?body.status:null;
  if(!status)return NextResponse.json({error:'Invalid order status.'},{status:400});
+ if(current.status==='paid'&&status!=='paid')return NextResponse.json({error:'Paid orders cannot be moved back to a payment-unverified status. Use return/refund controls instead.'},{status:409});
  const patch:any={status};
  if(body.utr!==undefined)patch.upi_transaction_id=String(body.utr||'').trim().slice(0,100);
  if(status==='paid')patch.paid_at=current.paid_at||new Date().toISOString();
- const {data,error}=await db.from('orders').update(patch).eq('id',body.id).select('id,status,upi_transaction_id,paid_at').single();
+ const {data,error}=await db.from('orders').update(patch).eq('id',body.id).eq('status',current.status).select('id,status,upi_transaction_id,paid_at').maybeSingle();
  if(error)return NextResponse.json({error:error.message},{status:400});
+ if(!data)return NextResponse.json({error:'Order was updated by another request. Refresh and try again.'},{status:409});
  if(status==='paid'&&current.status!=='paid'){
    if(current.coupon_code){const {data:coupon}=await db.from('coupons').select('id,used_count').eq('code',current.coupon_code).maybeSingle();if(coupon)await db.from('coupons').update({used_count:Number(coupon.used_count||0)+1}).eq('id',coupon.id);}
    if(current.customer_id){const {data:customer}=await db.from('customers').select('total_spent').eq('id',current.customer_id).maybeSingle();if(customer)await db.from('customers').update({total_spent:Number(customer.total_spent||0)+Number(current.total_amount||0),last_order_at:new Date().toISOString()}).eq('id',current.customer_id);}
