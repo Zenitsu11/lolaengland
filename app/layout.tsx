@@ -19,6 +19,7 @@ import './store-error.css';
 import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 import { CartProvider } from '@/components/cart-provider';
+import { MetaPixelPageViews } from '@/components/meta-pixel-pageviews';
 import { getSiteMedia } from '@/lib/catalog';
 
 const GA_MEASUREMENT_ID = 'G-2R4KNXCNNM';
@@ -87,8 +88,10 @@ gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
- fbq('init','${META_PIXEL_ID}');
- fbq('track','PageView');`}
+ if(!window.__LOLA_META_PIXEL_INITIALIZED){
+   window.__LOLA_META_PIXEL_INITIALIZED=true;
+   fbq('init','${META_PIXEL_ID}');
+ }`}
         </Script>
         <noscript>
           <img
@@ -99,6 +102,7 @@ gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
             alt=""
           />
         </noscript>
+        <MetaPixelPageViews />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
         <CartProvider>
