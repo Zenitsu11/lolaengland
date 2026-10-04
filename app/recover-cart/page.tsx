@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCart, type CartItem } from '@/components/cart-provider';
 
-export default function RecoverCartPage(){
+function RecoveryContent(){
  const params=useSearchParams(); const router=useRouter(); const {replace}=useCart();
  const [state,setState]=useState<'loading'|'ready'|'error'>('loading');
  const [message,setMessage]=useState('Restoring your cart…');
@@ -24,5 +24,9 @@ export default function RecoverCartPage(){
    }catch(e){setState('error');setMessage(e instanceof Error?e.message:'Unable to restore your cart.');}
   })();
  },[params,replace]);
- return <main style={{minHeight:'70vh',display:'grid',placeItems:'center',padding:24,textAlign:'center'}}><div><div style={{fontSize:12,letterSpacing:'.18em',marginBottom:14}}>LOLA ENGLAND</div><h1 style={{fontSize:'clamp(32px,7vw,56px)',margin:'0 0 12px'}}>{message}</h1><p style={{color:'#666',marginBottom:24}}>{state==='ready'?'Your saved cart is ready. Continue to checkout to complete your purchase.':'Please request a fresh recovery link if this one has expired.'}</p>{state==='ready'?<button onClick={()=>router.push('/cart')} style={{border:0,background:'#111',color:'#fff',padding:'14px 24px',cursor:'pointer'}}>View my cart</button>:<button onClick={()=>router.push('/')} style={{border:'1px solid #111',background:'#fff',padding:'14px 24px',cursor:'pointer'}}>Continue shopping</button>}</div></main>
+ return <main style={{minHeight:'70vh',display:'grid',placeItems:'center',padding:24,textAlign:'center'}}><div><div style={{fontSize:12,letterSpacing:'.18em',marginBottom:14}}>LOLA ENGLAND</div><h1 style={{fontSize:'clamp(32px,7vw,56px)',margin:'0 0 12px'}}>{message}</h1><p style={{color:'#666',marginBottom:24}}>{state==='ready'?'Your saved cart is ready. Continue to checkout to complete your purchase.':'Please request a fresh recovery link if this one has expired.'}</p>{state==='ready'?<button onClick={()=>router.push('/cart')} style={{border:0,background:'#111',color:'#fff',padding:'14px 24px',cursor:'pointer'}}>View my cart</button>:<button onClick={()=>router.push('/')} style={{border:'1px solid #111',background:'#fff',padding:'14px 24px',cursor:'pointer'}}>Continue shopping</button>}</div></main>;
+}
+
+export default function RecoverCartPage(){
+ return <Suspense fallback={<main style={{minHeight:'70vh',display:'grid',placeItems:'center',padding:24,textAlign:'center'}}><div>Restoring your cart…</div></main>}><RecoveryContent/></Suspense>;
 }
