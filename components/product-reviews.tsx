@@ -2,52 +2,15 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Star, Send } from 'lucide-react';
+import { Send, ImagePlus, X } from 'lucide-react';
 
 type Review={id:string;rating:number;title:string|null;body:string;photos:string[];verified_purchase:boolean;created_at:string};
-
-function supabase(){
-  const url=process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  return url&&key?createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}}):null;
-}
-
+function supabase(){const url=process.env.NEXT_PUBLIC_SUPABASE_URL;const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;return url&&key?createClient(url,key,{auth:{persistSession:true,autoRefreshToken:true}}):null;}
 export function ProductReviews({productId}:{productId:string}){
-  const [reviews,setReviews]=useState<Review[]>([]);
-  const [rating,setRating]=useState(5);
-  const [title,setTitle]=useState('');
-  const [body,setBody]=useState('');
-  const [loading,setLoading]=useState(true);
-  const [saving,setSaving]=useState(false);
-  const [message,setMessage]=useState('');
-  const client=useMemo(()=>supabase(),[]);
-
-  async function load(){
-    if(!client)return;
-    setLoading(true);
-    const {data}=await client.from('product_reviews').select('id,rating,title,body,photos,verified_purchase,created_at').eq('product_id',productId).eq('status','approved').order('created_at',{ascending:false});
-    setReviews((data||[]) as Review[]); setLoading(false);
-  }
-  useEffect(()=>{load();},[productId]);
-
-  const average=reviews.length?reviews.reduce((a,r)=>a+r.rating,0)/reviews.length:0;
-
-  async function submit(e:React.FormEvent){
-    e.preventDefault(); setMessage('');
-    if(!client){setMessage('Reviews are temporarily unavailable.');return;}
-    const {data:{user}}=await client.auth.getUser();
-    if(!user){window.location.href='/account/login?next='+encodeURIComponent(window.location.pathname);return;}
-    if(body.trim().length<10){setMessage('Please write at least 10 characters.');return;}
-    setSaving(true);
-    const {error}=await client.from('product_reviews').insert({product_id:productId,customer_id:user.id,rating,title:title.trim()||null,body:body.trim()});
-    setSaving(false);
-    if(error){setMessage(error.message);return;}
-    setTitle('');setBody('');setRating(5);setMessage('Thanks! Your review is waiting for approval.');
-  }
-
-  return <section className="product-reviews" id="reviews">
-    <div className="product-reviews-head"><div><p className="editorial-eyebrow">CUSTOMER REVIEWS</p><h2>What customers say</h2></div><div className="review-summary"><strong>{average?average.toFixed(1):'—'}</strong><span>★★★★★</span><small>{reviews.length} approved review{reviews.length===1?'':'s'}</small></div></div>
-    {loading?<p className="review-empty">Loading reviews…</p>:reviews.length===0?<p className="review-empty">No reviews yet. Be the first to share your experience.</p>:<div className="review-list">{reviews.map(r=><article className="review-card" key={r.id}><div className="review-stars">{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</div><div className="review-meta"><strong>{r.title||'Customer review'}</strong>{r.verified_purchase&&<span>✓ Verified purchase</span>}<time>{new Date(r.created_at).toLocaleDateString('en-IN')}</time></div><p>{r.body}</p></article>)}</div>}
-    <form className="review-form" onSubmit={submit}><div className="review-form-heading"><h3>Share your experience</h3><span>Sign in to leave a review</span></div><div className="review-rating-input"><span>Your rating</span><div>{[1,2,3,4,5].map(n=><button type="button" key={n} aria-label={`${n} stars`} className={n<=rating?'selected':''} onClick={()=>setRating(n)}>★</button>)}</div></div><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Review title (optional)" maxLength={80}/><textarea value={body} onChange={e=>setBody(e.target.value)} placeholder="Tell other shoppers about the fit, quality and feel…" rows={5} maxLength={1000}/>{message&&<p className="review-message">{message}</p>}<button type="submit" disabled={saving}>{saving?'Submitting…':<><Send size={16}/> Submit review</>}</button></form>
-  </section>;
+ const [reviews,setReviews]=useState<Review[]>([]);const [rating,setRating]=useState(5);const [title,setTitle]=useState('');const [body,setBody]=useState('');const [photos,setPhotos]=useState<File[]>([]);const [loading,setLoading]=useState(true);const [saving,setSaving]=useState(false);const [message,setMessage]=useState('');const client=useMemo(()=>supabase(),[]);
+ async function load(){if(!client)return;setLoading(true);const {data}=await client.from('product_reviews').select('id,rating,title,body,photos,verified_purchase,created_at').eq('product_id',productId).eq('status','approved').order('created_at',{ascending:false});setReviews((data||[]) as Review[]);setLoading(false);}
+ useEffect(()=>{load();},[productId]);
+ const average=reviews.length?reviews.reduce((a,r)=>a+r.rating,0)/reviews.length:0;
+ async function submit(e:React.FormEvent){e.preventDefault();setMessage('');if(!client){setMessage('Reviews are temporarily unavailable.');return;}const {data:{user},error:userError}=await client.auth.getUser();if(userError||!user){window.location.href='/account/login?next='+encodeURIComponent(window.location.pathname);return;}if(body.trim().length<10){setMessage('Please write at least 10 characters.');return;}setSaving(true);try{const {data:{session}}=await client.auth.getSession();if(!session)throw new Error('Please sign in again.');const uploaded:string[]=[];for(const file of photos.slice(0,3)){const form=new FormData();form.append('file',file);const r=await fetch('/api/reviews/upload',{method:'POST',headers:{Authorization:`Bearer ${session.access_token}`},body:form});const d=await r.json();if(!r.ok)throw new Error(d.error||'Could not upload photo.');uploaded.push(d.url);}const {error}=await client.from('product_reviews').insert({product_id:productId,customer_id:user.id,rating,title:title.trim()||null,body:body.trim(),photos:uploaded});if(error)throw error;setTitle('');setBody('');setRating(5);setPhotos([]);setMessage('Thanks! Your review is waiting for approval.');}catch(err){setMessage(err instanceof Error?err.message:'Could not submit your review.');}finally{setSaving(false);}}
+ return <section className="product-reviews" id="reviews"><div className="product-reviews-head"><div><p className="editorial-eyebrow">CUSTOMER REVIEWS</p><h2>What customers say</h2></div><div className="review-summary"><strong>{average?average.toFixed(1):'—'}</strong><span>★★★★★</span><small>{reviews.length} approved review{reviews.length===1?'':'s'}</small></div></div>{loading?<p className="review-empty">Loading reviews…</p>:reviews.length===0?<p className="review-empty">No reviews yet. Be the first to share your experience.</p>:<div className="review-list">{reviews.map(r=><article className="review-card" key={r.id}><div className="review-stars">{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</div><div className="review-meta"><strong>{r.title||'Customer review'}</strong>{r.verified_purchase&&<span>✓ Verified purchase</span>}<time>{new Date(r.created_at).toLocaleDateString('en-IN')}</time></div><p>{r.body}</p>{Array.isArray(r.photos)&&r.photos.length>0&&<div className="review-photos">{r.photos.map((url,i)=><a key={`${url}-${i}`} href={url} target="_blank" rel="noreferrer"><img src={url} alt={`Customer review photo ${i+1}`} loading="lazy"/></a>)}</div>}</article>)}</div>}<form className="review-form" onSubmit={submit}><div className="review-form-heading"><h3>Share your experience</h3><span>Sign in to leave a review</span></div><div className="review-rating-input"><span>Your rating</span><div>{[1,2,3,4,5].map(n=><button type="button" key={n} aria-label={`${n} stars`} className={n<=rating?'selected':''} onClick={()=>setRating(n)}>★</button>)}</div></div><input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Review title (optional)" maxLength={80}/><textarea value={body} onChange={e=>setBody(e.target.value)} placeholder="Tell other shoppers about the fit, quality and feel…" rows={5} maxLength={1000}/><label className="review-photo-picker"><ImagePlus size={16}/><span>Add up to 3 photos</span><input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={e=>setPhotos(Array.from(e.target.files||[]).slice(0,3))}/></label>{photos.length>0&&<div className="review-photo-files">{photos.map((f,i)=><span key={`${f.name}-${i}`}>{f.name}<button type="button" aria-label={`Remove ${f.name}`} onClick={()=>setPhotos(x=>x.filter((_,j)=>j!==i))}><X size={13}/></button></span>)}</div>}{message&&<p className="review-message">{message}</p>}<button type="submit" disabled={saving}>{saving?'Submitting…':<><Send size={16}/> Submit review</>}</button></form></section>;
 }
