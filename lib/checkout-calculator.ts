@@ -6,7 +6,7 @@ export async function calculateCheckout(db:any, rawItems:any[], couponCode:strin
     db.from('products').select('id,name,price,image_url').in('id',ids).eq('active',true),
     db.from('store_settings').select('shipping_fee,free_shipping_threshold,platform_fee,gst_rate').eq('id',true).single(),
     db.from('product_inventory').select('product_id,stock_qty,reserved_qty,track_inventory').in('product_id',ids),
-    variantIds.length?db.from('product_variants').select('id,product_id,stock_qty,reserved_qty,track_inventory').in('id',variantIds):Promise.resolve({data:[],error:null})
+    variantIds.length?db.from('product_variants').select('id,product_id,size,active,stock_qty,reserved_qty,track_inventory').in('id',variantIds):Promise.resolve({data:[],error:null})
   ]);
   if(productError||!products?.length) throw new Error('One or more products are no longer available.');
   if(settingsError||!settings) throw new Error('Checkout charges are not configured.');
@@ -18,7 +18,12 @@ export async function calculateCheckout(db:any, rawItems:any[], couponCode:strin
     const size=String(i.size||'').toUpperCase();
     const quantity=Math.max(1,Math.min(20,Number(i.quantity)||1));
     const variantId=String(i.variantId||'');
-    const stockRecord:any=variantId?inventoryByVariant.get(variantId):inventoryByProduct.get(String(i.id));
+    const variant=variantId?inventoryByVariant.get(variantId):null;
+    if(variantId){
+      if(!variant||String(variant.product_id)!==String(i.id)||!variant.active) throw new Error(`${product?.name||'This item'} has an invalid or unavailable size. Please refresh and try again.`);
+      if(String(variant.size||'').toUpperCase()!==size) throw new Error(`${product?.name||'This item'} has an invalid size selection. Please choose the size again.`);
+    }
+    const stockRecord:any=variantId?variant:inventoryByProduct.get(String(i.id));
     if(stockRecord?.track_inventory){
       const available=Math.max(0,Number(stockRecord.stock_qty||0)-Number(stockRecord.reserved_qty||0));
       if(quantity>available) throw new Error(`${product?.name||'This item'} is only available in ${available} ${available===1?'unit':'units'}. Please update your bag.`);
