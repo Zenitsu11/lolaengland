@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { isAdminRequest } from '@/lib/admin-auth';
+import { enqueueOrderNotification } from '@/lib/order-notifications';
 
 export async function PUT(request:Request){
   try{
@@ -14,13 +15,19 @@ export async function PUT(request:Request){
     if(url){try{const parsed=new URL(url);if(!['http:','https:'].includes(parsed.protocol)) throw new Error();}catch{return NextResponse.json({error:'Invalid tracking URL.'},{status:400});}}
     const db=getSupabaseAdmin();
     if(!db) throw new Error('Server configuration is missing.');
+    const orderId=id.trim();
+    const {data:customer,error:customerError}=await db.from('orders').select('customer_email,customer_phone').eq('id',orderId).maybeSingle();
+    if(customerError) throw customerError;
     const update:any={courier_name:String(courier_name||'').trim().slice(0,120)||null,awb_number:String(awb_number||'').trim().slice(0,120)||null,tracking_url:url.slice(0,1000)||null,shipment_status:shipment_status||'unfulfilled'};
     const now=new Date().toISOString();
     if(update.shipment_status==='shipped') update.shipped_at=now;
     if(update.shipment_status==='delivered') update.delivered_at=now;
-    const {data,error}=await db.from('orders').update(update).eq('id',id.trim()).select('id,shipment_status,courier_name,awb_number,tracking_url,shipped_at,delivered_at').single();
+    const {data,error}=await db.from('orders').update(update).eq('id',orderId).select('id,shipment_status,courier_name,awb_number,tracking_url,shipped_at,delivered_at').single();
     if(error) throw error;
-    return NextResponse.json({order:data});
+    let notificationQueued=false;
+    if(update.shipment_status==='shipped') notificationQueued=(await enqueueOrderNotification({orderId,type:'shipment',email:customer?.customer_email,phone:customer?.customer_phone})).ok;
+    if(update.shipment_status==='delivered') notificationQueued=(await enqueueOrderNotification({orderId,type:'delivery',email:customer?.customer_email,phone:customer?.customer_phone})).ok;
+    return NextResponse.json({order:data,notificationQueued});
   }catch(error){
     console.error('shipment update failed',error);
     return NextResponse.json({error:'Could not update shipment.'},{status:500});
