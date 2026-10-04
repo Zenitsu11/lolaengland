@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { Search, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ProductCard, type Product } from '@/components/product-card';
+import { trackSearch } from '@/lib/analytics';
 
 function normalize(value:string){return value.toLowerCase().trim().replace(/[^a-z0-9\s]/g,'').replace(/\s+/g,' ');}
 function distance(a:string,b:string){
@@ -34,6 +35,14 @@ export function ProductSearch({products,initialQuery=''}:{products:Product[];ini
     const q=normalize(query); if(!q)return [];
     return products.filter(p=>fuzzyMatch(q,p.name)).slice(0,5);
   },[products,query]);
+
+  useEffect(()=>{
+    const value=query.trim();
+    if(!value)return;
+    const timer=window.setTimeout(()=>trackSearch(value),700);
+    return()=>window.clearTimeout(timer);
+  },[query]);
+
   return <div className="search-shell">
     <div className="search-box-wrap">
       <Search size={21}/>
