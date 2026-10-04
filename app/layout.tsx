@@ -15,6 +15,7 @@ import './payment-checkout.css';
 import './returns-polish.css';
 import './collection-filters.css';
 import './search.css';
+import './store-error.css';
 import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 import { CartProvider } from '@/components/cart-provider';
@@ -48,6 +49,22 @@ export const metadata: Metadata = {
   },
 };
 
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'LOLA ENGLAND',
+  url: SITE_URL,
+  logo: `${SITE_URL}/Lola%20england.jpg`,
+};
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'LOLA ENGLAND',
+  url: SITE_URL,
+  description: 'Women’s T-shirts, graphic tees, oversized styles and everyday looks from LOLA ENGLAND.',
+};
+
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const logoUrl = (await getSiteMedia('brand-logo'))[0]?.url || '/Lola england.jpg';
   return (
@@ -63,6 +80,8 @@ function gtag(){window.dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '${GA_MEASUREMENT_ID}', { anonymize_ip: true });`}
         </Script>
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
         <CartProvider>
           <SiteHeader logoUrl={logoUrl} />
           <main>{children}</main>
