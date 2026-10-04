@@ -1,0 +1,9 @@
+.store-error-page{min-height:62vh;display:grid;place-items:center;padding:90px 24px 110px;background:linear-gradient(180deg,#fffaf7 0%,#f7efed 100%)}
+.store-error-inner{width:min(760px,100%);text-align:center}
+.store-error-inner h1{margin:10px 0 20px;font-family:Georgia,'Times New Roman',serif;font-size:clamp(46px,8vw,88px);font-weight:500;line-height:.95;letter-spacing:-.045em;color:#161313}
+.store-error-inner h1 em{font-style:italic;color:#8e6258}
+.store-error-copy{max-width:570px;margin:0 auto;color:#6d6263;font-size:16px;line-height:1.7}
+.store-error-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:30px}
+.store-error-actions .btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;text-decoration:none;cursor:pointer;font:inherit}
+.store-error-actions .btn-light{background:#fff;border:1px solid #d9cdca;color:#171313}
+@media(max-width:640px){.store-error-page{min-height:68vh;padding:70px 18px 90px}.store-error-inner h1{font-size:clamp(42px,13vw,62px)}.store-error-copy{font-size:14px}.store-error-actions{flex-direction:column}.store-error-actions .btn{width:100%}}
