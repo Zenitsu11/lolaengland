@@ -1,17 +1,30 @@
 export async function calculateCheckout(db:any, rawItems:any[], couponCode:string, codFee=0){
   const ids=rawItems.map((i:any)=>String(i.id||'')).filter(Boolean);
   if(!ids.length) throw new Error('Your bag is empty.');
-  const [{data:products,error:productError},{data:settings,error:settingsError}]=await Promise.all([
+  const variantIds=rawItems.map((i:any)=>String(i.variantId||'')).filter(Boolean);
+  const [{data:products,error:productError},{data:settings,error:settingsError},{data:inventory,error:inventoryError},{data:variants,error:variantError}]=await Promise.all([
     db.from('products').select('id,name,price,image_url').in('id',ids).eq('active',true),
-    db.from('store_settings').select('shipping_fee,free_shipping_threshold,platform_fee,gst_rate').eq('id',true).single()
+    db.from('store_settings').select('shipping_fee,free_shipping_threshold,platform_fee,gst_rate').eq('id',true).single(),
+    db.from('product_inventory').select('product_id,stock_qty,reserved_qty,track_inventory').in('product_id',ids),
+    variantIds.length?db.from('product_variants').select('id,product_id,stock_qty,reserved_qty,track_inventory').in('id',variantIds):Promise.resolve({data:[],error:null})
   ]);
   if(productError||!products?.length) throw new Error('One or more products are no longer available.');
   if(settingsError||!settings) throw new Error('Checkout charges are not configured.');
+  if(inventoryError||variantError) throw new Error('Inventory could not be verified. Please try again.');
+  const inventoryByProduct=new Map((inventory||[]).map((x:any)=>[String(x.product_id),x]));
+  const inventoryByVariant=new Map((variants||[]).map((x:any)=>[String(x.id),x]));
   const safeItems=rawItems.map((i:any)=>{
     const product=products.find((p:any)=>String(p.id)===String(i.id));
     const size=String(i.size||'').toUpperCase();
+    const quantity=Math.max(1,Math.min(20,Number(i.quantity)||1));
+    const variantId=String(i.variantId||'');
+    const stockRecord=variantId?inventoryByVariant.get(variantId):inventoryByProduct.get(String(i.id));
+    if(stockRecord?.track_inventory){
+      const available=Math.max(0,Number(stockRecord.stock_qty||0)-Number(stockRecord.reserved_qty||0));
+      if(quantity>available) throw new Error(`${product?.name||'This item'} is only available in ${available} ${available===1?'unit':'units'}. Please update your bag.`);
+    }
     return product&&['XS','S','M','L','XL','XXL','3XL'].includes(size)
-      ? {id:String(product.id),name:String(product.name).slice(0,200),price:Number(product.price),quantity:Math.max(1,Math.min(20,Number(i.quantity)||1)),size}
+      ? {id:String(product.id),name:String(product.name).slice(0,200),price:Number(product.price),quantity,size,variantId:variantId||undefined}
       : null;
   }).filter(Boolean);
   if(safeItems.length!==rawItems.length) throw new Error('Please choose a valid size for every product in your bag.');
