@@ -55,7 +55,7 @@ export async function POST(request:Request){
       }
       const productId=String(item.id||'');if(!productId)continue;
       const {data:inv}=await db.from('product_inventory').select('product_id,stock_qty,reserved_qty,track_inventory').eq('product_id',productId).maybeSingle();
-      if(inv?.track_inventory)await db.from('product_inventory').update({stock_qty:Math.max(0,Number(inv.stock_qty)-qty,updated_at:new Date().toISOString()}).eq('product_id',productId);
+      if(inv?.track_inventory)await db.from('product_inventory').update({stock_qty:Math.max(0,Number(inv.stock_qty)-qty),updated_at:new Date().toISOString()}).eq('product_id',productId);
     }
   }
   return NextResponse.json({ok:true,captured,status:nextStatus,paymentId:razorpay_payment_id});
