@@ -10,43 +10,17 @@ import './reviews.css';
 
 const SITE_URL='https://lolaengland.vercel.app';
 
-type ProductForSeo={
-  id:string|number;
-  name:string;
-  price:number;
-  mrp:number;
-  rating:number;
-  reviews:number|string;
-  description?:string;
-  image_url?:string;
-  image_urls?:string[];
-  slug?:string;
-  active?:boolean;
-};
+type ProductForSeo={id:string|number;name:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[];active?:boolean};
 
 export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
   const {id}=await params;
   const products=await getPublicProducts() as ProductForSeo[];
   const product=products.find(p=>String(p.id)===id);
-  if(!product){
-    return {title:'Product not found',robots:{index:false,follow:false}};
-  }
+  if(!product) return {title:'Product not found',robots:{index:false,follow:false}};
   const description=(product.description||`Shop ${product.name} from LOLA ENGLAND. Women’s T-shirt at ₹${product.price.toLocaleString('en-IN')}.`).slice(0,160);
-  const canonicalId=encodeURIComponent(String(product.slug||product.id));
+  const canonicalId=encodeURIComponent(String(product.id));
   const image=product.image_url||product.image_urls?.[0]||'/Lola england.jpg';
-  return {
-    title:product.name,
-    description,
-    alternates:{canonical:`${SITE_URL}/product/${canonicalId}`},
-    openGraph:{
-      type:'website',
-      url:`${SITE_URL}/product/${canonicalId}`,
-      title:`${product.name} | LOLA ENGLAND`,
-      description,
-      images:[{url:image,alt:product.name}],
-    },
-    twitter:{card:'summary_large_image',title:`${product.name} | LOLA ENGLAND`,description,images:[image]},
-  };
+  return {title:product.name,description,alternates:{canonical:`${SITE_URL}/product/${canonicalId}`},openGraph:{type:'website',url:`${SITE_URL}/product/${canonicalId}`,title:`${product.name} | LOLA ENGLAND`,description,images:[{url:image,alt:product.name}]},twitter:{card:'summary_large_image',title:`${product.name} | LOLA ENGLAND`,description,images:[image]}};
 }
 
 export default async function ProductPage({params}:{params:Promise<{id:string}>}) {
@@ -64,32 +38,8 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
   const productUrl=`${SITE_URL}/product/${encodeURIComponent(String(product.id))}`;
   const productImage=product.image_url||product.image_urls?.[0]||`${SITE_URL}/Lola%20england.jpg`;
   const reviewCount=Number(product.reviews||0);
-  const productSchema:any={
-    '@context':'https://schema.org',
-    '@type':'Product',
-    name:product.name,
-    description:product.description||`Women’s T-shirt from LOLA ENGLAND.`,
-    image:[productImage,...(product.image_urls||[]).filter(Boolean)].slice(0,8),
-    url:productUrl,
-    brand:{'@type':'Brand',name:'LOLA ENGLAND'},
-    offers:{
-      '@type':'Offer',
-      url:productUrl,
-      priceCurrency:'INR',
-      price:Number(product.price).toFixed(2),
-      availability:product.active===false?'https://schema.org/OutOfStock':'https://schema.org/InStock',
-      itemCondition:'https://schema.org/NewCondition',
-    },
-  };
-  if(reviewCount>0){
-    productSchema.aggregateRating={
-      '@type':'AggregateRating',
-      ratingValue:Number(product.rating||0).toFixed(1),
-      reviewCount,
-      bestRating:'5',
-      worstRating:'1',
-    };
-  }
+  const productSchema:any={'@context':'https://schema.org','@type':'Product',name:product.name,description:product.description||`Women’s T-shirt from LOLA ENGLAND.`,image:[productImage,...(product.image_urls||[]).filter(Boolean)].slice(0,8),url:productUrl,brand:{'@type':'Brand',name:'LOLA ENGLAND'},offers:{'@type':'Offer',url:productUrl,priceCurrency:'INR',price:Number(product.price).toFixed(2),availability:product.active===false?'https://schema.org/OutOfStock':'https://schema.org/InStock',itemCondition:'https://schema.org/NewCondition'}};
+  if(reviewCount>0) productSchema.aggregateRating={'@type':'AggregateRating',ratingValue:Number(product.rating||0).toFixed(1),reviewCount,bestRating:'5',worstRating:'1'};
 
   return <main className="inner-page product-detail-page"><div className="container">
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(productSchema)}} />
