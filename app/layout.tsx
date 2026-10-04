@@ -18,19 +18,38 @@ import './search.css';
 import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 import { CartProvider } from '@/components/cart-provider';
-import { StoreExperience } from '@/components/store-experience';
 import { getSiteMedia } from '@/lib/catalog';
 
 const GA_MEASUREMENT_ID = 'G-2R4KNXCNNM';
+const SITE_URL = 'https://lolaengland.vercel.app';
 
 export const metadata: Metadata = {
-  title: 'LOLA ENGLAND — Women’s T-Shirts',
-  description: 'LOLA ENGLAND — expressive women’s T-shirts, editorial looks and everyday style.',
-  metadataBase: new URL('https://lolaengland.vercel.app'),
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'LOLA ENGLAND — Women’s T-Shirts',
+    template: '%s | LOLA ENGLAND',
+  },
+  description: 'Shop expressive women’s T-shirts from LOLA ENGLAND — graphic tees, everyday styles and statement looks.',
+  applicationName: 'LOLA ENGLAND',
+  keywords: ['women’s t-shirts', 'women t shirts India', 'graphic t-shirts', 'oversized t-shirts', 'LOLA ENGLAND'],
+  alternates: { canonical: SITE_URL },
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: 'website',
+    siteName: 'LOLA ENGLAND',
+    url: SITE_URL,
+    title: 'LOLA ENGLAND — Women’s T-Shirts',
+    description: 'Expressive women’s T-shirts, editorial looks and everyday style.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'LOLA ENGLAND — Women’s T-Shirts',
+    description: 'Expressive women’s T-shirts, editorial looks and everyday style.',
+  },
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  const logoUrl=(await getSiteMedia('brand-logo'))[0]?.url || '/Lola england.jpg';
+  const logoUrl = (await getSiteMedia('brand-logo'))[0]?.url || '/Lola england.jpg';
   return (
     <html lang="en">
       <body>
