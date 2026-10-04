@@ -9,7 +9,7 @@ export async function POST(request:Request){
   const {orderRecordId,razorpay_payment_id,razorpay_order_id,razorpay_signature}=await request.json();
   if(!orderRecordId||!razorpay_payment_id||!razorpay_order_id||!razorpay_signature)return NextResponse.json({error:'Incomplete payment response.'},{status:400});
   const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Order backend is not configured.'},{status:503});
-  const {data:order,error}=await db.from('orders').select('id,status,total_amount,payment_account_id,payment_gateway_order_id,coupon_code,customer_id,items').eq('id',orderRecordId).single();
+  const {data:order,error}=await db.from('orders').select('id,status,total_amount,payment_account_id,payment_gateway_order_id,razorpay_payment_id,coupon_code,customer_id,items').eq('id',orderRecordId).single();
   if(error||!order)return NextResponse.json({error:'Order not found.'},{status:404});
   if(order.payment_gateway_order_id!==razorpay_order_id)return NextResponse.json({error:'Payment order mismatch.'},{status:400});
   if(order.status==='paid')return NextResponse.json({ok:true,captured:true,status:'paid',paymentId:order.razorpay_payment_id||razorpay_payment_id});
@@ -55,7 +55,7 @@ export async function POST(request:Request){
       }
       const productId=String(item.id||'');if(!productId)continue;
       const {data:inv}=await db.from('product_inventory').select('product_id,stock_qty,reserved_qty,track_inventory').eq('product_id',productId).maybeSingle();
-      if(inv?.track_inventory)await db.from('product_inventory').update({stock_qty:Math.max(0,Number(inv.stock_qty)-qty),updated_at:new Date().toISOString()}).eq('product_id',productId);
+      if(inv?.track_inventory)await db.from('product_inventory').update({stock_qty:Math.max(0,Number(inv.stock_qty)-qty,updated_at:new Date().toISOString()}).eq('product_id',productId);
     }
   }
   return NextResponse.json({ok:true,captured,status:nextStatus,paymentId:razorpay_payment_id});
