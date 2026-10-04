@@ -11,14 +11,14 @@ export async function calculateCheckout(db:any, rawItems:any[], couponCode:strin
   if(productError||!products?.length) throw new Error('One or more products are no longer available.');
   if(settingsError||!settings) throw new Error('Checkout charges are not configured.');
   if(inventoryError||variantError) throw new Error('Inventory could not be verified. Please try again.');
-  const inventoryByProduct=new Map((inventory||[]).map((x:any)=>[String(x.product_id),x]));
-  const inventoryByVariant=new Map((variants||[]).map((x:any)=>[String(x.id),x]));
+  const inventoryByProduct=new Map<string,any>((inventory||[]).map((x:any)=>[String(x.product_id),x]));
+  const inventoryByVariant=new Map<string,any>((variants||[]).map((x:any)=>[String(x.id),x]));
   const safeItems=rawItems.map((i:any)=>{
     const product=products.find((p:any)=>String(p.id)===String(i.id));
     const size=String(i.size||'').toUpperCase();
     const quantity=Math.max(1,Math.min(20,Number(i.quantity)||1));
     const variantId=String(i.variantId||'');
-    const stockRecord=variantId?inventoryByVariant.get(variantId):inventoryByProduct.get(String(i.id));
+    const stockRecord:any=variantId?inventoryByVariant.get(variantId):inventoryByProduct.get(String(i.id));
     if(stockRecord?.track_inventory){
       const available=Math.max(0,Number(stockRecord.stock_qty||0)-Number(stockRecord.reserved_qty||0));
       if(quantity>available) throw new Error(`${product?.name||'This item'} is only available in ${available} ${available===1?'unit':'units'}. Please update your bag.`);
