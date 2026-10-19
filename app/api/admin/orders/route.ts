@@ -27,7 +27,7 @@ export async function PUT(request:Request){
  if(!data)return NextResponse.json({error:'Order was updated by another request. Refresh and try again.'},{status:409});
  if(status==='paid'&&current.status!=='paid'){
    if(current.coupon_code){const {data:coupon}=await db.from('coupons').select('id,used_count').eq('code',current.coupon_code).maybeSingle();if(coupon)await db.from('coupons').update({used_count:Number(coupon.used_count||0)+1}).eq('id',coupon.id);}
-   if(current.customer_id){const {data:customer}=await db.from('customers').select('total_spent').eq('id',current.customer_id).maybeSingle();if(customer)await db.from('customers').update({total_spent:Number(customer.total_spent||0)+Number(current.total_amount||0),last_order_at:new Date().toISOString()}).eq('id',customer.id);}
+   if(current.customer_id){const {data:customer}=await db.from('customers').select('total_spent').eq('id',current.customer_id).maybeSingle();if(customer)await db.from('customers').update({total_spent:Number(customer.total_spent||0)+Number(current.total_amount||0),last_order_at:new Date().toISOString()}).eq('id',current.customer_id);}
    const items=Array.isArray(current.items)?current.items:[];
    for(const item of items){
      const qty=Math.max(1,Math.min(20,Number(item.quantity)||1));
