@@ -6,7 +6,7 @@ import { enqueueOrderNotification } from '@/lib/order-notifications';
 export async function GET(){
  if(!(await isAdminRequest()))return NextResponse.json({error:'Unauthorized'},{status:401});
  const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Supabase is not configured'},{status:503});
- const {data,error}=await db.from('orders').select('id,status,amount,total_amount,subtotal,shipping_fee,platform_fee,gst_rate,gst_amount,coupon_code,discount_amount,customer_name,customer_phone,customer_email,shipping_address,items,upi_transaction_id,payment_method,payment_gateway_order_id,payment_gateway_payment_id,created_at,paid_at').order('created_at',{ascending:false}).limit(100);
+ const {data,error}=await db.from('orders').select('id,status,amount,total_amount,subtotal,shipping_fee,platform_fee,gst_rate,gst_amount,coupon_code,discount_amount,customer_name,customer_phone,customer_email,shipping_address,items,upi_transaction_id,payment_method,payment_gateway_order_id,payment_gateway_payment_id,created_at,paid_at,invoice_number,shipment_status,courier_name,awb_number,tracking_url,shipped_at,delivered_at,estimated_delivery_date,admin_notified_at,admin_notification_error').order('created_at',{ascending:false}).limit(100);
  if(error)return NextResponse.json({error:error.message},{status:500}); return NextResponse.json({orders:data||[]});
 }
 
@@ -14,15 +14,20 @@ export async function PUT(request:Request){
  if(!(await isAdminRequest()))return NextResponse.json({error:'Unauthorized'},{status:401});
  const body=await request.json();if(!body.id)return NextResponse.json({error:'Order ID required.'},{status:400});
  const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Supabase is not configured'},{status:503});
- const {data:current,error:readError}=await db.from('orders').select('id,status,items,coupon_code,paid_at,customer_id,total_amount,return_status,refund_status,refund_amount,refund_reference,refund_method,refunded_at,return_requested_at,customer_name,customer_email,customer_phone,payment_method').eq('id',body.id).single();
+ const {data:current,error:readError}=await db.from('orders').select('id,status,items,coupon_code,paid_at,customer_id,total_amount,return_status,refund_status,refund_amount,refund_reference,refund_method,refunded_at,return_requested_at,customer_name,customer_email,customer_phone,payment_method,shipment_status,shipped_at,delivered_at').eq('id',body.id).single();
  if(readError||!current)return NextResponse.json({error:'Order not found.'},{status:404});
  const status=['payment_submitted','paid','cancelled','awaiting_payment','cod_pending','confirmed'].includes(body.status)?body.status:null;
  if(!status)return NextResponse.json({error:'Invalid order status.'},{status:400});
  if(current.status==='paid'&&status!=='paid')return NextResponse.json({error:'Paid orders cannot be moved back to a payment-unverified status. Use return/refund controls instead.'},{status:409});
  const patch:any={status};
+ if(body.shipmentStatus!==undefined){const allowed=['unfulfilled','processing','shipped','delivered'];if(!allowed.includes(body.shipmentStatus))return NextResponse.json({error:'Invalid shipment status.'},{status:400});patch.shipment_status=body.shipmentStatus;if(body.shipmentStatus==='shipped')patch.shipped_at=current.shipped_at||new Date().toISOString();if(body.shipmentStatus==='delivered')patch.delivered_at=current.delivered_at||new Date().toISOString();}
+ if(body.courierName!==undefined)patch.courier_name=String(body.courierName||'').trim().slice(0,120)||null;
+ if(body.awbNumber!==undefined)patch.awb_number=String(body.awbNumber||'').trim().slice(0,120)||null;
+ if(body.trackingUrl!==undefined){const value=String(body.trackingUrl||'').trim();if(value&&!/^https?:\\/\\//i.test(value))return NextResponse.json({error:'Tracking URL must start with http:// or https://.'},{status:400});patch.tracking_url=value||null;}
+ if(body.estimatedDeliveryDate!==undefined){const value=String(body.estimatedDeliveryDate||'').trim();if(value&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(value))return NextResponse.json({error:'Estimated delivery date must use YYYY-MM-DD.'},{status:400});patch.estimated_delivery_date=value||null;}
  if(body.utr!==undefined)patch.upi_transaction_id=String(body.utr||'').trim().slice(0,100);
  if(status==='paid')patch.paid_at=current.paid_at||new Date().toISOString();
- const {data,error}=await db.from('orders').update(patch).eq('id',body.id).eq('status',current.status).select('id,status,upi_transaction_id,paid_at').maybeSingle();
+ const {data,error}=await db.from('orders').update(patch).eq('id',body.id).eq('status',current.status).select('id,status,upi_transaction_id,paid_at,shipment_status,courier_name,awb_number,tracking_url,shipped_at,delivered_at,estimated_delivery_date').maybeSingle();
  if(error)return NextResponse.json({error:error.message},{status:400});
  if(!data)return NextResponse.json({error:'Order was updated by another request. Refresh and try again.'},{status:409});
  if(status==='paid'&&current.status!=='paid'){
