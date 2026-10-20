@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import {
-  BarChart3, Package, Layers3, Boxes, ShoppingCart, Users, TicketPercent,
+  BarChart3, Package, Layers3, Boxes, ShoppingCart, Users, TicketPercent, Truck,
   WalletCards, Settings, ExternalLink, LogOut, Plus, Pencil, Trash2, Save,
   X, Images, Upload, Search, CheckCircle2, Ban, RotateCcw
 } from 'lucide-react';
