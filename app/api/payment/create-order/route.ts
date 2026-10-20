@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { decryptSecret } from '@/lib/payment-crypto';
 import { calculateCheckout } from '@/lib/checkout-calculator';
+import { sendAdminCodOrderAlert } from '@/lib/order-notifications';
 export const runtime='nodejs';
 
 async function getAuthenticatedUser(request:Request){
@@ -87,9 +88,14 @@ export async function POST(request:Request){
     return NextResponse.json({error:error.message},{status:500});
   }
   const invoiceNumber=`LE-${new Date().getFullYear()}-${String(saved.id).replace(/-/g,'').slice(0,10).toUpperCase()}`;
-  await db.from('orders').update({invoice_number:invoiceNumber}).eq('id',saved.id);
+  const estimatedDate = new Date(); estimatedDate.setDate(estimatedDate.getDate() + 7);
+  await db.from('orders').update({invoice_number:invoiceNumber,estimated_delivery_date:estimatedDate.toISOString().slice(0,10)}).eq('id',saved.id);
   if(customerRecord?.id) await db.from('customers').update({total_orders:Number(customerRecord.total_orders||0)+1,last_order_at:new Date().toISOString()}).eq('id',customerRecord.id);
-  if(method==='cod')return NextResponse.json({orderRecordId:saved.id,invoiceNumber,method,...calc});
+  if(method==='cod'){
+    const alert=await sendAdminCodOrderAlert({orderId:String(saved.id),invoiceNumber,customerName:String(customer.name).slice(0,120),customerEmail:email,customerPhone:phone,shippingAddress,amount:calc.totalAmount,items:calc.safeItems||[]});
+    await db.from('orders').update(alert.ok?{admin_notified_at:new Date().toISOString(),admin_notification_error:null}:{admin_notification_error:alert.error||'Admin alert failed.'}).eq('id',saved.id);
+    return NextResponse.json({orderRecordId:saved.id,invoiceNumber,method,adminAlertSent:alert.ok,...calc});
+  }
   if(method==='upi'){
     const upiId=paymentAccount?.upi_id||envUpi;
     const upiName=settings.brand_name||paymentAccount?.name||'LOLA ENGLAND';
