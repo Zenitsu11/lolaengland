@@ -155,6 +155,14 @@ export default function AdminPage(){
     }catch(e){setMessage(e instanceof Error?e.message:'Could not update order.');}
   }
 
+  async function retryAdminAlert(o:any){
+    try{
+      const result=await api('/api/admin/orders',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:o.id,status:o.status,retryAdminAlert:true,shippingAddress:o.shipping_address})});
+      setMessage(result.adminAlertSent?'Admin alert email sent successfully.':'Admin alert failed: '+(result.error||'Check Resend configuration.'));
+      await refresh();
+    }catch(e){setMessage(e instanceof Error?e.message:'Could not retry admin alert.');}
+  }
+
   async function updateShipment(o:any){
     try{
       await api('/api/admin/orders',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:o.id,status:o.status,shipmentStatus:o.shipment_status||'unfulfilled',courierName:o.courier_name||'',awbNumber:o.awb_number||'',trackingUrl:o.tracking_url||'',estimatedDeliveryDate:o.estimated_delivery_date||''})});
@@ -360,7 +368,7 @@ export default function AdminPage(){
 <label className="wide">Courier tracking URL<input value={o.tracking_url||''} placeholder="https://..." onChange={e=>setOrders(list=>list.map(x=>x.id===o.id?{...x,tracking_url:e.target.value}:x))}/></label>
 </div>
 <button className="admin-btn ghost" onClick={()=>updateShipment(o)}><Truck size={15}/> Save delivery details</button>
-</div><div className="admin-actions">{isCod&&o.status==='cod_pending'&&<button className="admin-btn" onClick={()=>updateOrder(o.id,'confirmed')}><CheckCircle2/> Confirm COD & Email</button>}{isCod&&o.status==='confirmed'&&<button className="admin-btn ghost" onClick={()=>updateOrder(o.id,'confirmed')}><CheckCircle2/> Retry confirmation email</button>}{!isCod&&o.status!=='paid'&&o.status!=='cancelled'&&<button className="admin-btn" onClick={()=>{const utr=prompt('Enter bank UTR / transaction reference');if(utr!==null)updateOrder(o.id,'paid',utr)}}><CheckCircle2/> Mark paid</button>}{o.status!=='cancelled'&&o.status!=='paid'&&<button className="admin-btn ghost" onClick={()=>updateOrder(o.id,'cancelled')}><Ban/> Cancel</button>}</div></div>})}
+</div><div className="admin-actions">{isCod&&o.admin_notification_error&&<button className="admin-btn ghost" onClick={()=>retryAdminAlert(o)}><RotateCcw size={15}/> Retry admin alert</button>}{isCod&&o.status==='cod_pending'&&<button className="admin-btn" onClick={()=>updateOrder(o.id,'confirmed')}><CheckCircle2/> Confirm COD & Email</button>}{isCod&&o.status==='confirmed'&&<button className="admin-btn ghost" onClick={()=>updateOrder(o.id,'confirmed')}><CheckCircle2/> Retry confirmation email</button>}{!isCod&&o.status!=='paid'&&o.status!=='cancelled'&&<button className="admin-btn" onClick={()=>{const utr=prompt('Enter bank UTR / transaction reference');if(utr!==null)updateOrder(o.id,'paid',utr)}}><CheckCircle2/> Mark paid</button>}{o.status!=='cancelled'&&o.status!=='paid'&&<button className="admin-btn ghost" onClick={()=>updateOrder(o.id,'cancelled')}><Ban/> Cancel</button>}</div></div>})}
       {!orders.length&&<p>No orders yet.</p>}</div>}
 
       {tab==='returns'&&<div className="admin-card"><div className="admin-row"><div><h2>Returns & refunds</h2><p>Review customer return requests, approve or reject them, and record the final refund so every outcome stays tied to the order.</p></div><div className="admin-actions"><button className="admin-btn ghost" onClick={refresh}>Refresh</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('xlsx','returns')}>Excel</button><button className="admin-btn" disabled={exporting} onClick={()=>exportData('pdf','returns')}>PDF</button></div></div>
