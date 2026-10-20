@@ -1,11 +1,19 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { decryptSecret } from '@/lib/payment-crypto';
 import { calculateCheckout } from '@/lib/checkout-calculator';
 export const runtime='nodejs';
 
+async function getAuthenticatedUser(request:Request){
+ const auth=request.headers.get('authorization')||'';const token=auth.startsWith('Bearer ')?auth.slice(7):'';if(!token)return null;
+ const url=process.env.NEXT_PUBLIC_SUPABASE_URL||process.env.SUPABASE_URL;const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY||process.env.SUPABASE_ANON_KEY;if(!url||!key)return null;
+ const client=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});const {data}=await client.auth.getUser(token);return data.user||null;
+}
+
 export async function POST(request:Request){
  try{
+  const user=await getAuthenticatedUser(request);if(!user)return NextResponse.json({error:'Please sign in before checkout.'},{status:401});
   const body=await request.json();
   const method=body.method==='card'?'card':body.method==='cod'?'cod':'upi';
   const items=Array.isArray(body.items)?body.items:[]; const customer=body.customer||{};
@@ -51,22 +59,24 @@ export async function POST(request:Request){
   }
 
   const phone=String(customer.phone).trim().slice(0,30);
-  const email=String(customer.email||'').trim().slice(0,160).toLowerCase();
+  const email=String(user.email||customer.email||'').trim().slice(0,160).toLowerCase();
+  const shippingAddress=String(customer.address||'').trim().slice(0,1000);
   let customerRecord:any=null;
-  const existingCustomer=phone?await db.from('customers').select('*').eq('phone',phone).maybeSingle():{data:null,error:null};
-  if(existingCustomer.data){
-    const {data}=await db.from('customers').update({name:String(customer.name).slice(0,120),email,shipping_address:String(customer.address).slice(0,1000),updated_at:new Date().toISOString()}).eq('id',existingCustomer.data.id).select('*').single();
-    customerRecord=data;
-  }else{
-    const {data}=await db.from('customers').insert({name:String(customer.name).slice(0,120),phone,email,shipping_address:String(customer.address).slice(0,1000)}).select('*').single();
-    customerRecord=data;
+  const {data:linkedCustomer,error:linkedError}=await db.from('customers').select('*').eq('auth_user_id',user.id).maybeSingle();if(linkedError)throw linkedError;
+  if(linkedCustomer){const {data,error}=await db.from('customers').update({name:String(customer.name).slice(0,120),phone,email,shipping_address:shippingAddress,updated_at:new Date().toISOString()}).eq('id',linkedCustomer.id).select('*').single();if(error)throw error;customerRecord=data;}
+  else{
+    let guestMatch:any=null;
+    if(email){const {data,error}=await db.from('customers').select('*').ilike('email',email).is('auth_user_id',null).limit(1).maybeSingle();if(error)throw error;guestMatch=data;}
+    if(!guestMatch&&phone){const {data,error}=await db.from('customers').select('*').eq('phone',phone).is('auth_user_id',null).limit(1).maybeSingle();if(error)throw error;guestMatch=data;}
+    if(guestMatch){const {data,error}=await db.from('customers').update({auth_user_id:user.id,name:String(customer.name).slice(0,120),phone,email,shipping_address:shippingAddress,updated_at:new Date().toISOString()}).eq('id',guestMatch.id).select('*').single();if(error)throw error;customerRecord=data;}
+    else{const {data,error}=await db.from('customers').insert({auth_user_id:user.id,name:String(customer.name).slice(0,120),phone,email,shipping_address:shippingAddress}).select('*').single();if(error)throw error;customerRecord=data;}
   }
 
   const {data:saved,error}=await db.from('orders').insert({
     amount:calc.totalAmount,total_amount:calc.totalAmount,subtotal:calc.subtotal,shipping_fee:calc.shippingFee,platform_fee:calc.platformFee,gst_rate:calc.gstRate,gst_amount:calc.gstAmount,coupon_code:couponCode||null,discount_amount:calc.discountAmount,
     currency:'INR',status:method==='cod'?'cod_pending':'awaiting_payment',payment_method:method==='upi'?'upi_qr':method,
     payment_account_id:paymentAccount?.id||null,customer_id:customerRecord?.id||null,customer_name:String(customer.name).slice(0,120),customer_phone:phone,customer_email:email,
-    shipping_address:String(customer.address).slice(0,1000),items:calc.safeItems,idempotency_key:idempotencyKey||null
+    shipping_address:shippingAddress,items:calc.safeItems,idempotency_key:idempotencyKey||null
   }).select('id').single();
   if(error){
     // Two near-simultaneous requests can race the unique index; return the winner.
