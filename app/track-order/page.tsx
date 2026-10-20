@@ -4,7 +4,7 @@ import Link from 'next/link';
 import {CheckCircle2,Clock3,ArrowLeft,ExternalLink,Truck} from 'lucide-react';
 const steps=[['awaiting_payment','Payment'],['payment_submitted','Payment received'],['paid','Paid'],['confirmed','Confirmed'],['shipped','Shipped'],['delivered','Delivered']];
 function rank(status:string){if(status==='cancelled'||status==='cod_pending')return -1;const i=steps.findIndex(([s])=>s===status);return i<0?0:i;}
-function label(status:string){return status==='cod_pending'?'COD order confirmed':status.replaceAll('_',' ').replace(/\b\w/g,x=>x.toUpperCase());}
+function label(status:string){return status==='cod_pending'?'COD awaiting confirmation':status.replaceAll('_',' ').replace(/\b\w/g,x=>x.toUpperCase());}
 export default function TrackOrder(){
  const [order,setOrder]=useState('');const [phone,setPhone]=useState('');const [data,setData]=useState<any>(null);const [error,setError]=useState('');const [busy,setBusy]=useState(false);
  const submit=async(e:FormEvent)=>{e.preventDefault();setError('');setData(null);setBusy(true);try{const r=await fetch(`/api/orders/track?order=${encodeURIComponent(order.trim())}&phone=${encodeURIComponent(phone)}`,{cache:'no-store'});const d=await r.json();if(!r.ok)throw new Error(d.error||'Order not found.');setData(d.order);}catch(e){setError(e instanceof Error?e.message:'Unable to track order.');}finally{setBusy(false);}};
