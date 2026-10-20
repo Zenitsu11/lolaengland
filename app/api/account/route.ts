@@ -54,6 +54,16 @@ export async function POST(request:Request){
       const {data,error}=await db.from('customers').update({name,phone}).eq('auth_user_id',user.id).select('*').single(); if(error) throw error;
       return NextResponse.json({customer:data});
     }
+    if(action==='checkout_address'){
+      const name=String(body.name||'').trim().slice(0,120);const phone=String(body.phone||'').trim().slice(0,30);const line1=String(body.line1||'').trim().slice(0,200);const line2=String(body.line2||'').trim().slice(0,200);const city=String(body.city||'').trim().slice(0,80);const state=String(body.state||'').trim().slice(0,80);const pincode=String(body.pincode||'').replace(/\D/g,'').slice(0,6);const label=String(body.label||'Home').slice(0,40);const requestedId=String(body.addressId||'').trim();
+      if(!name||!phone||!line1||!city||!state||pincode.length!==6)return NextResponse.json({error:'Please complete all required delivery details.'},{status:400});
+      const {error:customerError}=await db.from('customers').update({name,phone,email:user.email||'',shipping_address:[line1,line2,city,state,pincode].filter(Boolean).join(', ')}).eq('auth_user_id',user.id);if(customerError)throw customerError;
+      const payload={label,name,phone,line1,line2,city,state,pincode,is_default:true,updated_at:new Date().toISOString()};
+      if(requestedId){const {data,error}=await db.from('customer_addresses').update(payload).eq('id',requestedId).eq('auth_user_id',user.id).select('*').maybeSingle();if(error)throw error;if(data)return NextResponse.json({address:data});}
+      const {data:defaultAddress}=await db.from('customer_addresses').select('id').eq('auth_user_id',user.id).eq('is_default',true).limit(1).maybeSingle();
+      if(defaultAddress&&!requestedId){const {data,error}=await db.from('customer_addresses').update(payload).eq('id',defaultAddress.id).eq('auth_user_id',user.id).select('*').single();if(error)throw error;return NextResponse.json({address:data});}
+      const {data,error}=await db.from('customer_addresses').insert({auth_user_id:user.id,...payload}).select('*').single();if(error)throw error;return NextResponse.json({address:data});
+    }
     if(action==='address'){
       const payload={label:String(body.label||'Home').slice(0,40),name:String(body.name||'').slice(0,120),phone:String(body.phone||'').slice(0,30),line1:String(body.line1||'').slice(0,200),line2:String(body.line2||'').slice(0,200),city:String(body.city||'').slice(0,80),state:String(body.state||'').slice(0,80),pincode:String(body.pincode||'').replace(/\D/g,'').slice(0,6),is_default:Boolean(body.is_default)};
       const {data,error}=await db.from('customer_addresses').insert({auth_user_id:user.id,...payload}).select('*').single(); if(error) throw error;
