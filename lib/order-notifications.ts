@@ -60,15 +60,16 @@ export async function enqueueOrderNotification(args: {
     return { ok: false, error };
   }
 
-  const { data: orderRecord } = await db.from('orders').select('invoice_number').eq('id', args.orderId).maybeSingle();
+  const { data: orderRecord } = await db.from('orders').select('invoice_number,estimated_delivery_date').eq('id', args.orderId).maybeSingle();
   const displayOrderId = orderRecord?.invoice_number || args.orderId;
+  const estimatedDelivery = orderRecord?.estimated_delivery_date ? new Date(orderRecord.estimated_delivery_date + 'T12:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
   const template = copy[args.type];
   const name = args.customerName?.trim() || 'there';
   const amount = args.amount == null ? '' : `<p><strong>Order total:</strong> ₹${Number(args.amount).toLocaleString('en-IN')}</p>`;
   const cod = args.paymentMethod?.toLowerCase() === 'cod'
     ? '<p>Please keep the order amount ready to pay when your order is delivered.</p>' : '';
-  const text = `Hi ${name},\n\n${template.body}\n\nOrder ID: ${displayOrderId}${args.amount == null ? '' : `\nOrder total: ₹${Number(args.amount).toLocaleString('en-IN')}`}${args.paymentMethod?.toLowerCase() === 'cod' ? '\nPlease keep the order amount ready to pay when your order is delivered.' : ''}\n\nThank you,\nLOLA ENGLAND`;
-  const html = `<!doctype html><html><body style="margin:0;background:#f7f5f2;font-family:Arial,sans-serif;color:#171717"><div style="max-width:600px;margin:24px auto;padding:32px 24px;background:#fff;border:1px solid #e8e4df"><p style="letter-spacing:3px;font-size:13px;font-weight:bold">LOLA ENGLAND</p><h1>${template.heading}</h1><p>Hi ${escapeHtml(name)},</p><p>${template.body}</p><p><strong>Order ID:</strong> ${escapeHtml(displayOrderId)}</p>${amount}${cod}<p>Thank you for shopping with us,<br><strong>LOLA ENGLAND</strong></p></div></body></html>`;
+  const text = `Hi ${name},\n\n${template.body}\n\nOrder ID: ${displayOrderId}${args.amount == null ? '' : `\nOrder total: ₹${Number(args.amount).toLocaleString('en-IN')}`}${estimatedDelivery ? `\nEstimated delivery: ${estimatedDelivery}` : ''}${args.paymentMethod?.toLowerCase() === 'cod' ? '\nPlease keep the order amount ready to pay when your order is delivered.' : ''}\n\nThank you,\nLOLA ENGLAND`;
+  const html = `<!doctype html><html><body style="margin:0;background:#f7f5f2;font-family:Arial,sans-serif;color:#171717"><div style="max-width:600px;margin:24px auto;padding:32px 24px;background:#fff;border:1px solid #e8e4df"><p style="letter-spacing:3px;font-size:13px;font-weight:bold">LOLA ENGLAND</p><h1>${template.heading}</h1><p>Hi ${escapeHtml(name)},</p><p>${template.body}</p><p><strong>Order ID:</strong> ${escapeHtml(displayOrderId)}</p>${amount}${estimatedDelivery ? `<p><strong>Estimated delivery:</strong> ${escapeHtml(estimatedDelivery)}</p>` : ''}${cod}<p>Thank you for shopping with us,<br><strong>LOLA ENGLAND</strong></p></div></body></html>`;
 
   try {
     const response = await fetch('https://api.resend.com/emails', {
