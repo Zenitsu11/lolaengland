@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase-admin';
 import { isAdminRequest } from '@/lib/admin-auth';
-import { enqueueOrderNotification } from '@/lib/order-notifications';
+import { enqueueOrderNotification, sendAdminCodOrderAlert } from '@/lib/order-notifications';
 
 export async function GET(){
  if(!(await isAdminRequest()))return NextResponse.json({error:'Unauthorized'},{status:401});
@@ -14,11 +14,17 @@ export async function PUT(request:Request){
  if(!(await isAdminRequest()))return NextResponse.json({error:'Unauthorized'},{status:401});
  const body=await request.json();if(!body.id)return NextResponse.json({error:'Order ID required.'},{status:400});
  const db=getSupabaseAdmin();if(!db)return NextResponse.json({error:'Supabase is not configured'},{status:503});
- const {data:current,error:readError}=await db.from('orders').select('id,status,items,coupon_code,paid_at,customer_id,total_amount,return_status,refund_status,refund_amount,refund_reference,refund_method,refunded_at,return_requested_at,customer_name,customer_email,customer_phone,payment_method,shipment_status,shipped_at,delivered_at').eq('id',body.id).single();
+ const {data:current,error:readError}=await db.from('orders').select('id,status,items,coupon_code,paid_at,customer_id,total_amount,amount,return_status,refund_status,refund_amount,refund_reference,refund_method,refunded_at,return_requested_at,customer_name,customer_email,customer_phone,payment_method,shipment_status,shipped_at,delivered_at,invoice_number,shipping_address,admin_notified_at,admin_notification_error').eq('id',body.id).single();
  if(readError||!current)return NextResponse.json({error:'Order not found.'},{status:404});
  const status=['payment_submitted','paid','cancelled','awaiting_payment','cod_pending','confirmed'].includes(body.status)?body.status:null;
  if(!status)return NextResponse.json({error:'Invalid order status.'},{status:400});
  if(current.status==='paid'&&status!=='paid')return NextResponse.json({error:'Paid orders cannot be moved back to a payment-unverified status. Use return/refund controls instead.'},{status:409});
+ if(body.retryAdminAlert===true){
+   if(current.payment_method!=='cod')return NextResponse.json({error:'Admin COD alert retry is only available for COD orders.'},{status:400});
+   const result=await sendAdminCodOrderAlert({orderId:String(current.id),invoiceNumber:current.invoice_number||String(current.id),customerName:current.customer_name||'Customer',customerEmail:current.customer_email||'',customerPhone:current.customer_phone||'',shippingAddress:body.shippingAddress||'',amount:Number(current.total_amount||current.amount||0),items:(Array.isArray(current.items)?current.items:[]).filter((item:any)=>item!=null)});
+   await db.from('orders').update(result.ok?{admin_notified_at:new Date().toISOString(),admin_notification_error:null}:{admin_notification_error:result.error||'Admin alert failed.'}).eq('id',current.id);
+   return NextResponse.json({adminAlertSent:result.ok,error:result.ok?undefined:result.error});
+ }
  const patch:any={status};
  if(body.shipmentStatus!==undefined){const allowed=['unfulfilled','processing','shipped','delivered'];if(!allowed.includes(body.shipmentStatus))return NextResponse.json({error:'Invalid shipment status.'},{status:400});patch.shipment_status=body.shipmentStatus;if(body.shipmentStatus==='shipped')patch.shipped_at=current.shipped_at||new Date().toISOString();if(body.shipmentStatus==='delivered')patch.delivered_at=current.delivered_at||new Date().toISOString();}
  if(body.courierName!==undefined)patch.courier_name=String(body.courierName||'').trim().slice(0,120)||null;
