@@ -92,7 +92,7 @@ export async function POST(request:Request){
   await db.from('orders').update({invoice_number:invoiceNumber,estimated_delivery_date:estimatedDate.toISOString().slice(0,10)}).eq('id',saved.id);
   if(customerRecord?.id) await db.from('customers').update({total_orders:Number(customerRecord.total_orders||0)+1,last_order_at:new Date().toISOString()}).eq('id',customerRecord.id);
   if(method==='cod'){
-    const alert=await sendAdminCodOrderAlert({orderId:String(saved.id),invoiceNumber,customerName:String(customer.name).slice(0,120),customerEmail:email,customerPhone:phone,shippingAddress,amount:calc.totalAmount,items:calc.safeItems||[]});
+    const alert=await sendAdminCodOrderAlert({orderId:String(saved.id),invoiceNumber,customerName:String(customer.name).slice(0,120),customerEmail:email,customerPhone:phone,shippingAddress,amount:calc.totalAmount,items:(calc.safeItems||[]).filter((item:any)=>item!=null)});
     await db.from('orders').update(alert.ok?{admin_notified_at:new Date().toISOString(),admin_notification_error:null}:{admin_notification_error:alert.error||'Admin alert failed.'}).eq('id',saved.id);
     return NextResponse.json({orderRecordId:saved.id,invoiceNumber,method,adminAlertSent:alert.ok,...calc});
   }
