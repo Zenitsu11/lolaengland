@@ -105,13 +105,13 @@ export async function sendAdminCodOrderAlert(args: {
   customerPhone: string;
   shippingAddress: string;
   amount: number;
-  items: Array<{ name?: string; size?: string; quantity?: number; price?: number }>;
+  items: Array<{ name?: string; size?: string; quantity?: number; price?: number } | null>;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.LOLA_NOTIFICATION_FROM_EMAIL;
   const to = process.env.LOLA_ADMIN_ORDER_EMAIL;
   if (!apiKey || !from || !to) return { ok: false, error: 'Admin order alert is not configured. Check RESEND_API_KEY, LOLA_NOTIFICATION_FROM_EMAIL and LOLA_ADMIN_ORDER_EMAIL.' };
-  const itemsText = args.items.map(item => `${item.name || 'Item'}${item.size ? ` (size ${item.size})` : ''} × ${Math.max(1, Number(item.quantity) || 1)}`).join(', ');
+  const itemsText = args.items.filter((item): item is NonNullable<typeof item> => item !== null).map(item => `${item.name || 'Item'}${item.size ? ` (size ${item.size})` : ''} × ${Math.max(1, Number(item.quantity) || 1)}`).join(', ');
   const subject = `New COD order needs confirmation — ${args.invoiceNumber}`;
   const text = `A new Cash on Delivery order needs your review.\n\nOrder code: ${args.invoiceNumber}\nCustomer: ${args.customerName}\nPhone: ${args.customerPhone}\nEmail: ${args.customerEmail || 'Not provided'}\nItems: ${itemsText}\nTotal: ₹${Number(args.amount).toLocaleString('en-IN')}\nDelivery address: ${args.shippingAddress}\n\nOpen the owner panel and go to Orders to confirm or cancel this order:\nhttps://www.lolaengland.com/admin\n\nThis alert does not confirm the order. Please review it in the admin panel.`;
   const html = `<!doctype html><html><body style="margin:0;background:#f7f5f2;font-family:Arial,sans-serif;color:#171717"><div style="max-width:620px;margin:24px auto;padding:30px 24px;background:#fff;border:1px solid #e8e4df"><p style="letter-spacing:3px;font-size:13px;font-weight:bold">LOLA ENGLAND · OWNER ALERT</p><h1>New COD order needs confirmation</h1><p><strong>Order code:</strong> ${escapeHtml(args.invoiceNumber)}</p><p><strong>Customer:</strong> ${escapeHtml(args.customerName)}</p><p><strong>Phone:</strong> ${escapeHtml(args.customerPhone)}</p><p><strong>Email:</strong> ${escapeHtml(args.customerEmail || 'Not provided')}</p><p><strong>Items:</strong> ${escapeHtml(itemsText || 'Order items')}</p><p><strong>Total:</strong> ₹${Number(args.amount).toLocaleString('en-IN')}</p><p><strong>Delivery address:</strong><br>${escapeHtml(args.shippingAddress)}</p><p>This alert does not confirm the order. Review the order in the owner panel before confirming.</p><p><a href="https://www.lolaengland.com/admin" style="display:inline-block;background:#171717;color:#fff;padding:13px 18px;text-decoration:none">Open admin orders</a></p></div></body></html>`;
