@@ -1,7 +1,7 @@
 'use client';
 import type { ReactNode } from 'react';
 import {createContext,useContext,useEffect,useMemo,useState,useCallback} from 'react';
-export type CartItem={id:string|number,name:string,price:number,image:string,quantity:number,size:string,color?:string,variantId?:string,lineId:string};
+export type CartItem={id:string|number,name:string,price:number,image:string,quantity:number,size:string,color?:string,fitType?:string,variantId?:string,lineId:string};
 type CartContext={items:CartItem[],total:number,add:(item:Omit<CartItem,'quantity'>)=>void,remove:(lineId:string)=>void,setQuantity:(lineId:string,quantity:number)=>void,replace:(items:CartItem[])=>void,clear:()=>void};
 const C=createContext<CartContext|null>(null);
 const SESSION_KEY='lola-cart-session';
