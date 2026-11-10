@@ -24,10 +24,12 @@ export async function getPublicProducts():Promise<Product[]>{
   const {data,error}=await db.from('products').select('id,name,price,mrp,rating,reviews,description,image_url,image_urls,video_urls,categories,fabric,occasions,amazon_url,flipkart_url,featured,active').eq('active',true).order('sort_order',{ascending:true}).order('created_at',{ascending:false});
   const hasUsableImages=Boolean(data?.some(p=>typeof p.image_url==='string'&&p.image_url.trim()));
   if(error||!data?.length||!hasUsableImages) return pairFrontAndBack(demoProducts);
-  return data.map(p=>{const urls=Array.isArray(p.image_urls)?p.image_urls.filter((v:unknown)=>typeof v==='string'&&v.trim()) as string[]:[];const front=p.image_url||urls[0]||'';return {id:p.id,name:p.name,price:p.price,mrp:p.mrp,rating:p.rating,reviews:p.reviews,description:p.description,image_url:front,image_urls:urls,secondary_image_url:urls[1],video_urls:Array.isArray(p.video_urls)?p.video_urls.filter((v:unknown)=>typeof v==='string'&&v.trim()) as string[]:[],categories:Array.isArray(p.categories)?p.categories:[],fabric:typeof p.fabric==='string'?p.fabric:'',occasions:Array.isArray(p.occasions)?p.occasions.filter((v:unknown)=>typeof v==='string'):[],amazon:p.amazon_url,flipkart:p.flipkart_url,tone:'#f0e2e5'};});
+  const mapped=data.map(p=>{const urls=Array.isArray(p.image_urls)?p.image_urls.filter((v:unknown)=>typeof v==='string'&&v.trim()) as string[]:[];const front=p.image_url||urls[0]||'';return {id:p.id,name:p.name,price:p.price,mrp:p.mrp,rating:p.rating,reviews:p.reviews,description:p.description,image_url:front,image_urls:urls,secondary_image_url:urls[1],video_urls:Array.isArray(p.video_urls)?p.video_urls.filter((v:unknown)=>typeof v==='string'&&v.trim()) as string[]:[],categories:Array.isArray(p.categories)?p.categories:[],fabric:typeof p.fabric==='string'?p.fabric:'',occasions:Array.isArray(p.occasions)?p.occasions.filter((v:unknown)=>typeof v==='string'):[],amazon:p.amazon_url,flipkart:p.flipkart_url,tone:'#f0e2e5'};});
+  const variants=await getPublicProductVariantsForProducts(mapped.map(p=>String(p.id)));
+  return mapped.map(p=>({...p,variants:variants.filter(v=>v.product_id===String(p.id))}));
 }
 
-export type ProductVariant={id:string;product_id:string;size:string;color:string;color_hex:string|null;sku:string|null;stock_qty:number;reserved_qty:number;low_stock_threshold:number;track_inventory:boolean;active:boolean};
+export type ProductVariant={id:string;product_id:string;size:string;color:string;color_hex:string|null;sku:string|null;stock_qty:number;reserved_qty:number;low_stock_threshold:number;track_inventory:boolean;active:boolean;fit_type:'Regular'|'Oversized';image_url:string|null};
 
 export async function getPublicProductVariants(productId:string):Promise<ProductVariant[]>{
   const all=await getPublicProductVariantsForProducts([productId]);
@@ -38,7 +40,7 @@ export async function getPublicProductVariantsForProducts(productIds:string[]):P
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL; const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if(!url||!key||!productIds.length)return [];
   const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
-  const {data,error}=await db.from('product_variants').select('id,product_id,size,color,color_hex,sku,stock_qty,reserved_qty,low_stock_threshold,track_inventory,active').in('product_id',productIds).eq('active',true).order('size').order('color');
+  const {data,error}=await db.from('product_variants').select('id,product_id,size,color,color_hex,sku,stock_qty,reserved_qty,low_stock_threshold,track_inventory,active,fit_type,image_url').in('product_id',productIds).eq('active',true).order('size').order('color');
   if(error||!data)return [];
   return data as ProductVariant[];
 }

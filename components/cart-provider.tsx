@@ -7,7 +7,7 @@ const C=createContext<CartContext|null>(null);
 const SESSION_KEY='lola-cart-session';
 const CART_KEY='lola-cart';
 function getSession(){try{let id=localStorage.getItem(SESSION_KEY);if(!id){id=crypto.randomUUID();localStorage.setItem(SESSION_KEY,id)}return id}catch{return `guest-${Date.now()}`}}
-function normalize(items:any[]):CartItem[]{return items.map((i:any)=>({...i,size:i.size||'M',lineId:i.lineId||`${i.id}-${i.size||'M'}-${i.color||''}`,quantity:Math.max(1,Number(i.quantity)||1)}));}
+function normalize(items:any[]):CartItem[]{return items.map((i:any)=>({...i,size:i.size||'M',lineId:i.lineId||`${i.id}-${i.fitType||'Regular'}-${i.size||'M'}-${i.color||''}`,quantity:Math.max(1,Number(i.quantity)||1)}));}
 export function CartProvider({children}:{children:ReactNode}){
  const [items,setItems]=useState<CartItem[]>([]);
  const [sessionId,setSessionId]=useState('');

@@ -18,8 +18,8 @@ export async function POST(request:Request){
   const body=await request.json();
   if(!body.product_id||!String(body.size||'').trim()||!String(body.color||'').trim()) return NextResponse.json({error:'Product, size and color are required.'},{status:400});
   const db=getSupabaseAdmin(); if(!db) return NextResponse.json({error:'Supabase is not configured'},{status:503});
-  const payload={product_id:body.product_id,size:String(body.size).trim().toUpperCase(),color:String(body.color).trim(),color_hex:body.color_hex?String(body.color_hex):null,sku:body.sku?String(body.sku).trim():null,stock_qty:Math.max(0,Math.floor(Number(body.stock_qty)||0)),reserved_qty:Math.max(0,Math.floor(Number(body.reserved_qty)||0)),low_stock_threshold:Math.max(0,Math.floor(Number(body.low_stock_threshold)||0)),track_inventory:body.track_inventory!==false,active:body.active!==false,updated_at:new Date().toISOString()};
-  const {data,error}=await db.from('product_variants').upsert(payload,{onConflict:'product_id,size,color'}).select('*').single();
+  const payload={product_id:body.product_id,size:String(body.size).trim().toUpperCase(),color:String(body.color).trim(),fit_type:body.fit_type==='Oversized'?'Oversized':'Regular',image_url:body.image_url?String(body.image_url).trim():null,color_hex:body.color_hex?String(body.color_hex):null,sku:body.sku?String(body.sku).trim():null,stock_qty:Math.max(0,Math.floor(Number(body.stock_qty)||0)),reserved_qty:Math.max(0,Math.floor(Number(body.reserved_qty)||0)),low_stock_threshold:Math.max(0,Math.floor(Number(body.low_stock_threshold)||0)),track_inventory:body.track_inventory!==false,active:body.active!==false,updated_at:new Date().toISOString()};
+  const {data,error}=await db.from('product_variants').upsert(payload,{onConflict:'product_id,size,color,fit_type'}).select('*').single();
   if(error) return NextResponse.json({error:error.message},{status:400});
   return NextResponse.json({variant:data});
 }
