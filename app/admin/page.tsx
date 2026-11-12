@@ -7,7 +7,7 @@ import { jsPDF } from 'jspdf';
 import {
   BarChart3, Package, Layers3, Boxes, ShoppingCart, Users, TicketPercent, Truck,
   WalletCards, Settings, ExternalLink, LogOut, Plus, Pencil, Trash2, Save,
-  X, Images, Upload, Search, CheckCircle2, Ban, RotateCcw
+  X, Images, Upload, Search, CheckCircle2, Ban, RotateCcw, Palette
 } from 'lucide-react';
 import { products as demoProducts } from '@/data/products';
 
@@ -306,6 +306,7 @@ export default function AdminPage(){
     <aside>
       <div className="admin-logo">LOLA <small>OWNER</small></div>
       {nav.map(([key,label,Icon])=><button key={key} className={tab===key?'active':''} onClick={()=>setTab(key)}><Icon/>{label}</button>)}
+      <a href="/admin/variants"><Palette/> Size × Color variants</a>
       <a href="/"><ExternalLink/> View store</a>
       <button onClick={logout}><LogOut/> Logout</button>
     </aside>
