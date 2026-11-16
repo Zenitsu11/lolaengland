@@ -164,6 +164,7 @@ body { background:var(--lola-paper)!important; color:var(--lola-ink)!important; 
   backdrop-filter:blur(16px);
 }
 .british-nav { width:min(1380px,calc(100% - 64px))!important; min-height:94px!important; height:94px!important; gap:30px!important; }
+.brand { width:190px!important; flex:0 0 190px!important; }
 .brand-frame { width:190px!important; height:76px!important; flex-basis:190px!important; background:transparent!important; }
 .brand-logo { width:190px!important; height:76px!important; max-width:190px!important; max-height:76px!important; object-fit:contain!important; background:transparent!important; }
 .british-desktop-nav { gap:clamp(14px,1.8vw,29px)!important; font-size:10px!important; letter-spacing:.16em!important; }
@@ -353,6 +354,7 @@ body { background:var(--lola-paper)!important; color:var(--lola-ink)!important; 
   .british-footer .footer-community form { flex-direction:column!important; }
 }
 @media(max-width:480px) {
+  .brand { width:142px!important; flex:0 0 142px!important; }
   .british-nav { width:calc(100% - 28px)!important; }
   .brand-frame,.brand-logo { width:142px!important; height:62px!important; max-width:142px!important; max-height:62px!important; flex-basis:142px!important; }
   .british-actions { gap:7px!important; }
