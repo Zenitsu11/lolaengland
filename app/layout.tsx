@@ -71,7 +71,7 @@ const websiteSchema = {
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const logoUrl = (await getSiteMedia('brand-logo'))[0]?.url || '/Lola england.jpg';
   return (
-    <html lang="en">
+    <html lang="en-GB">
       <body>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
