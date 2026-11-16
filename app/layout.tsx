@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'LOLA ENGLAND — Contemporary Womenswear',
-    description: 'Expressive women’s T-shirts, editorial looks and everyday style.',
+    description: 'A considered edit of contemporary womenswear, everyday essentials and statement style.',
   },
 };
 
@@ -65,7 +65,7 @@ const websiteSchema = {
   '@type': 'WebSite',
   name: 'LOLA ENGLAND',
   url: SITE_URL,
-  description: 'Women’s T-shirts, graphic tees, oversized styles and everyday looks from LOLA ENGLAND.',
+  description: 'Contemporary womenswear, everyday essentials and considered style from LOLA ENGLAND.',
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
