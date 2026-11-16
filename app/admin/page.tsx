@@ -11,17 +11,17 @@ import {
 } from 'lucide-react';
 import { products as demoProducts } from '@/data/products';
 
-type Product={id:string|number;name:string;slug?:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[];video_urls?:string[];categories?:string[];amazon_url?:string;flipkart_url?:string;featured?:boolean;active?:boolean;sort_order?:number};
+type Product={id:string|number;name:string;slug?:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[];video_urls?:string[];categories?:string[];amazon_url?:string;flipkart_url?:string;myntra_url?:string;featured?:boolean;active?:boolean;sort_order?:number};
 type Category={id:string;name:string;slug:string;description:string;active:boolean;sort_order:number};
 type Inventory={product_id:string;stock_qty:number;reserved_qty:number;low_stock_threshold:number;track_inventory:boolean;products?:Product};
 type Coupon={id:string;code:string;description:string;discount_type:'percent'|'fixed';discount_value:number;minimum_order_value:number;maximum_discount:number|null;usage_limit:number|null;used_count:number;starts_at:string|null;expires_at:string|null;active:boolean};
-type Settings={brand_name:string;shipping_message:string;instagram_url:string;whatsapp_url:string;contact_email:string;amazon_seller_url:string;flipkart_seller_url:string;shipping_fee:number;free_shipping_threshold:number;platform_fee:number;gst_rate:number;upi_enabled:boolean;card_enabled:boolean;cod_enabled:boolean;cod_fee:number;hero_image_urls:string[];hero_video_urls:string[]};
+type Settings={brand_name:string;shipping_message:string;instagram_url:string;whatsapp_url:string;contact_email:string;amazon_seller_url:string;flipkart_seller_url:string;myntra_seller_url:string;shipping_fee:number;free_shipping_threshold:number;platform_fee:number;gst_rate:number;upi_enabled:boolean;card_enabled:boolean;cod_enabled:boolean;cod_fee:number;hero_image_urls:string[];hero_video_urls:string[]};
 type PaymentAccount={id:string;name:string;provider:'upi'|'razorpay';key_id?:string|null;upi_id:string;active:boolean;sort_order:number;created_at?:string};
 type SiteMedia={id:string;section:string;slot_key:string;title:string;url:string;alt_text:string;href:string;active:boolean;sort_order:number};
 
-const emptyProduct:Product={id:'new',name:'',slug:'',price:599,mrp:899,rating:4.5,reviews:0,description:'',image_url:'',image_urls:[],video_urls:[],categories:[],amazon_url:'',flipkart_url:'',featured:true,active:true,sort_order:0};
+const emptyProduct:Product={id:'new',name:'',slug:'',price:599,mrp:899,rating:4.5,reviews:0,description:'',image_url:'',image_urls:[],video_urls:[],categories:[],amazon_url:'',flipkart_url:'',myntra_url:'',featured:true,active:true,sort_order:0};
 const HERO_DEFAULT_IMAGES=['/products/lola-brown-front.webp?v=8','/products/lola-mint-front.webp?v=6','/products/lola-navy-front.webp?v=6','/products/lola-olive-front.webp?v=6'];
-const defaultSettings:Settings={brand_name:'LOLA ENGLAND',shipping_message:'FREE SHIPPING ON ORDERS OVER ₹799',instagram_url:'',whatsapp_url:'',contact_email:'',amazon_seller_url:'',flipkart_seller_url:'',shipping_fee:40,free_shipping_threshold:799,platform_fee:10,gst_rate:5,upi_enabled:true,card_enabled:false,cod_enabled:false,cod_fee:0,hero_image_urls:HERO_DEFAULT_IMAGES,hero_video_urls:[]};
+const defaultSettings:Settings={brand_name:'LOLA ENGLAND',shipping_message:'FREE SHIPPING ON ORDERS OVER ₹799',instagram_url:'',whatsapp_url:'',contact_email:'',amazon_seller_url:'',flipkart_seller_url:'',myntra_seller_url:'',shipping_fee:40,free_shipping_threshold:799,platform_fee:10,gst_rate:5,upi_enabled:true,card_enabled:false,cod_enabled:false,cod_fee:0,hero_image_urls:HERO_DEFAULT_IMAGES,hero_video_urls:[]};
 const normalizeHeroImages=(urls:unknown[])=>Array.from({length:4},(_,i)=>typeof urls?.[i]==='string'&&String(urls[i]).trim()?String(urls[i]):HERO_DEFAULT_IMAGES[i]);
 
 const nav=[
@@ -304,7 +304,7 @@ export default function AdminPage(){
 
   return <div className="admin-shell">
     <aside>
-      <div className="admin-logo">LOLA <small>OWNER</small></div>
+      <div className="admin-logo"><img src="/logo.svg" alt="LOLA ENGLAND"/><small>OWNER</small></div>
       {nav.map(([key,label,Icon])=><button key={key} className={tab===key?'active':''} onClick={()=>setTab(key)}><Icon/>{label}</button>)}
       <a href="/admin/variants"><Palette/> Size × Color variants</a>
       <a href="/"><ExternalLink/> View store</a>
@@ -347,6 +347,7 @@ export default function AdminPage(){
           <div className="wide category-picker"><b>Categories</b><div>{categories.map(c=><label key={c.id}><input type="checkbox" checked={editingProduct.categories?.includes(c.slug)||false} onChange={e=>{const s=new Set(editingProduct.categories||[]);e.target.checked?s.add(c.slug):s.delete(c.slug);setEditingProduct({...editingProduct,categories:[...s]})}}/>{c.name}</label>)}</div></div>
           {field('Amazon product URL',editingProduct.amazon_url,v=>setEditingProduct({...editingProduct,amazon_url:v}))}
           {field('Flipkart product URL',editingProduct.flipkart_url,v=>setEditingProduct({...editingProduct,flipkart_url:v}))}
+          {field('Myntra product URL',editingProduct.myntra_url,v=>setEditingProduct({...editingProduct,myntra_url:v}))}
         </div>
       </div>}</>}
 
@@ -464,6 +465,7 @@ export default function AdminPage(){
         {field('Contact email',settings.contact_email,v=>setSettings({...settings,contact_email:v}),'email')}{field('Instagram URL',settings.instagram_url,v=>setSettings({...settings,instagram_url:v}),'url')}
         {field('WhatsApp URL',settings.whatsapp_url,v=>setSettings({...settings,whatsapp_url:v}),'url')}{field('Amazon seller URL',settings.amazon_seller_url,v=>setSettings({...settings,amazon_seller_url:v}),'url')}
         {field('Flipkart seller URL',settings.flipkart_seller_url,v=>setSettings({...settings,flipkart_seller_url:v}),'url')}
+        {field('Myntra seller / store URL',settings.myntra_seller_url,v=>setSettings({...settings,myntra_seller_url:v}),'url')}
       </div><button className="admin-btn" onClick={saveSettings} disabled={loading}><Save/> Save website settings</button></div>}
     </section>
   </div>;
