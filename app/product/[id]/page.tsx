@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 
-export const revalidate = 30;
 import Link from 'next/link';
 import { ArrowLeft, Star, Ruler, Shirt, Sparkles } from 'lucide-react';
 import { getPublicProducts, type ProductVariant } from '@/lib/catalog';
@@ -10,6 +9,8 @@ import { ProductReviews } from '@/components/product-reviews';
 import { RelatedProducts, RecentlyViewed } from '@/components/product-recommendations';
 import { MetaProductView } from '@/components/meta-product-view';
 import './reviews.css';
+
+export const revalidate = 30;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lolaengland.com';
 type ProductForSeo={id:string|number;name:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[]};
 
