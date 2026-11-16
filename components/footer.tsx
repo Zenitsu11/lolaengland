@@ -20,7 +20,7 @@ export function Footer() {
     </div>
     <div className="container footer-grid">
       <div className="footer-brand-block">
-        <img src="/Lola england.jpg" alt="LOLA ENGLAND" className="footer-brand-logo" />
+        <img src="/logo.svg" alt="LOLA ENGLAND" className="footer-brand-logo" />
         <p>A considered edit of women’s fashion, from everyday essentials to pieces that make an entrance.</p>
       </div>
       <div className="footer-group"><h4>SHOP</h4><Link href="/new-in">New In</Link><Link href="/collection/all">All Available Styles</Link><Link href="/collection/tops-t-shirts">Tops & T-Shirts</Link><Link href="/collection/dresses">Dresses</Link><Link href="/collection/outerwear">Coats & Jackets</Link></div>
