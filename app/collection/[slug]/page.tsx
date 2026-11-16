@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
+
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { CollectionFilters } from '@/components/collection-filters';
 import { getPublicProductVariantsForProducts, getPublicProducts } from '@/lib/catalog';
 
+export const revalidate = 30;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lolaengland.com';
 
 type Collection = { title: string; eyebrow: string; copy: string; description: string; category?: string };
@@ -49,7 +51,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
     if (!collections[slug]?.category) return false;
     return categories.includes(collection.category!.toLowerCase()) || categories.includes(slug);
   });
-  const variants = await getPublicProductVariantsForProducts(products.map(product => String(product.id)));
+  const variants = products.flatMap(product => product.variants || []) as Awaited<ReturnType<typeof getPublicProductVariantsForProducts>>;
   return <main className="inner-page collection-page">
     <div className="container">
       <Link className="back-link" href="/"><ArrowLeft /> Back to LOLA</Link>

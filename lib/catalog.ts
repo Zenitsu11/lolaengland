@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { unstable_cache } from 'next/cache';
 import type { Product } from '@/components/product-card';
 import { products as demoProducts } from '@/data/products';
 
@@ -17,7 +18,7 @@ function pairFrontAndBack(items: Product[]): Product[] {
   });
 }
 
-export async function getPublicProducts():Promise<Product[]>{
+const getPublicProductsCached = unstable_cache(async function fetchGetPublicProducts():Promise<Product[]> {
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL; const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if(!url || !key) return pairFrontAndBack(demoProducts);
   const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
@@ -27,7 +28,9 @@ export async function getPublicProducts():Promise<Product[]>{
   const mapped=data.map(p=>{const urls=Array.isArray(p.image_urls)?p.image_urls.filter((v:unknown)=>typeof v==='string'&&v.trim()) as string[]:[];const front=p.image_url||urls[0]||'';return {id:p.id,name:p.name,price:p.price,mrp:p.mrp,rating:p.rating,reviews:p.reviews,description:p.description,image_url:front,image_urls:urls,secondary_image_url:urls[1],video_urls:Array.isArray(p.video_urls)?p.video_urls.filter((v:unknown)=>typeof v==='string'&&v.trim()) as string[]:[],categories:Array.isArray(p.categories)?p.categories:[],fabric:typeof p.fabric==='string'?p.fabric:'',occasions:Array.isArray(p.occasions)?p.occasions.filter((v:unknown)=>typeof v==='string'):[],amazon:p.amazon_url,flipkart:p.flipkart_url,tone:'#f0e2e5'};});
   const variants=await getPublicProductVariantsForProducts(mapped.map(p=>String(p.id)));
   return mapped.map(p=>({...p,variants:variants.filter(v=>v.product_id===String(p.id))}));
-}
+}, ['lola-public-products-v3'], { revalidate: 15, tags: ['public-catalog'] });
+
+export function getPublicProducts(): Promise<Product[]> { return getPublicProductsCached(); }
 
 export type ProductVariant={id:string;product_id:string;size:string;color:string;color_hex:string|null;sku:string|null;stock_qty:number;reserved_qty:number;low_stock_threshold:number;track_inventory:boolean;active:boolean;fit_type:'Regular'|'Oversized';image_url:string|null};
 
@@ -36,28 +39,34 @@ export async function getPublicProductVariants(productId:string):Promise<Product
   return all.filter(v=>v.product_id===productId);
 }
 
-export async function getPublicProductVariantsForProducts(productIds:string[]):Promise<ProductVariant[]>{
+const getPublicProductVariantsForProductsCached = unstable_cache(async function fetchGetPublicProductVariantsForProducts(productIds:string[]):Promise<ProductVariant[]> {
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL; const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if(!url||!key||!productIds.length)return [];
   const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
   const {data,error}=await db.from('product_variants').select('id,product_id,size,color,color_hex,sku,stock_qty,reserved_qty,low_stock_threshold,track_inventory,active,fit_type,image_url').in('product_id',productIds).eq('active',true).order('size').order('color');
   if(error||!data)return [];
   return data as ProductVariant[];
-}
+}, ['lola-public-variants-v2'], { revalidate: 15, tags: ['public-product-variants'] });
 
-export async function getStoreSettings(){
+export function getPublicProductVariantsForProducts(productIds:string[]): Promise<ProductVariant[]> { return getPublicProductVariantsForProductsCached(productIds); }
+
+const getStoreSettingsCached = unstable_cache(async function fetchGetStoreSettings() {
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL; const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; const fallback={hero_image_urls:[],hero_video_urls:[]};
   if(!url||!key)return fallback;
   const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
   const {data,error}=await db.from('store_settings').select('hero_image_urls,hero_video_urls').eq('id',true).single();
   if(error||!data)return fallback;
   return {hero_image_urls:Array.isArray(data.hero_image_urls)?data.hero_image_urls.filter((x:unknown)=>typeof x==='string'&&x.trim()).slice(0,4):[],hero_video_urls:Array.isArray(data.hero_video_urls)?data.hero_video_urls.filter((x:unknown)=>typeof x==='string'&&x.trim()).slice(0,2):[]};
-}
+}, ['lola-store-settings-v2'], { revalidate: 60, tags: ['public-store-settings'] });
+
+export function getStoreSettings(): Promise<{ hero_image_urls: string[]; hero_video_urls: string[] }> { return getStoreSettingsCached(); }
 
 export type SiteMedia={id:string;section:string;slot_key:string;title:string;url:string;alt_text:string;href:string;active:boolean;sort_order:number};
-export async function getSiteMedia(section:string):Promise<SiteMedia[]>{
+const getSiteMediaCached = unstable_cache(async function fetchGetSiteMedia(section:string):Promise<SiteMedia[]> {
   const url=process.env.NEXT_PUBLIC_SUPABASE_URL; const key=process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY; if(!url||!key)return [];
   const db=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
   const {data,error}=await db.from('site_media').select('id,section,slot_key,title,url,alt_text,href,active,sort_order').eq('section',section).eq('active',true).order('sort_order',{ascending:true});
   if(error||!data)return []; return data as SiteMedia[];
-}
+}, ['lola-site-media-v2'], { revalidate: 60, tags: ['public-site-media'] });
+
+export function getSiteMedia(section:string): Promise<SiteMedia[]> { return getSiteMediaCached(section); }

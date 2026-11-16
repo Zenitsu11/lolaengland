@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
+
 import Link from 'next/link';
 import { ArrowLeft, Star, Ruler, Shirt, Sparkles } from 'lucide-react';
-import { getPublicProducts, getPublicProductVariants } from '@/lib/catalog';
+import { getPublicProducts, type ProductVariant } from '@/lib/catalog';
 import { ProductGallery } from '@/components/product-gallery';
 import { ProductPurchase } from '@/components/product-purchase';
 import { ProductReviews } from '@/components/product-reviews';
@@ -9,6 +10,7 @@ import { RelatedProducts, RecentlyViewed } from '@/components/product-recommenda
 import { MetaProductView } from '@/components/meta-product-view';
 import './reviews.css';
 
+export const revalidate = 30;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lolaengland.com';
 type ProductForSeo={id:string|number;name:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[]};
 
@@ -28,7 +30,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
   const products=await getPublicProducts();
   const product=products.find(p=>String(p.id)===id);
   if(!product) return <main className="inner-page"><div className="container"><h1>Product not found</h1></div></main>;
-  const variants=await getPublicProductVariants(String(product.id));
+  const variants=(product.variants||[]) as unknown as ProductVariant[];
   const currentCategories=new Set((product.categories||[]).map((x)=>String(x).toLowerCase()));
   const related=products.filter((p)=>String(p.id)!==String(product.id) && (p.categories||[]).some((c)=>currentCategories.has(String(c).toLowerCase())));
   const fallbackRelated=products.filter((p)=>String(p.id)!==String(product.id));
