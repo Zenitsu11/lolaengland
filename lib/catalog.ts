@@ -28,7 +28,7 @@ const getPublicProductsCached = unstable_cache(async function fetchGetPublicProd
   const mapped=data.map(p=>{const urls=Array.isArray(p.image_urls)?p.image_urls.filter((v:unknown)=>typeof v==='string'&&v.trim()) as string[]:[];const front=p.image_url||urls[0]||'';return {id:p.id,name:p.name,price:p.price,mrp:p.mrp,rating:p.rating,reviews:p.reviews,description:p.description,image_url:front,image_urls:urls,secondary_image_url:urls[1],video_urls:Array.isArray(p.video_urls)?p.video_urls.filter((v:unknown)=>typeof v==='string'&&v.trim()) as string[]:[],categories:Array.isArray(p.categories)?p.categories:[],fabric:typeof p.fabric==='string'?p.fabric:'',occasions:Array.isArray(p.occasions)?p.occasions.filter((v:unknown)=>typeof v==='string'):[],amazon:p.amazon_url,flipkart:p.flipkart_url,tone:'#f0e2e5'};});
   const variants=await getPublicProductVariantsForProducts(mapped.map(p=>String(p.id)));
   return mapped.map(p=>({...p,variants:variants.filter(v=>v.product_id===String(p.id))}));
-}, ['lola-public-products-v3'], { revalidate: 30, tags: ['public-catalog'] });
+}, ['lola-public-products-v3'], { revalidate: 15, tags: ['public-catalog'] });
 
 export function getPublicProducts(): Promise<Product[]> { return getPublicProductsCached(); }
 
