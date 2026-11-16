@@ -29,6 +29,7 @@ export async function PUT(request: Request) {
     contact_email: String(body.contact_email ?? '').trim().slice(0, 320),
     amazon_seller_url: String(body.amazon_seller_url ?? '').trim().slice(0, 500),
     flipkart_seller_url: String(body.flipkart_seller_url ?? '').trim().slice(0, 500),
+    myntra_seller_url: String(body.myntra_seller_url ?? '').trim().slice(0, 500),
     shipping_fee: num(body.shipping_fee,40),
     free_shipping_threshold: num(body.free_shipping_threshold,799),
     platform_fee: num(body.platform_fee,10),
