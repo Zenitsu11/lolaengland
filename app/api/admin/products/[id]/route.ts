@@ -9,7 +9,7 @@ export async function PUT(request:Request,{params}:{params:Promise<{id:string}>}
   if(!db) return NextResponse.json({error:'Supabase is not configured'},{status:503});
   const {id}=await params;
   const body=await request.json();
-  const allowed=['name','slug','price','mrp','rating','reviews','description','image_url','image_urls','video_urls','amazon_url','flipkart_url','featured','active','sort_order','categories','fabric','occasions'];
+  const allowed=['name','slug','price','mrp','rating','reviews','description','image_url','image_urls','video_urls','amazon_url','flipkart_url','myntra_url','featured','active','sort_order','categories','fabric','occasions'];
   const payload=Object.fromEntries(Object.entries(body).filter(([key])=>allowed.includes(key)));
   if('image_urls' in payload) payload.image_urls=Array.isArray(payload.image_urls) ? payload.image_urls.map((value:unknown)=>String(value).trim()).filter(Boolean).slice(0,12) : [];
   if('image_urls' in payload) payload.image_url=(payload.image_urls as string[])[0] || '';
