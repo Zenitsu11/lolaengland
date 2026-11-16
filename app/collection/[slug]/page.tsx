@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+
+export const revalidate = 30;
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { CollectionFilters } from '@/components/collection-filters';
 import { getPublicProductVariantsForProducts, getPublicProducts } from '@/lib/catalog';
-
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lolaengland.com';
 
 type Collection = { title: string; eyebrow: string; copy: string; description: string; category?: string };
