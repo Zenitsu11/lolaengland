@@ -11,7 +11,7 @@
   --lola-gold: #ad9167;
   --lola-serif: 'Playfair Display', Georgia, serif;
 }
-html { scroll-behaviour: smooth; scroll-padding-top: 110px; }
+html { scroll-behavior: smooth; scroll-padding-top: 110px; }
 body { background: var(--lola-paper); color: var(--lola-ink); }
 ::selection { background: #e8d8d5; color: var(--lola-burgundy-deep); }
 a { text-underline-offset: 4px; }
@@ -124,5 +124,5 @@ a { text-underline-offset: 4px; }
   .collection-hero { padding-top: 28px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { scroll-behaviour: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
