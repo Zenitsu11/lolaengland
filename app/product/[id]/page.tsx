@@ -33,6 +33,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
   const related=products.filter((p)=>String(p.id)!==String(product.id) && (p.categories||[]).some((c)=>currentCategories.has(String(c).toLowerCase())));
   const fallbackRelated=products.filter((p)=>String(p.id)!==String(product.id));
   const recommendations=(related.length?related:fallbackRelated).slice(0,4);
+  const moreToDiscover=fallbackRelated.slice(4,8);
   const fabric=product.fabric?.trim() || 'Soft everyday fabric';
   const occasions=product.occasions?.length ? product.occasions.join(' · ') : 'Casual · Everyday · Weekend';
   const productUrl=`${SITE_URL}/product/${encodeURIComponent(String(product.id))}`;
@@ -71,7 +72,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
     </section>
     <ProductReviews productId={String(product.id)}/>
     <RelatedProducts products={recommendations} title="You may also like" eyebrow="MORE LOLA" />
-    <RelatedProducts products={recommendations.slice().reverse()} title="Complete the look" eyebrow="STYLE IT WITH" />
+    <RelatedProducts products={moreToDiscover} title="More to discover" eyebrow="THE LOLA EDIT" />
     <RecentlyViewed currentId={String(product.id)} products={products} />
   </div></main>;
 }
