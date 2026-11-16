@@ -1,6 +1,5 @@
 import Link from 'next/link';
 
-export const revalidate = 30;
 import type { Metadata } from 'next';
 import { Heart, Sparkles, Star } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
@@ -8,6 +7,8 @@ import { SafeImage } from '@/components/safe-image';
 import { getPublicProducts, getSiteMedia, getStoreSettings, type SiteMedia } from '@/lib/catalog';
 import { NewsletterForm } from '@/components/store-experience';
 import { MoodHero } from '@/components/mood-hero';
+
+export const revalidate = 30;
 const fallbackLooks = [
   { image: '/products/lola-mint-front.webp?v=6', tag: '01 · SOFT MINT', quote: 'Pretty, playful, effortless.', copy: 'Soft colour, relaxed energy and a tee that does the talking.', slug:'soft-pink' },
   { image: '/products/lola-navy-front.webp?v=6', tag: '02 · AFTER DARK', quote: 'Bold looks. Easy confidence.', copy: 'A darker mood for evenings, city walks and everything after sunset.', slug:'after-dark' },
