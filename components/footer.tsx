@@ -2,38 +2,35 @@ import Link from 'next/link';
 import { Truck, RotateCcw, ShieldCheck, Sparkles } from 'lucide-react';
 import { NewsletterForm } from '@/components/store-experience';
 
-export function Footer(){
-  return <footer className="footer" id="contact">
+export function Footer() {
+  return <footer className="footer british-footer" id="contact">
     <section className="trust-strip" aria-label="LOLA ENGLAND service benefits">
       <div className="container trust-grid">
-        <div><RotateCcw/><h3>Easy Returns</h3><p>Simple return support for eligible orders.</p></div>
-        <div><Truck/><h3>Fast Shipping</h3><p>Clear delivery charges before you pay.</p></div>
-        <div><Sparkles/><h3>Premium Quality</h3><p>Thoughtful fits, prints and everyday fabrics.</p></div>
-        <div><ShieldCheck/><h3>Secure UPI</h3><p>Protected checkout with direct UPI QR payment.</p></div>
+        <div><RotateCcw /><h3>Considered Service</h3><p>Helpful support throughout your order journey.</p></div>
+        <div><Truck /><h3>Delivery Information</h3><p>Delivery options and charges shown at checkout.</p></div>
+        <div><Sparkles /><h3>The LOLA Edit</h3><p>A considered selection of women’s fashion and everyday style.</p></div>
+        <div><ShieldCheck /><h3>Secure Checkout</h3><p>Protected payment options at checkout.</p></div>
       </div>
     </section>
-
     <div className="footer-community">
       <div className="container footer-community-grid">
-        <div><span className="footer-eyebrow">JOIN OUR COMMUNITY</span><h2>First look.<br/><em>First picks.</em></h2><p>New drops, exclusive offers and behind-the-scenes LOLA news.</p></div>
+        <div><span className="footer-eyebrow">A NOTE FROM LOLA</span><h2>Good things<br /><em>are worth sharing.</em></h2><p>New edits, thoughtful styling and the occasional little surprise.</p></div>
         <NewsletterForm compact />
       </div>
     </div>
-
     <div className="container footer-grid">
       <div className="footer-brand-block">
-        <img src="/Lola england.jpg" alt="LOLA ENGLAND" className="footer-brand-logo"/>
-        <p>Women’s T-shirts made for everyday confidence. Express your mood, your way.</p>
+        <img src="/Lola england.jpg" alt="LOLA ENGLAND" className="footer-brand-logo" />
+        <p>A considered edit of women’s fashion, from everyday essentials to pieces that make an entrance.</p>
       </div>
-      <div className="footer-group"><h4>SHOP</h4><Link href="/collection/all">All T-shirts</Link><Link href="/collection/oversized">Oversized</Link><Link href="/collection/graphics">Graphic</Link><Link href="/collection/everyday">Everyday</Link></div>
-      <div className="footer-group"><h4>ABOUT</h4><a href="/#about">Our Story</a><a href="/#models">Lookbook</a><a href="/#faq">FAQ</a><a href="/#contact">Contact</a></div>
-      <div className="footer-group"><h4>HELP</h4><a href="/shipping-returns">Delivery & Returns</a><a href="/returns">Start a Return</a><a href="/refund-policy">Refund Policy</a><a href="/terms">Terms & Conditions</a><a href="/privacy">Privacy Policy</a></div>
+      <div className="footer-group"><h4>SHOP</h4><Link href="/new-in">New In</Link><Link href="/collection/all">All Available Styles</Link><Link href="/collection/tops-t-shirts">Tops & T-Shirts</Link><Link href="/collection/dresses">Dresses</Link><Link href="/collection/outerwear">Coats & Jackets</Link></div>
+      <div className="footer-group"><h4>THE WARDROBE</h4><Link href="/collection/lingerie">Lingerie & Intimates</Link><Link href="/collection/nightwear">Nightwear</Link><Link href="/collection/knitwear">Knitwear</Link><Link href="/collection/activewear">Activewear</Link><Link href="/lookbook">The Lookbook</Link></div>
+      <div className="footer-group"><h4>HELP & INFORMATION</h4><Link href="/our-story">Our Story</Link><Link href="/contact">Contact</Link><Link href="/faq">FAQs</Link><Link href="/shipping-returns">Delivery & Returns</Link><Link href="/returns">Start a Return</Link><Link href="/privacy">Privacy Policy</Link><Link href="/terms">Terms & Conditions</Link></div>
     </div>
-
     <div className="container footer-bottom">
       <span>© {new Date().getFullYear()} LOLA ENGLAND</span>
-      <span>Made with intention · Jaipur, India</span>
-      <span>Secure UPI checkout</span>
+      <span>British-inspired womenswear · Designed in Jaipur, India</span>
+      <span>Secure checkout</span>
     </div>
   </footer>;
 }
