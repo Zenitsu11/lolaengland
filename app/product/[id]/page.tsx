@@ -9,7 +9,7 @@ import { RelatedProducts, RecentlyViewed } from '@/components/product-recommenda
 import { MetaProductView } from '@/components/meta-product-view';
 import './reviews.css';
 
-const SITE_URL='https://lolaengland.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lolaengland.com';
 type ProductForSeo={id:string|number;name:string;price:number;mrp:number;rating:number;reviews:number|string;description?:string;image_url?:string;image_urls?:string[]};
 
 export async function generateMetadata({params}:{params:Promise<{id:string}>}):Promise<Metadata>{
@@ -17,7 +17,7 @@ export async function generateMetadata({params}:{params:Promise<{id:string}>}):P
   const products=await getPublicProducts() as ProductForSeo[];
   const product=products.find(p=>String(p.id)===id);
   if(!product) return {title:'Product not found',robots:{index:false,follow:false}};
-  const description=(product.description||`Shop ${product.name} from LOLA ENGLAND. Women’s T-shirt at ₹${product.price.toLocaleString('en-IN')}.`).slice(0,160);
+  const description=(product.description||`Shop ${product.name} from LOLA ENGLAND. women’s clothing from LOLA ENGLAND.`).slice(0,160);
   const canonicalId=encodeURIComponent(String(product.id));
   const image=product.image_url||product.image_urls?.[0]||'/Lola england.jpg';
   return {title:product.name,description,alternates:{canonical:`${SITE_URL}/product/${canonicalId}`},openGraph:{type:'website',url:`${SITE_URL}/product/${canonicalId}`,title:`${product.name} | LOLA ENGLAND`,description,images:[{url:image,alt:product.name}]},twitter:{card:'summary_large_image',title:`${product.name} | LOLA ENGLAND`,description,images:[image]}};
@@ -26,7 +26,7 @@ export async function generateMetadata({params}:{params:Promise<{id:string}>}):P
 export default async function ProductPage({params}:{params:Promise<{id:string}>}) {
   const {id}=await params;
   const products=await getPublicProducts();
-  const product=products.find(p=>String(p.id)===id) ?? products[0];
+  const product=products.find(p=>String(p.id)===id);
   if(!product) return <main className="inner-page"><div className="container"><h1>Product not found</h1></div></main>;
   const variants=await getPublicProductVariants(String(product.id));
   const currentCategories=new Set((product.categories||[]).map((x)=>String(x).toLowerCase()));
@@ -38,15 +38,15 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
   const productUrl=`${SITE_URL}/product/${encodeURIComponent(String(product.id))}`;
   const productImage=product.image_url||product.image_urls?.[0]||`${SITE_URL}/Lola%20england.jpg`;
   const reviewCount=Number(product.reviews||0);
-  const productSchema:any={'@context':'https://schema.org','@type':'Product',name:product.name,description:product.description||`Women’s T-shirt from LOLA ENGLAND.`,image:[productImage,...(product.image_urls||[]).filter(Boolean)].slice(0,8),url:productUrl,brand:{'@type':'Brand',name:'LOLA ENGLAND'},offers:{'@type':'Offer',url:productUrl,priceCurrency:'INR',price:Number(product.price).toFixed(2),availability:'https://schema.org/InStock',itemCondition:'https://schema.org/NewCondition'}};
+  const productSchema:any={'@context':'https://schema.org','@type':'Product',name:product.name,description:product.description||`Women’s clothing from LOLA ENGLAND.`,image:[productImage,...(product.image_urls||[]).filter(Boolean)].slice(0,8),url:productUrl,brand:{'@type':'Brand',name:'LOLA ENGLAND'},offers:{'@type':'Offer',url:productUrl,priceCurrency:'INR',price:Number(product.price).toFixed(2),availability:'https://schema.org/InStock',itemCondition:'https://schema.org/NewCondition'}};
   if(reviewCount>0) productSchema.aggregateRating={'@type':'AggregateRating',ratingValue:Number(product.rating||0).toFixed(1),reviewCount,bestRating:'5',worstRating:'1'};
 
   return <main className="inner-page product-detail-page"><div className="container">
     <MetaProductView id={product.id} name={product.name} price={product.price} />
     <script type="application/ld+json" dangerouslySetInnerHTML={{__html:JSON.stringify(productSchema)}} />
-    <Link className="back-link" href="/collection/all"><ArrowLeft/> Back to shop</Link>
+    <Link className="back-link" href="/collection/all"><ArrowLeft/> Back to the edit</Link>
     <div className="product-detail"><ProductGallery name={product.name} front={product.image_url} back={product.secondary_image_url} images={product.image_urls} videos={product.video_urls}/>
-      <div className="product-detail-copy"><p className="editorial-eyebrow">LOLA ENGLAND · WOMEN’S T-SHIRT</p><h1>{product.name}</h1>
+      <div className="product-detail-copy"><p className="editorial-eyebrow">LOLA ENGLAND · WOMENSWEAR</p><h1>{product.name}</h1>
         <div className="detail-rating"><Star/><Star/><Star/><Star/><Star/> <span>{product.rating} · {Number(product.reviews||0).toLocaleString('en-IN')} ratings</span></div>
         <div className="detail-price">₹{product.price.toLocaleString('en-IN')} <del>₹{product.mrp.toLocaleString('en-IN')}</del></div>
         <p className="detail-description">{product.description || 'A relaxed women’s T-shirt made for easy everyday styling. Pair it with denim, cargos or your favourite layers.'}</p>
