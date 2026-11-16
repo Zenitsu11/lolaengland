@@ -13,11 +13,23 @@ type ProductGalleryProps = {
 
 export function ProductGallery({ name, front, back, images: providedImages, videos: providedVideos }: ProductGalleryProps) {
   const [active, setActive] = useState(0);
+  const [variantImage, setVariantImage] = useState<string | null>(null);
   const startX = useRef<number | null>(null);
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
   const [videoSound, setVideoSound] = useState<Record<number, boolean>>({});
 
-  const rawImages = providedImages?.length ? providedImages : [front, back].filter(Boolean) as string[];
+  useEffect(() => {
+    const handleVariantImage = (event: Event) => {
+      const detail = (event as CustomEvent<{ imageUrl?: string | null }>).detail;
+      setVariantImage(detail?.imageUrl || null);
+      setActive(0);
+    };
+    window.addEventListener('lola-product-variant-image', handleVariantImage);
+    return () => window.removeEventListener('lola-product-variant-image', handleVariantImage);
+  }, []);
+
+  const baseImages = providedImages?.length ? providedImages : [front, back].filter(Boolean) as string[];
+  const rawImages = variantImage ? [variantImage, ...baseImages.filter(src => src !== variantImage)] : baseImages;
   const images = rawImages.map(src=>({src,type:'image' as const})).filter((item): item is { src: string; type:'image' } => Boolean(item.src));
   const videos = (providedVideos ?? []).slice(0,2).filter(Boolean).map(src=>({src,type:'video' as const}));
   const media = [...images, ...videos];

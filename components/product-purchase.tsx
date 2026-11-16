@@ -19,6 +19,10 @@ export function ProductPurchase({product}:{product:ProductProps}){
  const sizeOptions=useMemo(()=>variantMode?sizes.filter(s=>variants.some(v=>v.size===s.label&&(!color||v.color===color)&&(v.fit_type||'Regular')===fitType&&v.active)):sizes,[variants,variantMode,color]);
  const selectedVariant=variantMode?variants.find(v=>v.size===size&&v.color===color&&(v.fit_type||'Regular')===fitType&&v.active):null;
  const available=selectedVariant?(!selectedVariant.track_inventory||selectedVariant.stock_qty-selectedVariant.reserved_qty>0):true;
+ function updateGalleryImage(nextColor:string,nextFit:string){
+   const imageVariant=variants.find(v=>v.color===nextColor&&(v.fit_type||'Regular')===nextFit&&v.active&&v.image_url);
+   window.dispatchEvent(new CustomEvent('lola-product-variant-image',{detail:{imageUrl:imageVariant?.image_url||null}}));
+ }
  function addBag(){
    if(!size||!available||(variantMode&&!color))return;
    const lineId=`${product.id}-${fitType}-${size}-${color||'default'}`;
@@ -27,8 +31,8 @@ export function ProductPurchase({product}:{product:ProductProps}){
    setAdded(true);setTimeout(()=>setAdded(false),1800);
  }
  return <div className="purchase-box">
-   {fitMode&&<div className="size-picker"><div className="size-picker-head"><strong>Select your fit</strong></div><div className="size-grid" role="radiogroup" aria-label="T-shirt fit">{fitOptions.map(f=><button key={f} type="button" className={'size-chip'+(fitType===f?' selected':'')} onClick={()=>{setFitType(f);setSize('')}} aria-pressed={fitType===f}>{f}</button>)}</div></div>}
-   {variantMode&&<div className="color-picker"><div className="size-picker-head"><strong>Select your color</strong><small>{color||'Choose a colour'}</small></div><div className="color-grid" role="radiogroup" aria-label="T-shirt color">{colors.map(v=><button key={v.color} type="button" className={'color-chip'+(color===v.color?' selected':'')} onClick={()=>{setColor(v.color);setSize('')}} aria-pressed={color===v.color}><span className="color-swatch" style={{backgroundColor:v.color_hex||'#ddd'}}/><span>{v.color}</span></button>)}</div></div>}
+   {fitMode&&<div className="size-picker"><div className="size-picker-head"><strong>Select your fit</strong></div><div className="size-grid" role="radiogroup" aria-label="T-shirt fit">{fitOptions.map(f=><button key={f} type="button" className={'size-chip'+(fitType===f?' selected':'')} onClick={()=>{setFitType(f);setSize('');updateGalleryImage(color,f)}} aria-pressed={fitType===f}>{f}</button>)}</div></div>}
+   {variantMode&&<div className="color-picker"><div className="size-picker-head"><strong>Select your colour</strong><small>{color||'Choose a colour'}</small></div><div className="color-grid" role="radiogroup" aria-label="T-shirt colour">{colors.map(v=><button key={v.color} type="button" className={'color-chip'+(color===v.color?' selected':'')} onClick={()=>{setColor(v.color);setSize('');updateGalleryImage(v.color,fitType)}} aria-pressed={color===v.color}><span className="color-swatch" style={{backgroundColor:v.color_hex||'#ddd'}}/><span>{v.color}</span></button>)}</div></div>}
    <div className="size-picker">
     <div className="size-picker-head"><strong>Select your size</strong><button type="button" className="size-guide-trigger" onClick={()=>document.getElementById('lola-size-guide')?.scrollIntoView({behavior:'smooth',block:'center'})}><Ruler size={16}/> Size guide</button></div>
     <div className="size-grid" role="radiogroup" aria-label="T-shirt size">{sizeOptions.map(s=>{const v=variantMode?variants.find(x=>x.size===s.label&&x.color===color&&x.active):null;const inStock=!variantMode||!v?.track_inventory||(v.stock_qty-v.reserved_qty>0);return <button key={s.label} type="button" className={'size-chip'+(size===s.label?' selected':'')+(inStock?'':' sold-out')} onClick={()=>inStock&&setSize(s.label)} disabled={!inStock} aria-pressed={size===s.label}>{s.label}{!inStock?<small>Sold out</small>:null}</button>})}</div>

@@ -6,10 +6,10 @@ import { useEffect, useRef, useState, type KeyboardEvent, type TouchEvent } from
 import { SafeImage } from '@/components/safe-image';
 
 const slides = [
-  { image:'/products/lola-brown-front.webp?v=8', kicker:'LOLA ENGLAND · WOMEN’S EDIT', title:'Wear your', italic:'mood.', copy:'Trendy, comfortable and made for every version of you. Express yourself with women’s T-shirts that speak louder.', quote:'“Good outfits. Brighter days.”', note:'THE NEW', label:'LOLA GIRL', href:'/collection/all' },
-  { image:'/products/lola-mint-front.webp?v=6', kicker:'01 · SOFT MINT', title:'Soft looks.', italic:'strong mood.', copy:'Soft colour, relaxed energy and an easy tee made for everyday plans, coffee runs and little adventures.', quote:'“Pretty, playful, effortless.”', note:'SOFT EDIT', label:'LOLA GIRL', href:'/collection/soft-pink' },
-  { image:'/products/lola-navy-front.webp?v=6', kicker:'02 · AFTER DARK', title:'Own the', italic:'night.', copy:'A deeper mood for evenings, city walks and everything after sunset. Easy fit, bold energy.', quote:'“Bold looks. Easy confidence.”', note:'NIGHT EDIT', label:'AFTER DARK', href:'/collection/after-dark' },
-  { image:'/products/lola-olive-front.webp?v=6', kicker:'03 · GRAPHIC GIRL', title:'Say it with', italic:'your tee.', copy:'Statement graphics, relaxed silhouettes and main-character energy without trying too hard.', quote:'“Style that feels like you.”', note:'GRAPHIC EDIT', label:'GRAPHIC GIRL', href:'/collection/graphic-girl' },
+  { image:'/products/lola-brown-front.webp?v=8', kicker:'LOLA ENGLAND · THE WOMENSWEAR EDIT', title:'Wear your', italic:'mood.', copy:'Considered everyday pieces, expressive details and an easy sense of confidence. Discover the current LOLA edit.', quote:'“A little more considered. A little more you.”', note:'THE NEW', label:'LOLA GIRL', href:'/collection/all' },
+  { image:'/products/lola-mint-front.webp?v=6', kicker:'01 · SOFT MINT', title:'Softly', italic:'considered.', copy:'A softer palette, an effortless fit and thoughtful details for the rhythm of everyday life.', quote:'“Pretty, playful, effortless.”', note:'SOFT EDIT', label:'LOLA GIRL', href:'/collection/soft-pink' },
+  { image:'/products/lola-navy-front.webp?v=6', kicker:'02 · AFTER DARK', title:'After', italic:'hours.', copy:'A deeper palette for late plans and city evenings. Effortless shape, understated confidence.', quote:'“Bold looks. Easy confidence.”', note:'NIGHT EDIT', label:'AFTER DARK', href:'/collection/after-dark' },
+  { image:'/products/lola-olive-front.webp?v=6', kicker:'03 · GRAPHIC GIRL', title:'Make it', italic:'personal.', copy:'Expressive graphics and relaxed silhouettes, made to bring personality to everyday dressing.', quote:'“Style that feels like you.”', note:'GRAPHIC EDIT', label:'GRAPHIC GIRL', href:'/collection/graphic-girl' },
 ];
 
 const INTERVAL = 5000;
@@ -82,7 +82,7 @@ export function MoodHero({ imageUrls = [], videoUrls = [] }: MoodHeroProps) {
               <p className="editorial-kicker">{slide.kicker}</p>
               <h1>{slide.title}<br/><em>{slide.italic}</em></h1>
               <p>{slide.copy}</p>
-              <div className="editorial-hero-quote"><span>✦</span><div><strong>{slide.quote}</strong><small>More than just a tee.</small></div></div>
+              <div className="editorial-hero-quote"><span>✦</span><div><strong>{slide.quote}</strong><small>The everyday, elevated.</small></div></div>
               <Link className="btn btn-dark" href={slide.href}>SHOP THE EDIT <ArrowRight/></Link>
             </div>
             <Link className="mood-hero-image image-safe" href={slide.href} aria-label={'Shop ' + slide.label}>

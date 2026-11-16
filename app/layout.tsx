@@ -16,6 +16,7 @@ import './returns-polish.css';
 import './collection-filters.css';
 import './search.css';
 import './store-error.css';
+import './british-luxury.css';
 import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 import { CartProvider } from '@/components/cart-provider';
@@ -24,30 +25,30 @@ import { getSiteMedia } from '@/lib/catalog';
 
 const GA_MEASUREMENT_ID = 'G-2R4KNXCNNM';
 const META_PIXEL_ID = '2735313303532561';
-const SITE_URL = 'https://lolaengland.vercel.app';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lolaengland.com';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'LOLA ENGLAND — Women’s T-Shirts',
+    default: 'LOLA ENGLAND — Contemporary Womenswear',
     template: '%s | LOLA ENGLAND',
   },
-  description: 'Shop expressive women’s T-shirts from LOLA ENGLAND — graphic tees, everyday styles and statement looks.',
+  description: 'Discover the LOLA ENGLAND edit of contemporary womenswear, from everyday essentials and considered layers to lingerie, dresses and statement pieces.',
   applicationName: 'LOLA ENGLAND',
-  keywords: ['women’s t-shirts', 'women t shirts India', 'graphic t-shirts', 'oversized t-shirts', 'LOLA ENGLAND'],
+  keywords: ['women’s clothing', 'womenswear', 'women’s fashion', 'women’s lingerie', 'women’s dresses', 'women’s tops', 'women’s outerwear', 'LOLA ENGLAND'],
   alternates: { canonical: SITE_URL },
   robots: { index: true, follow: true },
   openGraph: {
     type: 'website',
     siteName: 'LOLA ENGLAND',
     url: SITE_URL,
-    title: 'LOLA ENGLAND — Women’s T-Shirts',
-    description: 'Expressive women’s T-shirts, editorial looks and everyday style.',
+    title: 'LOLA ENGLAND — Contemporary Womenswear',
+    description: 'A considered edit of contemporary womenswear, everyday essentials and statement style.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'LOLA ENGLAND — Women’s T-Shirts',
-    description: 'Expressive women’s T-shirts, editorial looks and everyday style.',
+    title: 'LOLA ENGLAND — Contemporary Womenswear',
+    description: 'A considered edit of contemporary womenswear, everyday essentials and statement style.',
   },
 };
 
@@ -64,13 +65,13 @@ const websiteSchema = {
   '@type': 'WebSite',
   name: 'LOLA ENGLAND',
   url: SITE_URL,
-  description: 'Women’s T-shirts, graphic tees, oversized styles and everyday looks from LOLA ENGLAND.',
+  description: 'Contemporary womenswear, everyday essentials and considered style from LOLA ENGLAND.',
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   const logoUrl = (await getSiteMedia('brand-logo'))[0]?.url || '/Lola england.jpg';
   return (
-    <html lang="en">
+    <html lang="en-GB">
       <body>
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
