@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { getPublicProducts } from '@/lib/catalog';
 
-const BASE_URL = 'https://lolaengland.vercel.app';
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lolaengland.com';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -11,6 +11,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/new-in',
     '/collection/all',
     '/about',
+    '/our-story',
+    '/lookbook',
+    '/privacy',
+    '/terms',
+    '/refund-policy',
     '/contact',
     '/faq',
     '/shipping-returns',
