@@ -89,7 +89,7 @@ export function MoodHero({ imageUrls = [], videoUrls = [] }: MoodHeroProps) {
               {slide.video ? (
                 <video ref={element => { heroVideoRefs.current[index] = element; }} className="mood-hero-video" src={slide.video} autoPlay={index===active} muted loop playsInline preload={index===active ? "auto" : "none"} aria-hidden="true" />
               ) : (
-                <SafeImage src={slide.image} fallbackSrc={slide.image} alt={'LOLA ENGLAND ' + slide.label + ' women’s T-shirt'} width={1071} height={1536} fetchPriority={index===0 ? 'high' : undefined} />
+                <SafeImage src={slide.image} fallbackSrc={slide.image} alt={'LOLA ENGLAND ' + slide.label + ' women’s T-shirt'} width={1071} height={1536} fetchPriority={index===0 ? 'high' : undefined} loading={index===0 ? 'eager' : 'lazy'} decoding="async" />
               )}
               <div className="mood-hero-note"><span>{slide.note}</span><strong>{slide.label}</strong></div>
             </Link>
