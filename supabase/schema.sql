@@ -15,6 +15,7 @@ create table if not exists public.products (
   video_urls text[] not null default '{}',
   amazon_url text not null default '',
   flipkart_url text not null default '',
+  myntra_url text not null default '',
   featured boolean not null default true,
   active boolean not null default true,
   sort_order integer not null default 0,
@@ -29,6 +30,7 @@ create table if not exists public.store_settings (
   instagram_url text not null default '',
   whatsapp_url text not null default '',
   contact_email text not null default '',
+  myntra_seller_url text not null default '',
   updated_at timestamptz not null default now()
 );
 

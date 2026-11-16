@@ -21,7 +21,6 @@ import { SiteHeader } from '@/components/site-header';
 import { Footer } from '@/components/footer';
 import { CartProvider } from '@/components/cart-provider';
 import { MetaPixelPageViews } from '@/components/meta-pixel-pageviews';
-import { getSiteMedia } from '@/lib/catalog';
 
 const GA_MEASUREMENT_ID = 'G-2R4KNXCNNM';
 const META_PIXEL_ID = '2735313303532561';
@@ -57,7 +56,7 @@ const organizationSchema = {
   '@type': 'Organization',
   name: 'LOLA ENGLAND',
   url: SITE_URL,
-  logo: `${SITE_URL}/Lola%20england.jpg`,
+  logo: `${SITE_URL}/logo.svg`,
 };
 
 const websiteSchema = {
@@ -69,7 +68,7 @@ const websiteSchema = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
-  const logoUrl = (await getSiteMedia('brand-logo'))[0]?.url || '/Lola england.jpg';
+  const logoUrl = '/logo.svg';
   return (
     <html lang="en-GB">
       <body>

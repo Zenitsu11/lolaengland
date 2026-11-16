@@ -11,7 +11,7 @@ const sizes=[
  {label:'L',chest:'38–40 in',cm:'97–102 cm'}, {label:'XL',chest:'40–42 in',cm:'102–107 cm'}, {label:'XXL',chest:'42–44 in',cm:'107–112 cm'}, {label:'3XL',chest:'44–46 in',cm:'112–117 cm'}
 ];
 
-type ProductProps={id:string|number,name:string,price:number,image_url?:string,image_urls?:string[];amazon?:string;flipkart?:string;variants?:ProductVariant[]};
+type ProductProps={id:string|number,name:string,price:number,image_url?:string,image_urls?:string[];amazon?:string;flipkart?:string;myntra?:string;variants?:ProductVariant[]};
 export function ProductPurchase({product}:{product:ProductProps}){
  const {add}=useCart(); const [added,setAdded]=useState(false); const [size,setSize]=useState(''); const [color,setColor]=useState(''); const [fitType,setFitType]=useState('Regular');
  const variants=product.variants||[]; const variantMode=variants.length>0;
@@ -40,7 +40,7 @@ export function ProductPurchase({product}:{product:ProductProps}){
     {selectedVariant&&selectedVariant.track_inventory?<small className="stock-hint">{available?(selectedVariant.stock_qty-selectedVariant.reserved_qty<=3?`Only ${selectedVariant.stock_qty-selectedVariant.reserved_qty} left`:'In stock'):'Sold out'}</small>:null}
    </div>
    <button className="checkout-pay add-bag-btn" onClick={addBag} disabled={!size||!available||(variantMode&&!color)}>{added?<><Check/> Added to LOLA bag</>:<><ShoppingBag/> Add {size?size+' ':''}to bag</>}</button>
-   <div className="detail-actions">{product.amazon?<a className="market amazon" href={product.amazon} target="_blank" rel="noopener noreferrer">Shop on Amazon <ArrowUpRight/></a>:null}{product.flipkart?<a className="market flipkart" href={product.flipkart} target="_blank" rel="noopener noreferrer">Shop on Flipkart <ArrowUpRight/></a>:null}</div>
+   <div className="detail-actions">{product.amazon?<a className="market amazon" href={product.amazon} target="_blank" rel="noopener noreferrer">Shop on Amazon <ArrowUpRight/></a>:null}{product.flipkart?<a className="market flipkart" href={product.flipkart} target="_blank" rel="noopener noreferrer">Shop on Flipkart <ArrowUpRight/></a>:null}{product.myntra?<a className="market myntra" href={product.myntra} target="_blank" rel="noopener noreferrer">Shop on Myntra <ArrowUpRight/></a>:null}</div>
    <Link className="btn btn-dark detail-back" href="/cart">View LOLA bag <ArrowUpRight/></Link>
  </div>;
 }

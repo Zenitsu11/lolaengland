@@ -25,7 +25,7 @@ const editorial = [
   { label: 'Our Story', href: '/our-story' },
 ];
 
-export function SiteHeader({ logoUrl = '/Lola england.jpg' }: { logoUrl?: string }) {
+export function SiteHeader({ logoUrl = '/logo.svg' }: { logoUrl?: string }) {
   const [open, setOpen] = useState(false);
   const { items } = useCart();
   const [wishlistCount, setWishlistCount] = useState(0);
