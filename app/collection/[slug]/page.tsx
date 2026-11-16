@@ -43,8 +43,10 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   const { slug } = await params;
   const collection = collections[slug] ?? collections.all;
   const products = (await getPublicProducts()).filter(product => {
-    if (slug === 'all' || !collections[slug]?.category) return slug === 'all';
-    const categories = (product.categories || []).map(value => value.toLowerCase().replace(/\\s+/g, '-'));
+    if (slug === 'all') return true;
+    if (slug === 'tops-t-shirts') return true;
+    if (!collections[slug]?.category) return false;
+    const categories = (product.categories || []).map(value => value.toLowerCase().replace(/\s+/g, '-'));
     return categories.includes(collection.category!.toLowerCase()) || categories.includes(slug);
   });
   const variants = await getPublicProductVariantsForProducts(products.map(product => String(product.id)));
