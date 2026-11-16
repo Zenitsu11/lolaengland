@@ -53,7 +53,7 @@ a { text-underline-offset: 4px; }
 .british-mobile-menu { padding: 22px 24px 34px; background: var(--lola-paper); }
 .mobile-menu-top { display: flex; align-items: center; justify-content: space-between; padding-bottom: 18px; border-bottom: 1px solid var(--lola-stone); }
 .mobile-menu-top .mobile-brand-link { align-self: center; }
-.mobile-menu-top .mobile-logo { width: 112px; height: 58px; object-fit: contain; }
+.mobile-menu-top .mobile-logo { width: 158px; height: 58px; object-fit: contain; }
 .british-mobile-menu > a, .british-mobile-menu > details > summary {
   display: flex; justify-content: space-between; align-items: center; padding: 17px 2px;
   border-bottom: 1px solid var(--lola-stone); color: var(--lola-ink); font: 500 23px/1.1 var(--lola-serif);
@@ -164,8 +164,8 @@ body { background:var(--lola-paper)!important; color:var(--lola-ink)!important; 
   backdrop-filter:blur(16px);
 }
 .british-nav { width:min(1380px,calc(100% - 64px))!important; min-height:94px!important; height:94px!important; gap:30px!important; }
-.brand-frame { width:136px!important; height:76px!important; flex-basis:136px!important; background:transparent!important; }
-.brand-logo { width:136px!important; height:76px!important; max-width:136px!important; max-height:76px!important; object-fit:contain!important; background:transparent!important; }
+.brand-frame { width:190px!important; height:76px!important; flex-basis:190px!important; background:transparent!important; }
+.brand-logo { width:190px!important; height:76px!important; max-width:190px!important; max-height:76px!important; object-fit:contain!important; background:transparent!important; }
 .british-desktop-nav { gap:clamp(14px,1.8vw,29px)!important; font-size:10px!important; letter-spacing:.16em!important; }
 .british-desktop-nav > a,.nav-dropdown > summary { min-height:94px!important; font-size:10px!important; }
 .british-actions { gap:18px!important; }
@@ -354,7 +354,7 @@ body { background:var(--lola-paper)!important; color:var(--lola-ink)!important; 
 }
 @media(max-width:480px) {
   .british-nav { width:calc(100% - 28px)!important; }
-  .brand-frame,.brand-logo { width:108px!important; height:62px!important; max-width:108px!important; max-height:62px!important; flex-basis:108px!important; }
+  .brand-frame,.brand-logo { width:142px!important; height:62px!important; max-width:142px!important; max-height:62px!important; flex-basis:142px!important; }
   .british-actions { gap:7px!important; }
   .british-actions svg { width:19px!important; height:19px!important; }
   .british-announcement { font-size:7px!important; letter-spacing:.13em!important; }
