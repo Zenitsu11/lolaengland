@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600"><rect width="900" height="600" fill="#050505"/><text x="42" y="360" fill="#fff" font-family="Georgia,serif" font-size="210">L</text><circle cx="430" cy="265" r="150" fill="none" stroke="#efb9c6" stroke-width="10"/><text x="570" y="360" fill="#efb9c6" font-family="Georgia,serif" font-size="210">A</text><path d="M360 220c-45-80 35-130 72-72 37-58 117-8 72 72-17 30-55 58-72 71-17-13-55-41-72-71z" fill="none" stroke="#fff" stroke-width="7"/><circle cx="420" cy="232" r="10" fill="#efb9c6"/><path d="M693 85l18 42 46 4-35 29 10 45-39-23-40 23 11-45-36-29 46-4z" fill="none" stroke="#efb9c6" stroke-width="6"/><text x="305" y="510" fill="#fff" font-family="Arial,sans-serif" font-size="38" letter-spacing="18">ENGLAND</text><path d="M35 492h170M695 492h170" stroke="#efb9c6" stroke-width="4"/><circle cx="235" cy="492" r="12" fill="#efb9c6"/><circle cx="665" cy="492" r="12" fill="#efb9c6"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
+<title id="title">LOLA ENGLAND</title><desc id="desc">LOLA ENGLAND premium fashion wordmark with a delicate rose emblem.</desc>
+<g fill="none" stroke="#6b293b" stroke-width="3">
+<path d="M44 160h54M1102 160h54" opacity=".65"/>
+<circle cx="130" cy="160" r="42"/><path d="M130 132c-19-25-43 0-25 19 8 9 19 18 25 23 6-5 17-14 25-23 18-19-6-44-25-19z"/>
+<path d="M130 132v42M111 151h38" opacity=".6"/>
+</g>
+<text x="205" y="184" fill="#38202a" font-family="Georgia,'Times New Roman',serif" font-size="142" letter-spacing="13">LOLA</text>
+<text x="624" y="184" fill="#8d6570" font-family="Georgia,'Times New Roman',serif" font-size="142" letter-spacing="13">ENGLAND</text>
+<path d="M208 226h785" stroke="#b99b83" stroke-width="2"/>
+<text x="600" y="272" fill="#8d7770" font-family="Arial,sans-serif" font-size="20" letter-spacing="11" text-anchor="middle">CONTEMPORARY WOMENSWEAR</text>
+</svg>
