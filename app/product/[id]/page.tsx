@@ -21,7 +21,7 @@ export async function generateMetadata({params}:{params:Promise<{id:string}>}):P
   if(!product) return {title:'Product not found',robots:{index:false,follow:false}};
   const description=(product.description||`Shop ${product.name} from LOLA ENGLAND. women’s clothing from LOLA ENGLAND.`).slice(0,160);
   const canonicalId=encodeURIComponent(String(product.id));
-  const image=product.image_url||product.image_urls?.[0]||'/Lola england.jpg';
+  const image=product.image_url||product.image_urls?.[0]||'/logo.svg';
   return {title:product.name,description,alternates:{canonical:`${SITE_URL}/product/${canonicalId}`},openGraph:{type:'website',url:`${SITE_URL}/product/${canonicalId}`,title:`${product.name} | LOLA ENGLAND`,description,images:[{url:image,alt:product.name}]},twitter:{card:'summary_large_image',title:`${product.name} | LOLA ENGLAND`,description,images:[image]}};
 }
 
@@ -53,7 +53,7 @@ export default async function ProductPage({params}:{params:Promise<{id:string}>}
         <div className="detail-rating"><Star/><Star/><Star/><Star/><Star/> <span>{product.rating} · {Number(product.reviews||0).toLocaleString('en-IN')} ratings</span></div>
         <div className="detail-price">₹{product.price.toLocaleString('en-IN')} <del>₹{product.mrp.toLocaleString('en-IN')}</del></div>
         <p className="detail-description">{product.description || 'A relaxed women’s T-shirt made for easy everyday styling. Pair it with denim, cargos or your favourite layers.'}</p>
-        <ProductPurchase product={{id:product.id,name:product.name,price:product.price,image_url:product.image_url,image_urls:product.image_urls,amazon:product.amazon,flipkart:product.flipkart,variants}}/>
+        <ProductPurchase product={{id:product.id,name:product.name,price:product.price,image_url:product.image_url,image_urls:product.image_urls,amazon:product.amazon,flipkart:product.flipkart,myntra:product.myntra,variants}}/>
       </div>
     </div>
 
