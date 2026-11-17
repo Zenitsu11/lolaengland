@@ -506,3 +506,101 @@ a:focus-visible,button:focus-visible,summary:focus-visible { outline:2px solid v
 @media(prefers-reduced-motion:reduce) {
  *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
 }
+
+
+/* Mobile header repair: keep the wordmark centred and give every action its own space. */
+@media (max-width: 900px) {
+  .british-nav {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 76px !important;
+    height: 76px !important;
+    gap: 0 !important;
+  }
+  .british-menu-toggle {
+    position: relative !important;
+    z-index: 2 !important;
+    display: inline-flex !important;
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    min-width: 38px !important;
+    min-height: 42px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+  }
+  .british-nav > .brand {
+    position: absolute !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: min(30vw, 120px) !important;
+    min-width: 0 !important;
+    height: 58px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    flex: 0 1 auto !important;
+    overflow: visible !important;
+  }
+  .british-nav > .brand .brand-frame {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 58px !important;
+    flex: 0 1 auto !important;
+  }
+  .british-nav > .brand .brand-logo {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 58px !important;
+    max-height: 58px !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+  .british-nav > .british-actions {
+    position: relative !important;
+    z-index: 2 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    flex: 0 0 auto !important;
+    gap: 4px !important;
+    margin-left: auto !important;
+  }
+  .british-nav > .british-actions > a {
+    display: grid !important;
+    place-items: center !important;
+    flex: 0 0 26px !important;
+    width: 26px !important;
+    min-width: 26px !important;
+    max-width: 26px !important;
+    height: 42px !important;
+    min-height: 42px !important;
+    padding: 0 !important;
+  }
+  .british-nav > .british-actions > a svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+}
+@media (max-width: 360px) {
+  .british-nav > .brand {
+    width: 23vw !important;
+  }
+  .british-nav > .british-actions {
+    gap: 2px !important;
+  }
+  .british-nav > .british-actions > a {
+    flex-basis: 24px !important;
+    width: 24px !important;
+    min-width: 24px !important;
+    max-width: 24px !important;
+  }
+}
