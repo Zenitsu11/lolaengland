@@ -1,12 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title desc">
-<title id="title">LOLA ENGLAND</title><desc id="desc">LOLA ENGLAND premium fashion wordmark with a delicate rose emblem.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" role="img" aria-labelledby="title desc">
+<title id="title">LOLA</title>
+<desc id="desc">LOLA contemporary womenswear wordmark with a delicate rose emblem.</desc>
 <g fill="none" stroke="#6b293b" stroke-width="3">
-<path d="M44 160h54M1102 160h54" opacity=".65"/>
-<circle cx="130" cy="160" r="42"/><path d="M130 132c-19-25-43 0-25 19 8 9 19 18 25 23 6-5 17-14 25-23 18-19-6-44-25-19z"/>
-<path d="M130 132v42M111 151h38" opacity=".6"/>
+<circle cx="104" cy="143" r="42"/><path d="M104 115c-19-25-43 0-25 19 8 9 19 18 25 23 6-5 17-14 25-23 18-19-6-44-25-19z"/>
+<path d="M104 115v42M85 134h38" opacity=".6"/>
 </g>
-<text x="205" y="184" fill="#38202a" font-family="Georgia,'Times New Roman',serif" font-size="142" letter-spacing="13">LOLA</text>
-<text x="624" y="184" fill="#8d6570" font-family="Georgia,'Times New Roman',serif" font-size="142" letter-spacing="13">ENGLAND</text>
-<path d="M208 226h785" stroke="#b99b83" stroke-width="2"/>
-<text x="600" y="272" fill="#8d7770" font-family="Arial,sans-serif" font-size="20" letter-spacing="11" text-anchor="middle">CONTEMPORARY WOMENSWEAR</text>
+<text x="176" y="190" fill="#38202a" font-family="Georgia,'Times New Roman',serif" font-size="154" letter-spacing="14">LOLA</text>
+<path d="M178 226h405" stroke="#b99b83" stroke-width="2"/>
+<text x="380" y="272" fill="#8d7770" font-family="Arial,sans-serif" font-size="17" letter-spacing="7" text-anchor="middle">CONTEMPORARY WOMENSWEAR</text>
 </svg>
