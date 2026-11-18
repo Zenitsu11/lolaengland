@@ -29,19 +29,19 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.lolaengland.co
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'LOLA ENGLAND — Contemporary Womenswear',
-    template: '%s | LOLA ENGLAND',
+    default: 'LOLA — Contemporary Womenswear',
+    template: '%s | LOLA',
   },
   description: 'Discover the LOLA ENGLAND edit of contemporary womenswear, from everyday essentials and considered layers to lingerie, dresses and statement pieces.',
-  applicationName: 'LOLA ENGLAND',
+  applicationName: 'LOLA',
   keywords: ['women’s clothing', 'womenswear', 'women’s fashion', 'women’s lingerie', 'women’s dresses', 'women’s tops', 'women’s outerwear', 'LOLA ENGLAND'],
   alternates: { canonical: SITE_URL },
   robots: { index: true, follow: true },
   openGraph: {
     type: 'website',
-    siteName: 'LOLA ENGLAND',
+    siteName: 'LOLA',
     url: SITE_URL,
-    title: 'LOLA ENGLAND — Contemporary Womenswear',
+    title: 'LOLA — Contemporary Womenswear',
     description: 'A considered edit of contemporary womenswear, everyday essentials and statement style.',
   },
   twitter: {
@@ -54,7 +54,8 @@ export const metadata: Metadata = {
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
-  name: 'LOLA ENGLAND',
+  name: 'LOLA',
+  alternateName: 'LOLA ENGLAND',
   url: SITE_URL,
   logo: `${SITE_URL}/logo.svg`,
 };
@@ -62,7 +63,8 @@ const organizationSchema = {
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  name: 'LOLA ENGLAND',
+  name: 'LOLA',
+  alternateName: 'LOLA ENGLAND',
   url: SITE_URL,
   description: 'Contemporary womenswear, everyday essentials and considered style from LOLA ENGLAND.',
 };
