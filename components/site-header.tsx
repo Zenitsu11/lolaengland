@@ -48,8 +48,8 @@ export function SiteHeader({ logoUrl = '/logo.svg' }: { logoUrl?: string }) {
     <header className="header british-header">
       <div className="nav container british-nav">
         <button className="menu british-menu-toggle" onClick={() => setOpen(true)} aria-label="Open menu"><Menu /></button>
-        <Link className="brand" href="/" aria-label="LOLA ENGLAND home" onClick={closeMenu}>
-          <span className="brand-frame"><img className="brand-logo" src={logoUrl} alt="LOLA ENGLAND" /></span>
+        <Link className="brand" href="/" aria-label="LOLA home" onClick={closeMenu}>
+          <span className="brand-frame"><img className="brand-logo" src={logoUrl} alt="LOLA" /></span>
         </Link>
         <nav className="desktop-nav british-desktop-nav" aria-label="Main navigation">
           <Link href="/new-in">New In</Link>
